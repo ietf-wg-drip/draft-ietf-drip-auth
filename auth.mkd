@@ -111,6 +111,10 @@ The current standard for Remote ID (RID) does not, in any meaningful capacity, a
 
 The following subsections will provide a high level reference to the ASTM standard for Authentication Messages and how their current limitations effect trust in the Broadcast RID environment.
 
+## Reasoning for IETF DRIP Authentication
+
+The ASTM Authentication Message has provisions in {{F3411-19}} to allow for other organizations to define (and standardize) Authentication formats. The standardization of special formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. No existing formats (defined by ASTM or others) was flexible enough to satisfy this goal resulting in the work reflected in this document.
+
 ## ASTM Authentication Message
 
 {:fig: artwork-align="center"}
