@@ -1,9 +1,9 @@
 ---
 coding: utf-8
 
-title: DRIP Authentication Formats for Broadcast RID
+title: DRIP Authentication Formats for Broadcast Remote ID
 abbrev: auth-formats
-docname: draft-ietf-drip-auth-02
+docname: draft-ietf-drip-auth-03
 category: info
 
 ipr: trust200902
@@ -46,7 +46,7 @@ author:
     email: rgm@labs.htt-consult.com
 
 normative:
-    F3411-19:
+    F3411:
         title: "Standard Specification for Remote ID and Tracking"
         author:
         org: ASTM International
@@ -55,23 +55,24 @@ normative:
 informative:
     drip-requirements: I-D.ietf-drip-reqs
     drip-rid: I-D.ietf-drip-uas-rid
-    identity-claims: I-D.wiethuechter-drip-identity-claims
+    drip-registries: I-D.wiethuechter-drip-registries
 
 --- abstract
 
-This document describes how to include trust into the ASTM Remote ID specification defined in ASTM F3411-19 under a Broadcast Remote ID (RID) scenario. It defines a few different message schemes (based on the Authentication Message) that can be used to assure past messages sent by a UA and also act as an assurance for UA trustworthiness in the absence of Internet connectivity at the receiving node.
+This document describes how to include trust into the ASTM Remote ID specification defined in ASTM F3411 under Broadcast Remote ID (RID). It defines a few message schemes (sent within the
+Authentication Message) that can be used to authenticate past messages sent by a unmanned aircraft (UA) and provide proof of UA trustworthiness even in the absence of Internet connectivity at the receiving node.
 
 --- middle
 
 # Introduction
 
-UA Systems (UAS) are usually in a volatile environment when it comes to communication. UA are generally small with little computational (or flying)  horsepower to carry standard communication equipment. This limits  the mediums of communication to few viable options.
+Unmanned Aircraft Systems (UAS) are usually in a volatile environment when it comes to communication. UA are generally small with little computational (or flying) horsepower to carry standard communication equipment. This limits  the mediums of communication to few viable options.
 
 Observer systems (e.g. smartphones and tablets) place further constraints on the communication options. The Remote ID Broadcast messages MUST be available to applications on these platforms without modifying the devices.
 
-The ASTM standard {{F3411-19}} focuses on two ways of communicating to a UAS for RID: Broadcast and Network.
+The ASTM {{F3411}} standard focuses on two ways of communicating to a UAS for Remote ID (RID): Broadcast and Network.
 
-This document will focus on adding trust to Broadcast RID in the current (and an expanded) Authentication Message format.
+This document will focus on adding trust to Broadcast RID via the Authentication Message by combining dynamically signed data with an Attestation of the UA's identity from a Registry.
 
 ## DRIP Requirements Addressed
 
@@ -105,28 +106,36 @@ Aircraft:
 
 : In this document whenever the word Aircraft is used it is referring to an Unmanned Aircraft (UA) not a Manned Aircraft.
 
+Legacy Transports:
+
+:  uses broadcast frames (Bluetooth 4.x).
+
+Extended Transports:
+
+: uses the extended advertisements (Bluetooth 5.X), service info (Wi-Fi NaN) or vendor specific element information (Wi-Fi BEACON). Must use ASTM {{F3411}} Message Pack (Message Type 0xF).
+
 # Background
 
 ## Problem Space and Focus
 
-The current standard for Remote ID (RID) does not, in any meaningful capacity, address the concerns of trust in the UA space with communication in the Broadcast RID environment. This is a requirement that will need to be addressed eventually for various different parties that have a stake in the UA industry.
-
-The following subsections will provide a high level reference to the ASTM standard for Authentication Messages and how their current limitations effect trust in the Broadcast RID environment.
+The current standard for Remote ID does not, in any meaningful capacity, address the concerns of trust in the UA space with communication in the Broadcast RID environment. This is a requirement that will need to be addressed eventually for various different parties that have a stake in the UA industry.
 
 ## Reasoning for IETF DRIP Authentication
 
-The ASTM Authentication Message has provisions in {{F3411-19}} to allow for other organizations to define (and standardize) Authentication formats. The standardization of special formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. No existing formats (defined by ASTM or others) was flexible enough to satisfy this goal resulting in the work reflected in this document.
+The ASTM Authentication Message has provisions in {{F3411}} to allow for other organizations to standardize additional Authentication formats beyond those explicitly in {{F3411}}.  The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID.  No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
 
 ## ASTM Authentication Message
 
-The ASTM Authentication Message is a unique message in the Broadcast F3411 standard as it is the only one that is paged.
+The ASTM Authentication Message (Message Type 0x2) is a unique message in the Broadcast {{F3411}} standard as it is the only one that is paged.
+
+### Authentication Page
 
 {:fig: artwork-align="center"}
 ~~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
+|  Page Header  |                                               |
 +---------------+                                               |
 |                                                               |
 |                                                               |
@@ -135,21 +144,42 @@ The ASTM Authentication Message is a unique message in the Broadcast F3411 stand
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
-Auth. Header: (1 byte)
-    Contains Authentication Type (AuthType) and Page Number.
+Page Header: (1 byte)
+    Authentication Type (4 bits)
+    Page Number (4 bits)
     
 Authentication Payload: (23 bytes per page)
     Authentication Payload, including headers. Null padded.
 ~~~~
 {:fig #astm-auth-page title="Standard ASTM Authentication Message Page"}
 
-{{astm-auth-page}} is an abstracted view of a single Authentication Page used in an Authentication Message. There is a max of 16 pages (indexed 0 to 15 in the first byte; `Auth. Header`) that can be sent for a single Authentication Message, with each page carrying a max 23-byte `Authentication Payload`.
+#### Authentication Type
+
+{{F3411}} has the following subset of Authentication Type's defined and that can be used in the `Page Header`:
+
+| Authentication Type | Description |
+| ------------------- | ----------- |
+| 0x2                 | Operator ID Signature |
+| 0x3                 | Message Set Signature |
+| 0x5                 | Specific Authentication Method |
+
+##### Specific Authentication Method (SAM)
+
+This document leverages Authentication Type 0x5, Specific Authentication Method (SAM), defining a set of SAM Types in {{specific-method}}. Other Authentication Types are also used in DRIP and their use is defined in {{drip-authentication-formats}}.
+
+#### Page Number
+
+There is a technical maximum of 16-pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a max 23-byte `Authentication Payload`. See {{drip-restrictions}} for more details.
+
+#### Authentication Payload Field
+
+The following is shown in its complete format.
 
 ~~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-|                   ASTM Authentication Headers                 |
+|                     Authentication Headers                    |
 |                               +---------------+---------------+
 |                               |                               |
 +---------------+---------------+                               |
@@ -166,9 +196,9 @@ Authentication Payload: (23 bytes per page)
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
-ASTM Authentication Headers: (6 bytes)
+Authentication Headers: (6 bytes)
     Contains other header information for the Authentication
-    Message from ASTM UAS RID Standard.
+    Message as defined in F3411.
 
 Authentication Data / Signature: (0 to 255 bytes)
     Opaque authentication data.
@@ -182,954 +212,34 @@ Additional Data: (0 to 255 bytes):
 ~~~~
 {:fig #astm-auth title="ASTM Authentication Message Fields"}
 
-{{astm-auth}} is the abstract view of the data fields found in the Authentication Message as defined by {{F3411-19}}. This data is placed into {{astm-auth-page}}'s `Authentication Payload`, potentially spanning multiple pages.
+{{astm-auth}} is the abstract view of the data fields found in the Authentication Message as defined by {{F3411}}. This data is placed into {{astm-auth-page}}'s `Authentication Payload`, spanning multiple pages.
 
-When `Additional Data` is being sent, a single unsigned byte (`Additional Data Length`) directly follows the `Authentication Data / Signature` and has the length, in bytes, of the following `Additional Data`.
+When `Additional Data` is being sent, a single unsigned byte (`Additional Data Length`) directly follows the `Authentication Data / Signature` and has the length, in bytes, of the following `Additional Data`. For DRIP, this field is used to carry Forward Error Correction as defined in {{fec-details}}.
 
 Full examples of Authentication Messages (fully paginated; both with and without Additional Data) can be found in {{auth-examples}}.
 
-# DRIP Authentication Formats
+### DRIP Constraints {#drip-restrictions}
 
-To keep consistent formatting across the different mediums (Bluetooth 4, Bluetooth 5 and Wi-Fi NaN) and their independent restrictions the authentication data being sent is REQUIRED to fit within the first 9 pages (Page 0 through Page 8) of the Authentication Message. Under DRIP, the `Length` field in the `ASTM Authentication Headers` (which denotes the length in bytes of Authentication Data only) MUST NOT exceed the value of 201.
+To keep consistent formatting across the different transports (Legacy and Extended) and their independent restrictions the authentication data being sent is REQUIRED to fit within the page limit of the most constrained existing transport can support. Under Broadcast RID the transport that can hold the least amount of authentication data is Bluetooth 5 and Wi-Fi BEACON at 9-pages.
 
-All formats defined in this section fill the `Authentication Data / Signature` field in {{astm-auth}}.
+As such DRIP transmitters are REQUIRED to adhere to the following:
 
-When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Bluetooth 4, then {{fec-details}} MUST be used.
-
-## UAS ID Signature
-
-The existing ASTM {{F3411-19}} Authentication Type 0x1 can be used to send a fresh Self-Attestation of the UA over 7 pages.
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                        UA Hierarchical                        |
-|                       Host Identity Tag                       |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                        UA Host Identity                       |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                         Trust Timestamp                       |
-+---------------+---------------+---------------+---------------+
-|                        Signing Timestamp                      |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                          UA Signature                         |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-~~~~
-{:fig #uas-sig title="DRIP UAS ID Signature"}
-
-## Operator ID Signature
-
-The existing ASTM {{F3411-19}} Authentication Type 0x2 can be used to send a static Self-Attestation of the Operator over 7 pages.
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                     Operator Hierarchical                     |
-|                       Host Identity Tag                       |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                     Operator Host Identity                    |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                         Trust Timestamp                       |
-+---------------+---------------+---------------+---------------+
-|                        Signing Timestamp                      |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                       Operator Signature                      |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-~~~~
-{:fig #op-sig title="DRIP Operator ID Signature"}
-
-## Message Set Signature
-
-When running under Extended Advertisements, the existing ASTM {{F3411-19}} Authentication Type 0x3 can be used to sign over the adjacent ASTM Messages in the Message Pack (0xF).
-
-The concatenation of all messages in the Message Pack (excluding Authentication) before signing MUST be in Message Type order and be placed between the UA HHIT and Trust Timestamp field.
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                        UA Hierarchical                        |
-|                       Host Identity Tag                       |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                         Trust Timestamp                       |
-+---------------+---------------+---------------+---------------+
-|                        Signing Timestamp                      |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                          UA Signature                         |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-~~~~
-{:fig #set-sig title="DRIP Message Set Signature"}
-
-## Specific Method
-
-For ASTM Specific Method (Authentication Type 0x5) a special Specific Authentication Method (SAM) Type is used to multiplex between various formats.
-
-### DRIP Frame {#drip-frame-format}
-
-This is the general frame to hold DRIP Authentication for Specific Method; containing the SAM Type and laying out the major data fields.
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|   SAM Type    |                                               |
-+---------------+                                               |
-.                                                               .
-.                    DRIP Authentication Data                   .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-SAM Type (1 byte):
-    For DRIP there are four SAM Type's allocated:
-
-        SAM Type                     | Value
-        -----------------------------+-------
-        DRIP Frame                   | 1
-        DRIP Wrapper                 | 2
-        DRIP Manifest                | 3m
-        DRIP Link                    | 4
-
-DRIP Authentication Data (0 to 200 bytes):
-    DRIP Authentication data.
-~~~~
-{:fig #drip-frame title="DRIP Frame Format"}
-
-#### Specific Authentication Method (SAM) Type
-
-The SAM Type field is maintained by the International Civil Aviation Organization (ICAO) and for DRIP four are allocated; DRIP Frame (0x01) ({{drip-frame-format}}), DRIP Wrapper (0x02), DRIP Manifest (0x03) and DRIP Link (0x04).
-
-#### DRIP Authentication Data
-
-This field has a maximum size of 200 bytes. When possible the DRIP Broadcast Attestation Structure ({{drip-broadcast-attestation-structure}}) should be used in this space.
-
-### DRIP Wrapper Format
-
-This is specified when the SAM Type is DRIP Wrapper. It is encapsulated by the DRIP Frame ({{drip-frame-format}}) and Broadcast Attestation Structure ({{drip-broadcast-attestation-structure}}); filling the Attestation Data ({{attestation-data}}) field with full (25-byte) ASTM Messages. The minimum number of ASTM Messages being 1 and the max being 4. The encapsulated ASTM Messages MUST be in Message Type order as defined by ASTM. All message types except Authentication (0x2) and Message Pack (0xF) are allowed.
-
-To determine the number of messages wrapped the receiver can check that the length of the Attestation Data ({{attestation-data}}) field of the DRIP Broadcast Attestation ({{drip-broadcast-attestation-structure}}) is a multiple of 25-bytes.
-
-#### Wrapper Limitations
-
-See {{wrapper-vs-manifest}} for a discussion on a comparison between DRIP Wrapper and DRIP Manifest.
-
-### DRIP Manifest Format
-
-This format is specified when SAM Type is set to DRIP Manifest. It is encapsulated by the DRIP Frame ({{drip-frame-format}}) and Broadcast Attestation Structure ({{drip-broadcast-attestation-structure}}); filling the Attestation Data ({{attestation-data}}) field with 8-byte hashes of previous ASTM Messages.
-
-By hashing previously sent messages and signing them we gain trust in UAs previous reports. An observer who has been listening for any considerable length of time can hash received messages and cross-check against listed hashes. This is a way to evade the limitation of a maximum of 4 messages in the Wrapper Format and reduce overhead.
-
-(Editors Note: Manifests MUST NOT be of a length multiple of 25-bytes or 48-bytes.)
-
-#### Hash Algorithms and Operation
-
-The hash algorithm used for the Manifest Message is the same hash algorithm used in creation of the HHIT that is signing the Manifest.
-
-A standard HHIT would be using cSHAKE128 from {{!NIST.SP.800-185}}. With cSHAKE128, the hash is computed as follows:
-
-~~~~
-cSHAKE128(Message, 128, "", "Remote ID Auth Hash")
-~~~~
-
-#### Pseudo-Blockchain Hashes
-
-Two special hashes are included in all Manifest messages; a previous manifest hash, which links to the previous manifest message, as well as a current manifest hash. This gives a pseudo-blockchain provenance to the manifest message that could be traced back if the observer was present for extended periods of time.
-
-Creation:
-
-: During creation and signing of this message format this field MUST be set to 0. So the signature will be based on this field being 0, as well as its own hash. It is an open question of if we compute the hash, then sign or sign then compute.
-
-Cycling:
-
-: There a few different ways to cycle this message. We can "roll up" the hash of 'current' to 'previous' when needed or to completely recompute the hash. This mostly depends on the previous note.
-
-#### Manifest Limitations
-
-A potential limitation to this format is dwell time of the UA. If the UA is not sticking to a general area then most likely the Observer will not obtain many (if not all) of the messages in the manifest. Without the original messages received no verification can be done. Examples of such scenarios include delivery or survey UA.
-
-See {{wrapper-vs-manifest}} for a discussion on a comparison between DRIP Wrapper and DRIP Manifest.
-
-Another limitation is the length of hash, which is discussed in {{manifest-hash-length}}.
-
-### DRIP Link Format
-
-This format is specified when SAM Type is set to DRIP Link. It is encapsulated by the DRIP Frame ({{drip-frame-format}}) and Broadcast Attestation Structure ({{drip-broadcast-attestation-structure}}) but the attestation has already taken place, thus the UA need not dynamically sign the structure.
-
-For details on the Broadcast Attestation see {{drip-rid}} and {{b-axy}}.
-
-#### Link Limitations
-
-See {{replay-attacks}} for details on why this structure is not dynamically signed.
-
-# Transport Methods & Recommendations
-
-## Legacy Advertisements (Bluetooth 4.X)
-
-With Legacy Advertisements the goal is to attempt to bring reliable receipt of the paged Authentication Message. Forward Error Correction ({{fec-details}}) MUST be used when using Legacy Advertising methods (such as Bluetooth 4.X).
-
-Under ASTM Bluetooth 4.X rules, transmission of dynamic messages are at least every 1 second while static messages (which is what Authentication is classified under) are sent at least every 3 seconds.
-
-## Extended Advertisements (Bluetooth 5.X, Wi-Fi NaN, Wi-Fi Beacon)
-
-Under the ASTM specification, Bluetooth 5 or Wi-Fi NaN transport of Remote ID is to use the Message Pack (Type 0xF) format for all transmissions. Under Message Pack messages are sent together (in Message Type order) in a single Bluetooth frame (up to 9 single frame equivalent messages). Message Packs are required by ASTM to be sent at a rate of 1 per second (like dynamic messages).
-
-Without any fragmentation or loss of pages with transmission Forward Error Correction ({{fec-details}}) MUST NOT be used as it is impractical.
-
-## DRIP Recommendations
-
-It is REQUIRED that an aircraft send the following Authentication Formats to fulfill the {{?drip-requirements}}:
-
-1. DRIP Link using the Broadcast Attestation of USS and the UA (satisfying GEN-1 and GEN-3)
-2. Any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest or DRIP Wrapper) where the UA is dynamically signing data (satisfying GEN-1 and GEN-2)
-
-It is RECOMMENDED the following set of Authentication Formats are sent for support of offline Observers:
-
-1. DRIP Link using the Broadcast Attestation of HID Root and the CAA (satisfies GEN-3)
-2. DRIP Link using the Broadcast Attestation of CAA and the USS (satisfies GEN-3)
-3. DRIP Link using the Broadcast Attestation of USS and the UA (satisfies GEN-1 and GEN-3)
-4. Any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest or DRIP Wrapper) where the UA is dynamically signing data (satisfies GEN-1 and GEN-2)
-
-### DRIP Wrapper vs. DRIP Manifest {#wrapper-vs-manifest}
-
-(Editors Note: review this to confirm numbers are still accurate.)
-
-A single Manifest can carry at most (using the full 9-page limit and 8 byte hashes) 12 unique hashes of previously sent messages (of any type). This results in a total of 22 (12 + 10) frames of Bluetooth data being transmitted over Bluetooth.
-
-In comparison, the Message Wrapper sends 6 pages (each a single frame) for each  wrapped message. For backwards compatibility the implementation should also send the standard ASTM message that was wrapped for non-DRIP compliant receivers to obtain. This method results in 84 total Bluetooth frames (12 + (12 * 6)) sent.
-
-The question of which is better suited is up to the implementation.
-
-# ICAO Considerations
-
-DRIP requests the following SAM Type's to be allocated:
-
-1. DRIP Frame
-2. DRIP Wrapper
-3. DRIP Manifest
-4. DRIP Link
-
-# IANA Considerations
-
-This document does not require any actions by IANA.
-
-# Security Considerations
-
-## Manifest Hash Length
-
-For DRIP Manifest an 8-byte hash length has been selected by the authors for a number of reasons.
-
-1. Hash lengths smaller than 8-bytes (for example 4-bytes) were originally contemplated but ruled out by comments by various cryptographers. The main concern raised in this forum was that the length of hash would not provide strong resistance against collision rate. The authors also after further review agreed with this and also realized operationally it was not necessarily viable. While 4-byte hashes would allow more messages to be filled into a single DRIP Manifest payload (up to 22 individual hashes) the length of time for the UA to stay in a single place where the Observer would receive all the originally messages to rehash to verify such a message was impractical.
-2. Hash lengths larger than 8-bytes (for example 16-bytes) were also considered by the authors. These got the approval of the cryptographers but the number of hashes to send became much lower (only 5 individual hashes). While this lower number is a more reasonable number of original messages the Observer would have to capture it would also mean that potentially more DRIP Manifests would need to be sent. Overall the increase length of the hash did not operationally justify the cost.
-3. Simplifying the current design and locking it into using the same hash as the HHIT instead of allowing for agility in either hash algorithm or length seemed more realistic to the authors today.
-
-## Replay Attacks
-
-The astute reader may note that the DRIP Link messages, which are recommended to be sent, are static in nature and contain various timestamps. These Attestation Link messages can easily be replayed by an attacker who has copied them from previous broadcasts. There are two things to mitigate this in DRIP:
-
-1. If an attacker (who is smart and spoofs more than just the UAS ID/data payloads) willing replays an Attestation Link message they have in principle actually helped by ensuring the message is sent more frequently and be received by potential Observers.
-2. It is RECOMMENDED to send more than just DRIP Link messages, specifically those that sign over changing data using the current session keypair, and those messages are sent more frequently. An aircraft beaconing these messages then actually signing other messages using the keypair validates the data receiver by an Observer. An UA who does not either run DRIP themselves or does not have possession of the same private key, would be clearly exposed upon signature verification.
-
-## Trust Timestamp Offsets
-
-Note the discussion of Trust Timestamp Offsets here is in context of the DRIP Wrapper ({{drip-wrapper-format}}) and DRIP Manifest ({{drip-manifest-format}}) messages. For DRIP Link ({{drip-link-format}}) messages these offsets are set by the Attestor (typically a registry) and have their own set of considerations as seen in (Editors Note: link to registry draft security considerations here).
-
-The offset of the Trust Timestamp (defined as a very short Expiration Timestamp) is one that needs careful consideration for any implementation. The offset should be shorter than any given flight duration (typically less than an hour) but be long enough to be received and processed by Observers (larger than a few seconds). It recommended that 3-5 minutes should be sufficient to serve this purpose in any scenario, but is not limited by design.
-
-# Acknowledgments
-
-Ryan Quigley and James Mussi of AX Enterprize, LLC for early prototyping to find holes in the draft specifications.
-
-Soren Friis for pointing out that WiFi protocols would not give access to the MAC Address, originally used in calculation of the hashes for DRIP Manifest. Also, for confirming that Message Packs (0xF) can only carry up to 9 ASTM frames worth of data (9 Authentication pages) - this drove the requirement for max page length of Authentication Data itself.
-
---- back
-
-# Thoughts on ASTM Authentication Message {#appendix-a}
-
-(Editor Note: is this valid anymore to keep?)
-
-The format standardized by the ASTM is designed with a few major considerations in mind, which the authors of this document feel put significant limitations on the expansion of the standard.
-
-The primary consideration (in this context) is the use of the Bluetooth 5.X Extended Frame format. This method allows for a 255 byte payload to be sent in what the ASTM refers to as a "Message Pack".
-
-The idea is to include up to five standard ASTM Broadcast RID messages (each of which are 25 bytes) plus a single authentication message (5 pages of 25 bytes each) in the Message Pack. The reasoning is then the Authentication Message is for the entire Message Pack.
-
-The authors have no issues with this proposed approach; this is a valid format to use for the Authentication Message provided by the ASTM. However, by limiting the Authentication Message to ONLY five pages in the standard it ignores the possibility of other formatting options to be created and used.
-
-Another issue with this format, not fully addressed in this document is fragmentation. Under Bluetooth 4.X, each page is sent separately which can result in lose of pages on the receiver. This is disastrous as the loss of even a single page means any signature is incomplete.
-
-With the current limitation of 5 pages, Forward Error Correction (FEC) is nearly impossible without sacrificing the amount of data sent. More pages would allow FEC to be performed on the Authentication Message pages so loss of pages can be mitigated.
-
-All these problems are further amplified by the speed at which UA fly and the Observer's position to receive transmissions. There is no guarantee that the Observer will receive all the pages of even a 5 page Authentication Message in the time it takes a UA to traverse across their line of sight. Worse still is that is not including other UA in the area, which congests the spectrum and could cause further confusion attempting to collate messages from various UA. This specific problem is out of scope for this document and our solutions in general, but should be noted as a design consideration.
-
-# DRIP Attestations {#appendix-b}
-
-## Self-Attestation (SA-xx)
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                          Hierarchical                         |
-|                       Host Identity Tag                       |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                          Host Identity                        |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                         Trust Timestamp                       |
-+---------------+---------------+---------------+---------------+
-|                        Signing Timestamp                      |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                            Signature                          |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Length = 120-bytes
-~~~~
-{:fig #axx-fig title="DRIP Self-Attestation"}
-
-## Attestation (A-xy)
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
-.                             SA-xx                             .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
-.                             SA-yy                             .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                      Trust Timestamp by X                     |
-+---------------+---------------+---------------+---------------+
-|                     Signing Timestamp by X                    |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                         Signature by X                        |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Length = 312-bytes
-~~~~
-{:fig #axy-fig title="DRIP Attestation"}
-
-## Concise Attestation (CA-xy)
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                          Hierarchical                         |
-|                    Host Identity Tag of X                     |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                          Hierarchical                         |
-|                    Host Identity Tag of Y                     |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                      Trust Timestamp by X                     |
-+---------------+---------------+---------------+---------------+
-|                     Signing Timestamp by X                    |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                         Signature by X                        |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Length = 104-bytes
-~~~~
-{:fig #c-axy-fig title="DRIP Concise Attestation"}
-
-## Mutual Attestation (MA-xy)
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
-.                              A-xy                             .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                      Trust Timestamp by Y                     |
-+---------------+---------------+---------------+---------------+
-|                     Signing Timestamp by Y                    |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                         Signature by Y                        |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Length = 384-bytes
-~~~~
-{:fig #m-axy-fig title="DRIP Mutual Attestation"}
-
-## Link Attestation (LA-xy)
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
-.                             CA-xy                             .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                      Trust Timestamp by Y                     |
-+---------------+---------------+---------------+---------------+
-|                     Signing Timestamp by Y                    |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                         Signature by Y                        |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Length = 176-bytes
-~~~~
-{:fig #l-axy-fig title="DRIP Link Attestation"}
-
-## Broadcast Attestation (BA-xy) {#b-axy}
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                          Hierarchical                         |
-|                    Host Identity Tag of X                     |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                          Hierarchical                         |
-|                    Host Identity Tag of Y                     |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                       Host Identity of Y                      |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                      Trust Timestamp by X                     |
-+---------------+---------------+---------------+---------------+
-|                     Signing Timestamp by X                    |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                         Signature by X                        |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Length = 136-bytes
-~~~~
-{:fig #b-axy-fig title="DRIP Broadcast Attestation"}
-
-## Attestation Certificate (AC-zxy)
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
-.                             SA-zz                             .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
-.                              A-xy                             .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                      Trust Timestamp by Z                     |
-+---------------+---------------+---------------+---------------+
-|                     Signing Timestamp by Z                    |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                         Signature by Z                        |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Length = 504-bytes
-~~~~
-{:fig #a-cxy-fig title="DRIP Attestation Certificate"}
-
-## Concise Certificate (CC-zxy)
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                          Hierarchical                         |
-|                    Host Identity Tag of Z                     |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
-.                             CA-xy                             .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                      Trust Timestamp by Z                     |
-+---------------+---------------+---------------+---------------+
-|                     Signing Timestamp by Z                    |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                         Signature by Z                        |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Length = 192-bytes
-~~~~
-{:fig #c-cxy-fig title="DRIP Concise Certificate"}
-
-## Link Certificate (LC-zxy)
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                          Hierarchical                         |
-|                    Host Identity Tag of Z                     |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
-.                             LA-xy                             .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                      Trust Timestamp by Z                     |
-+---------------+---------------+---------------+---------------+
-|                     Signing Timestamp by Z                    |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                         Signature by Z                        |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Length = 300-bytes
-~~~~
-{:fig #l-cxy-fig title="DRIP Link Certificate"}
-
-## Mutual Certificate (MC-zxy)
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
-.                             SA-zz                             .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
-.                             MA-xy                             .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                      Trust Timestamp by Z                     |
-+---------------+---------------+---------------+---------------+
-|                     Signing Timestamp by Z                    |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                         Signature by Z                        |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Length = 576-bytes
-~~~~
-{:fig #m-cxy-fig title="DRIP Mutual Certificate"}
-
-## Example Registration with Attestation
-
-A typical registration of a DET consists of at least three parties; an Aircraft (Party A), an Operator (Party O) and a Registry (Party R). A fourth party (Party Z) can be present as well but is not required.
-
-All parties generate their own SelfAttestation (SA-aa, SA-oo, SA-rr and if present SA-zz) to be used during the registration process.
-
-### Operator to Registry
-
-To register the Operator sends to their selected Registry their SelfAttestation (SA-oo).
-
-The Registry, upon acceptance, returns the following items:
-
-1. Attestation (A-ro) - using SA-rr and SA-oo \[Mandatory\]
-2. ConciseAttestation (CA-ro) - using SA-oo \[Optional\]
-3. BroadcastAttestation (BA-ro) - using SA-oo \[Optional\]
-
-The Operator may choose to generate the following items after successful registration:
-
-1. MutualAttestation (MA-ro) - using A-ro
-2. LinkAttestation (LA-ro) - using CA-ro
-
-The Operator may further choose to send A-ro, CA-ro, MA-ro and LA-ro to Party Z to obtain the following:
-
-1. AttestationCertificate (AC-zro) - using SA-zz and A-ro
-2. MutualCertificate (MC-zro) - using SA-aa and MA-ro
-3. ConciseCertificate (CC-zro) - using CA-ro
-4. LinkCertificate (LC-zro) - using LA-ro
-
-### Aircraft to Operator
-
-After registering with a Registry the Operator can now start to provision an Aircraft. Extracting SA-aa from the Aircraft they can create the following items:
-
-1. Attestation (A-oa) - using SA-oo and SA-aa \[Mandatory\]
-2. ConciseAttestation (CA-oa) - using SA-aa \[Optional\]
-3. BroadcastAttestation (BA-oa) - using SA-aa \[Optional\]
-
-A-oa can be returned to the Aircraft to produce the following:
-
-1. MutualAttestation (MA-oa) - using A-oa
-2. LinkAttestation (LA-oa) - using CA-oa
-
-### Aircraft to Registry
-
-Using the existing A-ro and new A-oa (and if present CA-oa, MA-oa and LA-oa) the Operator can attempt registration with the previous Registry.
-
-The Registry upon acceptance can return the following set of items:
-
-1. BroadcastAttestation (BA-ra) - generated using the embedded SA-aa from A-oa \[Mandatory\]
-2. AttestationCertificate (AC-roa) - using A-oa \[Mandatory\]
-3. MutualCertificate (MC-roa) - using MA-oa \[Optional\]
-4. ConciseCertificate (CC-roa) - using CA-oa \[Optional\]
-5. LinkCertificate (LC-roa) - using LA-oa \[Optional\]
-6. BroadcastAttestation's of parent Registries in chain \[Recommended\]
-
-The BroadcastAttestation's are used during the flight of the Aircraft being sent via DRIP Link Authentication Messages.
-
-# DRIP Broadcast Attestation Structure {#drip-broadcast-attestation-structure}
-
-(Editors Note: move into main document? Between Section 3 and 4 and after FEC section?)
-
-When possible the following format SHOULD be used in the DRIP Authentication Data ({{drip-authentication-data}}) field under Authentication Type 0x5 or the `Authentication Data / Signature` of {{astm-auth}}.
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                      Attestor Hierarchical                    |
-|                       Host Identity Tag                       |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
-.                        Attestation Data                       .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                         Trust Timestamp                       |
-+---------------+---------------+---------------+---------------+
-|                        Signing Timestamp                      |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                        Attestor Signature                     |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Attestor Hierarchial Host Identity Tag (16 bytes):
-    The Attestors HHIT in byte form (network byte order).
-
-Attestation Data (0 to 112 bytes):
-    Opaque attestation data.
-
-Trust Timestamp (4 bytes):
-    Timestamp denoting recommended time to trust data to.
-
-Signing Timestamp (4 bytes):
-    Current time at signing.
-
-Attestor Signature (64 bytes):
-    Signature over preceding fields using the keypair of 
-    the Attestor.
-~~~~
-{:fig #drip-data title="DRIP Broadcast Attestation Data Structure"}
-
-## Attestor Hierarchical Host Identity Tag
-
-The HHIT is an enhancement of the Host Identity Tag (HIT) {{?RFC7401}} introducing hierarchy and how they are used in UAS RID as defined in {{?drip-rid}}. Nominally the Aircraft HHIT is used here when signing over dynamic formats such as DRIP Wrapper and DRIP Manifest.
-
-## Attestation Data
-
-This field has a maximum of 112 bytes in length. It is nominally filled with data as defined by the SAM Type being set or other sub-multiplexer in the authentication payload.
-
-## Trust Timestamp
-
-Follows the format defined in {{F3411-19}}. That is a UNIX timestamp offset by 01/01/2019 00:00:00. An additional offset is then added to push the timestamp a short time into the future to avoid replay attacks.
-
-The offset used against the UNIX timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent.
-
-## Signing Timestamp
-
-Follows the format defined in {{F3411-19}}. That is a UNIX timestamp offset by 01/01/2019 00:00:00.
-
-## Attestor Signature
-
-The signature is generated over all the preceding data. Only information within the Broadcast Attestation Structure ({{drip-broadcast-attestation-structure}}) is signed.
+1. `Authentication Data / Signature` data MUST fit in a 9-page Authentication Message (Page Numbers 0 through 8).
+2. The `Length` field in the `Authentication Headers` (which denotes the length in bytes of `Authentication Data / Signature` only) MUST NOT exceed the value of 201.
 
 # Forward Error Correction {#fec-details}
 
-(Editors Note: move into main document? Between Section 3 and 4 (preferably becoming Section 4)? or move specifics of FEC (everything below) into its own draft for titled Integrity Protection?)
-
-Remote ID data can be sent across different broadcast link media, all with different characteristics. To enable robustness in Remote ID transmission media a Forward Error Correction capability SHOULD be used.
-
-In cases where FEC is not available below the equivalent of the transport layer (known as Legacy Advertisements) DRIP Authentication REQUIRES that an application level FEC scheme is used. In cases where FEC is available below the equivalent of the transport layer (known as Extended Advertisements) DRIP MUST NOT use any application level FEC and instead SHALL rely on the lower layers FEC functionality.
-
-For current Remote ID the media options are the following:
-
-Legacy Advertisements:
-
-: Bluetooth 4.X
-
-Extended Advertisements:
-
-: Wi-Fi NAN, Wi-Fi Beacon, Bluetooth 5.X
+For Broadcast RID, Forward Error Correction (FEC) is provided by the lower layers in Extended Transports (Bluetooth 5.X, Wi-Fi NaN, and Wi-Fi BEACON). Legacy Transports do not have supporting FEC so with DRIP Authentication the following application level FEC scheme is used.
 
 (Editors Note: add in self-protecting and more-than-self-protecting options, with their justifications)
+
+(Editors Note: Bob M. mentions that the FEC should be page aligned and the ADL includes null padding at the start to page align the data)
 
 ## Encoding
 
 ### Single Page FEC {#enc-single-page}
 
-To generate the parity a simple XOR operation using the previous and current page is used. For Page 0, a 25-byte null pad is used for the previous page. The resulting parity fills the `Additional Data` field of {{F3411-19}} with the `Additional Data Length` field being set to 25.
+To generate the parity a simple XOR operation using the previous and current page is used. For Page 0, a 25-byte null pad is used for the previous page. The resulting parity fills the `Additional Data` field of {{F3411}} with the `Additional Data Length` field being set to 25.
 
 ### Multi Page FEC {#enc-multi-page}
 
@@ -1163,6 +273,724 @@ If more than one page is lost (>1/5 for 5-page messages, >1/10 for 10-page messa
 
 (Editors Note: Is this valid anymore, for XOR yes but for multi-page FEC?)
 
+# Broadcast Attestation Structure {#bas}
+
+To directly support Broadcast RID a variation of the `Attestation Structure` format of {{drip-registries}} SHOULD be used when running DRIP under the various Authentication Types (filling the `Authentication Data / Signature` field of {{astm-auth}}) and SAM Types (filling the `SAM Authentication Data` field ({{sam-authentication-data}})).
+
+When using this structure the UA is always self-attesting its DRIP Entity Tag (DET). The Host Identity of the UA DET can be looked up by mechanisms described in {{drip-registries}} or by extracting it from Broadcast Attestation (see {{drip-link}} and {{drip-recommendations}}).
+
+~~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                              UA                               |
+|                        DRIP Entity Tag                        |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+.                                                               .
+.                        Attestation Data                       .
+.                                                               .
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                   Expiration Timestamp by UA                  |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                          UA Signature                         |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+
+UA DRIP Entity Tag (16 bytes):
+    The UA DET in byte form (network byte order).
+
+Attestation Data (0 to 116 bytes):
+    Opaque attestation data.
+
+Expiration Timestamp by UA (4 bytes):
+    Timestamp denoting recommended time to trust data to.
+
+UA Signature (64 bytes):
+    Signature over preceding fields using the keypair of 
+    the UA.
+~~~~
+{:fig #drip-data title="Broadcast Attestation Structure"}
+
+`Attestation Data` is a field with a maximum of 116-bytes, containing data that the UA is attesting during its flight.
+
+The `Expiration Timestamp` MUST follow the format defined in {{F3411}}. That is a UNIX timestamp offset by 01/01/2019 00:00:00. An additional offset is then added to push the timestamp a short time into the future to avoid replay attacks. The offset used against the UNIX timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers.
+
+# DRIP Authentication Formats
+
+All formats defined in this section fill the `Authentication Data / Signature` field in {{astm-auth}}.
+
+When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Bluetooth 4, then {{fec-details}} MUST be used.
+
+## Operator ID Signature
+
+The existing ASTM {{F3411}} Authentication Type 0x2 can be used to send a static Self-Attestation of the Operator.
+
+~~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                            Operator                           |
+|                        DRIP Entity Tag                        |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                                                               |
+|                     Operator Host Identity                    |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                      Expiration Timestamp                     |
++---------------+---------------+---------------+---------------+
+|                        Signing Timestamp                      |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                       Operator Signature                      |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+
+UA DRIP Entity Tag (16 bytes):
+    The Operator DET in byte form (network byte order).
+
+Operator Host Identity (32-bytes):
+    HI of the Operator.
+
+Expiration Timestamp by Operator (4 bytes):
+    Timestamp denoting recommended time to trust data to.
+
+Signing Timestamp by Operator (4 bytes):
+    Current time at signing.
+
+Operator Signature (64 bytes):
+    Signature over preceding fields using the keypair of 
+    the Operator.
+~~~~
+{:fig #op-sig title="DRIP Operator ID Signature"}
+
+## Message Set Signature
+
+When running under Extended Transports, the existing ASTM {{F3411}} Authentication Type 0x3 can be used to sign over the adjacent ASTM Messages in the Message Pack (Message Type 0xF).
+
+The concatenation of all messages in the Message Pack (excluding Authentication) before signing MUST be in Message Type order and be placed between the UA DRIP Entity Tag and Expiration Timestamp field.
+
+~~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                              UA                               |
+|                        DRIP Entity Tag                        |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                      Expiration Timestamp                     |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                          UA Signature                         |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+
+UA DRIP Entity Tag (16 bytes):
+    The UA DET in byte form (network byte order).
+
+Expiration Timestamp by UA (4 bytes):
+    Timestamp denoting recommended time to trust data to.
+
+UA Signature (64 bytes):
+    Signature over preceding fields using the keypair of 
+    the UA.
+~~~~
+{:fig #set-sig title="DRIP Message Set Signature"}
+
+## Specific Authentication Method {#specific-method}
+
+For ASTM Specific Authentication Method (Authentication Type 0x5) a special SAM Type field, specified as the first byte of the `Authentication Data / Signature` by {{F3411}}, is used to multiplex between various formats.
+
+### SAM Data Format
+
+{{sam-frame}} is the general format to hold authentication data when using SAM and is placed inside the `Authentication Data / Signature` field in {{astm-auth}}.
+
+~~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++---------------+---------------+---------------+---------------+
+|   SAM Type    |                                               |
++---------------+                                               |
+.                                                               .
+.                     SAM Authentication Data                   .
+.                                                               .
+|                                                               |
++---------------+---------------+---------------+---------------+
+
+SAM Type (1 byte):
+    Byte defined by F3411 to multiplex SAMs
+
+SAM Authentication Data (0 to 200 bytes):
+    Opaque SAM authentication data.
+~~~~
+{:fig #sam-frame title="SAM Data Format"}
+
+#### SAM Type
+
+The SAM Type field is maintained by the International Civil Aviation Organization (ICAO) and for DRIP four are allocated:
+
+| SAM Type | Description |
+| -------- | ----------- |
+| 0x01     | DRIP Link ({{drip-link}}) |
+| 0x02     | DRIP Wrapper ({{drip-wrapper}}) |
+| 0x03     | DRIP Manifest ({{drip-manifest}}) |
+| 0x04     | DRIP Frame ({{drip-frame}}) |
+
+#### SAM Authentication Data
+
+This field has a maximum size of 200-bytes, as defined by {{drip-restrictions}}. When possible the Broadcast Attestation Structure ({{bas}}) should be used in this space.
+
+### DRIP Link
+
+This SAM Type is used to transmit the Broadcast Attestation of the Registry (HDA) over the UA. Its structure is defined in {{drip-registries}} and is as follows:
+
+~~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+                                                +---------------+
+                                                |   Link Type   |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                             DRIP                              |
+|                       Entity Tag of HDA                       |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                             DRIP                              |
+|                       Entity Tag of UA                        |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                                                               |
+|                      Host Identity of UA                      |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                  Expiration Timestamp by HDA                  |
++---------------+---------------+---------------+---------------+
+|                    Signing Timestamp by HDA                   |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                       Signature by HDA                        |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+
+Link Type: (1-byte)
+    Multiplexing byte to define different Links being sent.
+
+DRIP Entity Tag of HDA: (16-bytes)
+    DET of HDA.
+
+DRIP Entity Tag of UA: (16-bytes)
+    DET of UA.
+
+Host Identity of UA: (32-bytes)
+    HI of UA
+
+Expiration Timestamp by HDA (4 bytes):
+    Timestamp denoting recommended time to trust data to.
+
+Signing Timestamp by HDA (4 bytes):
+    Current time at signing.
+
+HDA Signature (64 bytes):
+    Signature over preceding fields using the keypair of 
+    the HDA.
+~~~~
+{:fig #b-axy-fig title="Example DRIP HDA-UA Broadcast Attestation"}
+
+This DRIP format MUST be used in conjunction with the DRIP Manifest with the hash of the DRIP Link message and other dynamic data (such as the Location Message (Message Type 0x2)).
+
+#### Link Type
+
+| Link Type | Description |
+| --------- | ----------- |
+| 0x00      | Reserved |
+| 0x01      | HDA to UA |
+| 0x02      | RAA to HDA |
+| 0x03      | Root to RAA |
+| 0x05      | HDA to Operator |
+| 0x06      | Operator to UA |
+
+#### Link Limitations
+
+See {{replay-attacks}} for details on why this structure is not dynamically signed.
+
+### DRIP Wrapper
+
+This SAM Type is used to wrap and sign over a list of other {{F3411}} Broadcast RID messages. It MUST use the Broadcast Attestation Structure ({{bas}}).
+
+The `Attestation Data` field is filled with full (25-byte) {{F3411}} Broadcast RID messages. The minimum number being 1 and the maximum being 4. The encapsulated messages MUST be in Message Type order as defined by {{F3411}}. All message types except Authentication (Message Type 0x2) and Message Pack (Message Type 0xF) are allowed.
+
+To determine the number of messages wrapped the receiver can check that the length of the `Attestation Data` field of the DRIP Broadcast Attestation ({{bas}}) is a multiple of 25-bytes.
+
+~~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                              UA                               |
+|                        DRIP Entity Tag                        |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                          ASTM Message                         |
+|                                                               |
+|                                                               |
+|                                                               |
++               +---------------+---------------+---------------+
+|               |                                               |
++---------------+                                               |
+|                                                               |
+|                          ASTM Message                         |
+|                                                               |
+|                                                               |
+|                                                               |
++                               +---------------+---------------+
+|                               |                               |
++---------------+---------------+                               |
+|                                                               |
+|                                                               |
+|                          ASTM Message                         |
+|                                                               |
+|                                                               |
++                                               +---------------+
+|                                               |               |
++---------------+---------------+---------------+               |
+|                                                               |
+|                                                               |
+|                          ASTM Message                         |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                      Expiration Timestamp                     |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                          UA Signature                         |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+
+UA DRIP Entity Tag (16 bytes):
+    The UA DET in byte form (network byte order).
+
+ASTM Message (25 bytes):
+    Full ASTM Message.
+
+Expiration Timestamp by UA (4 bytes):
+    Timestamp denoting recommended time to trust data to.
+
+UA Signature (64 bytes):
+    Signature over preceding fields using the keypair of 
+    the UA.
+~~~~
+{:fig #wrapper-fig title="Example 4-Message DRIP Wrapper"}
+
+#### Wrapper Limitations
+
+TODO
+
+### DRIP Manifest
+
+This SAM Type is used to create message manifests. It MUST use the Broadcast Attestation Structure ({{bas}}).
+
+By hashing previously sent messages and signing them we gain trust in UAs previous reports. An observer who has been listening for any considerable length of time can hash received messages and cross-check against listed hashes. This is a way to evade the limitation of a maximum of 4 messages in the Wrapper Format and reduce overhead.
+
+The `Attestation Data` field is filled with 12-byte hashes of previous {{F3411}} Broadcast messages.
+
+~~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+                                                +---------------+
+                                                |  Msg Window   |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                              UA                               |
+|                        DRIP Entity Tag                        |
+
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                     Previous Manifest Hash                    |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                     Current Manifest Hash                     |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                       ASTM Message Hash                       |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                       ASTM Message Hash                       |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                       ASTM Message Hash                       |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                       ASTM Message Hash                       |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                       ASTM Message Hash                       |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                       ASTM Message Hash                       |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                       ASTM Message Hash                       |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                      Expiration Timestamp                     |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                          UA Signature                         |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+
+Msg Window (1 byte):
+    Variable window size - TODO
+
+UA DRIP Entity Tag (16 bytes):
+    The UA DET in byte form (network byte order).
+
+Previous Manifest Hash (12 bytes):
+    See Section 6.3.4.3.
+
+Current Manifest Hash (12 bytes):
+    See Section 6.3.4.3.
+
+ASTM Message Hash (12 bytes):
+    Hash of a single full ASTM Message. Multiple hashes should
+    be in Message Type order.
+
+Expiration Timestamp by UA (4 bytes):
+    Timestamp denoting recommended time to trust data to.
+
+UA Signature (64 bytes):
+    Signature over preceding fields using the keypair of 
+    the UA.
+~~~~
+{:fig #manifest-fig title="Example DRIP Manifest"}
+
+#### Hash Algorithms and Operation {#hash-op}
+
+The hash algorithm used for the Manifest Message is the same hash algorithm used in creation of the HHIT that is signing the Manifest.
+
+An HHIT using cSHAKE128 {{!NIST.SP.800-185}} computes the hash as follows:
+
+~~~~
+cSHAKE128(ASTM Message, 96, "", "Remote ID Auth Hash")
+~~~~
+
+>> Note: {{drip-rid}} specifies cSHAKE128 but is open for the expansion of other OGAs.
+
+##### Legacy Transport Hashing
+
+Under this transport DRIP hashes the full ASTM Message being sent over the Bluetooth Advertising frame. For Authentication Messages all the Authentication Message Pages are concatenated together and hashed as one object. For all other Message Types the 25-byte message is hashed.
+
+##### Extended Transport Hashing
+
+Under this transport DRIP hashes the full ASTM Message Pack (Message Type 0xF) - regardless of its content.
+
+#### Variable Message Window
+
+Windows of number of ASTM Messages the manifest is applicable over.
+
+(Editors Note: needs better text here and justification of inclusion)
+
+#### Pseudo-Blockchain Hashes {#block-hashes}
+
+Two special hashes are included in all Manifest messages; a previous manifest hash, which links to the previous manifest message, as well as a current manifest hash. This gives a pseudo-blockchain provenance to the manifest message that could be traced back if the observer was present for extended periods of time.
+
+Creation:
+
+: During creation and signing of this message format this field MUST be set to 0. So the signature will be based on this field being 0, as well as its own hash. It is an open question of if we compute the hash, then sign or sign then compute.
+
+Cycling:
+
+: There a few different ways to cycle this message. We can "roll up" the hash of 'current' to 'previous' when needed or to completely recompute the hash. This mostly depends on the previous note.
+
+#### Manifest Limitations
+
+A potential limitation to this format is dwell time of the UA. If the UA is not sticking to a general area then most likely the Observer will not obtain many (if not all) of the messages in the manifest. Examples of such scenarios include delivery or survey UA.
+
+Another limitation is the length of hash, which is discussed in {{manifest-hash-length}}.
+
+### DRIP Frame
+
+This SAM Type is for when the authentication data does not fit in other defined formats under DRIP and is reserved for future expansion under DRIP if required. This SAM Type SHOULD use the Broadcast Attestation Structure ({{bas}}).
+
+~~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+                                                +---------------+
+                                                |  Frame Type   |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                              UA                               |
+|                        DRIP Entity Tag                        |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+.                                                               .
+.                        Attestation Data                       .
+.                                                               .
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                      Expiration Timestamp                     |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                          UA Signature                         |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+
+Frame Type (1 byte):
+    Multiplexing frame type.
+
+UA DRIP Entity Tag (16 bytes):
+    The UA DET in byte form (network byte order).
+
+Attestation Data (0 to 115 bytes):
+    Opaque attestation data.
+
+Expiration Timestamp by UA (4 bytes):
+    Timestamp denoting recommended time to trust data to.
+
+UA Signature (64 bytes):
+    Signature over preceding fields using the keypair of 
+    the UA.
+~~~~
+{:fig #frame-fig title="Example DRIP Frame"}
+
+#### Frame Limitations
+
+With the Broadcast Attestation Structure only 115-bytes of `Attestation Data` are free for use.
+
+# Requirements & Recommendations
+
+## Legacy Transports
+
+With Legacy Advertisements the goal is to attempt to bring reliable receipt of the paged Authentication Message. Forward Error Correction ({{fec-details}}) MUST be used when using Legacy Advertising methods (such as Bluetooth 4.X).
+
+Under ASTM Bluetooth 4.X rules, transmission of dynamic messages are at least every 1 second. DRIP Authentication Messages typically contain dynamic data (such as the DRIP Manifest or DRIP Wrapper) and must be sent at the dynamic rate of 1 per second.
+
+## Extended Transports
+
+Under the ASTM specification, Bluetooth 5.X Wi-Fi NaN, and Wi-Fi BEACON transport of Remote ID is to use the Message Pack (Message Type 0xF) format for all transmissions. Under Message Pack messages are sent together (in Message Type order) in a single Bluetooth 5 extended frame (up to 9 single frame equivalent messages under Bluetooth 4.X). Message Packs are required by ASTM to be sent at a rate of 1 per second (like dynamic messages).
+
+Without any fragmentation or loss of pages with transmission Forward Error Correction ({{fec-details}}) MUST NOT be used as it is impractical.
+
+## Authentication {#drip-recommendations}
+
+It is REQUIRED that an aircraft send the following Authentication Formats to fulfill the {{?drip-requirements}}:
+
+1. DRIP Link using the Broadcast Attestation of USS and the UA (satisfying GEN-1 and GEN-3)
+2. Any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest or DRIP Wrapper) where the UA is dynamically signing data (satisfying GEN-1 and GEN-2)
+
+It is RECOMMENDED the following set of Authentication Formats are sent for support of offline Observers:
+
+1. DRIP Link using the Broadcast Attestation of HID Root and the CAA (satisfies GEN-3)
+2. DRIP Link using the Broadcast Attestation of CAA and the USS (satisfies GEN-3)
+3. DRIP Link using the Broadcast Attestation of USS and the UA (satisfies GEN-1 and GEN-3)
+4. Any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest or DRIP Wrapper) where the UA is dynamically signing data (satisfies GEN-1 and GEN-2)
+
+## Operational
+
+UAS operation may impact the frequency of sending DRIP Authentication messages. Where a UA is dwelling in one location, and the channel is heavily used by other devices, "occasional" message authentication may be sufficient for an observer. Contrast this with a UA traversing an area, and then every message should be authenticated as soon as possible for greatest success as viewed by the receiver.
+
+Thus how/when these DRIP authentication messages are sent is up to each implementation. Further complication comes in contrasting Legacy and Extended Transports.  In Legacy, each message is a separate hash within the Manifest. So, again in dwelling, may lean toward occasional message authentication. In Extended Transports, the hash is over the Message Pack so only few hashes need to be in a Manifest. A single Manifest can handle a potential two Message Packs (for a full set of messages) and a DRIP Link Authentication Message for the HDA UA assertion.
+
+A separate issue is the frequency of transmitting the DRIP Link Authentication Message for the HDA UA assertion. This message content is static; its hash never changes radically. The only change is the 4-byte timestamp in the Authentication Message headers. Thus, potentially, in a dwelling operation it can be sent once per minute, where its hash is in every Manifest. A receiver can cache all DRIP Link Authentication Message for the HDA UA assertion to mitigate potential packet loss.
+
+The preferred mode of operation is to send the HDA UA assertion every 3 seconds and Manifest messages immediately after a set of UA operation messages (e.g. Basic, Location, and System messages).
+
+### DRIP Wrapper {#wrapper-operations}
+
+The DRIP Wrapper MUST NOT be used in place of sending the ASTM messages as is. All receivers MUST be able to process all the messages specified in {{F3411}}. Only sending them within the DRIP Wrapper will make them opaque to receivers lacking support for DRIP authentication messages. Thus messages within a Wrapper are sent twice: in the clear, and authenticated within the Wrapper. The DRIP Manifest format would seem to be a more efficient use of the transport channel.
+
+The DRIP Wrapper has a specific use case for DRIP aware receivers. For receiver plotting received Location Messages (Message Type 0x2) on a map display an embedded Location Message in a DRIP Wrapper can be colored differently to signify trust in the Location data - be it current or previous Location reports that are wrapped.
+
+# ICAO Considerations
+
+DRIP requests the following SAM Type's to be allocated:
+
+1. DRIP Frame
+2. DRIP Wrapper
+3. DRIP Manifest
+4. DRIP Link
+
+# IANA Considerations
+
+This document does not require any actions by IANA.
+
+(Editors Note: needed for Link Types?)
+
+# Security Considerations
+
+## Manifest Hash Length
+
+For DRIP Manifest an 12-byte hash length has been selected by the authors for a number of reasons.
+
+1. Hash lengths smaller than 8-bytes (for example 4-bytes) were originally contemplated but ruled out by comments by various cryptographers. The main concern raised in this forum was that the length of hash would not provide strong resistance against collision rate. The authors also after further review agreed with this and also realized operationally it was not necessarily viable. While 4-byte hashes would allow more messages to be filled into a single DRIP Manifest payload (up to 22 individual hashes) the length of time for the UA to stay in a single place where the Observer would receive all the originally messages to rehash to verify such a message was impractical.
+2. Hash lengths larger than 8-bytes (for example 12 or 16-bytes) were also considered by the authors. These got the approval of the cryptographers but the number of hashes to send became much lower (only 5 individual hashes). While this lower number is a more reasonable number of original messages the Observer would have to capture it would also mean that potentially more DRIP Manifests would need to be sent. Overall the increase length of the hash did not operationally justify the cost.
+3. Simplifying the current design and locking it into using the same hash as the HHIT instead of allowing for agility in either hash algorithm or length seemed more realistic to the authors today.
+
+## Replay Attacks
+
+The astute reader may note that the DRIP Link messages, which are recommended to be sent, are static in nature and contain various timestamps. These Attestation Link messages can easily be replayed by an attacker who has copied them from previous broadcasts. There are two things to mitigate this in DRIP:
+
+1. If an attacker (who is smart and spoofs more than just the UAS ID/data payloads) willing replays an Attestation Link message they have in principle actually helped by ensuring the message is sent more frequently and be received by potential Observers.
+2. It is RECOMMENDED to send more than just DRIP Link messages, specifically those that sign over changing data using the current session keypair, and those messages are sent more frequently. An aircraft beaconing these messages then actually signing other messages using the keypair validates the data receiver by an Observer. An UA who does not either run DRIP themselves or does not have possession of the same private key, would be clearly exposed upon signature verification.
+
+## Trust Timestamp Offsets
+
+Note the discussion of Trust Timestamp Offsets here is in context of the DRIP Wrapper ({{drip-wrapper}}) and DRIP Manifest ({{drip-manifest}}) messages. For DRIP Link ({{drip-link}}) messages these offsets are set by the Attestor (typically a registry) and have their own set of considerations as seen in (Editors Note: link to registry draft security considerations here).
+
+The offset of the Trust Timestamp (defined as a very short Expiration Timestamp) is one that needs careful consideration for any implementation. The offset should be shorter than any given flight duration (typically less than an hour) but be long enough to be received and processed by Observers (larger than a few seconds). It recommended that 3-5 minutes should be sufficient to serve this purpose in any scenario, but is not limited by design.
+
+# Acknowledgments
+
+Ryan Quigley and James Mussi of AX Enterprize, LLC for early prototyping to find holes in the draft specifications.
+
+Soren Friis for pointing out that Wi-Fi implementations would not always give access to the MAC Address, originally used in calculation of the hashes for DRIP Manifest. Also, for confirming that Message Packs (0xF) can only carry up to 9 ASTM frames worth of data (9 Authentication pages) - this drove the requirement for max page length of Authentication Data itself.
+
+--- back
+
+# Authentication Coloring Scheme {#appendix-a}
+
+For DRIP there are various Authentication states. The below diagram is the recommended state diagram to determine Authentication status:
+
+~~~~
+TODO
+~~~~
+{:fig #color-state-fig title="DRIP Authentication Colors/State"}
+
+Each state has a specific color associated with it:
+
+| State | Color | Details |
+| ----- | ----- | ------- |
+| None  | Black | No Authentication being received |
+| Partial | Gray | Authentication being received but missing pages |
+| Unsupported | Brown | Authentication Type/SAM Type of received message not supported |
+| Unverifiable | Yellow | Data needed for verification missing |
+| Verified | Green | Valid verification results |
+| Trusted | Blue | Valid verification results and HDA is marked as trusted |
+| Questionable | Orange | Inconsistent verification results |
+| Unverified | Red | Invalid verification results |
+| Conflicting | Purple | Inconsistent verification results and HDA is marked as trusted |
+
 # Example Authentication Messages {#auth-examples}
 
 ## Authentication Data Only
@@ -1174,8 +1002,8 @@ Page 0:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
-+---------------+  ASTM Authentication Headers  +---------------+
+|  Page Header  |                                               |
++---------------+    Authentication Headers     +---------------+
 |                                               |               |
 +---------------+---------------+---------------+               |
 |                                                               |
@@ -1188,7 +1016,7 @@ Page 1:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
+|  Page Header  |                                               |
 +---------------+                                               |
 |                                                               |
 |                Authentication Data / Signature                |
@@ -1201,7 +1029,7 @@ Page 2:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
+|  Page Header  |                                               |
 +---------------+                                               |
 |                Authentication Data / Signature                |
 |                                                               |
@@ -1222,8 +1050,8 @@ Page 0:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
-+---------------+  ASTM Authentication Headers  +---------------+
+|  Page Header  |                                               |
++---------------+     Authentication Headers    +---------------+
 |                                               |               |
 +---------------+---------------+---------------+               | 
 |                                                               |
@@ -1236,7 +1064,7 @@ Page 1:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
+|  Page Header  |                                               |
 +---------------+                                               |
 |                                                               |
 |                                                               |
@@ -1249,7 +1077,7 @@ Page 2:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
+|  Page Header  |                                               |
 +---------------+                                               |
 |                Authentication Data / Signature                |
 |                                                               |
@@ -1264,7 +1092,7 @@ Page 3:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
+|  Page Header  |                                               |
 +---------------+                                               |
 |                       Additional Data                         |
 |                                               +---------------+
@@ -1285,8 +1113,8 @@ Page 0:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
-+---------------+  ASTM Authentication Headers  +---------------+
+|  Page Header  |                                               |
++---------------+     Authentication Headers    +---------------+
 |                                               |   SAM Type    |
 +---------------+---------------+---------------+---------------+ 
 |                                                               |
@@ -1299,7 +1127,7 @@ Page 1:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
+|  Page Header  |                                               |
 +---------------+                                               |
 |                                                               |
 |                                                               |
@@ -1312,7 +1140,7 @@ Page 2:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
+|  Page Header  |                                               |
 +---------------+                                               |
 |                                                               |
 |                                                               |
@@ -1325,7 +1153,7 @@ Page 3:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
+|  Page Header  |                                               |
 +---------------+                                               |
 |                                                               |
 |                                                               |
@@ -1338,7 +1166,7 @@ Page 4:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
+|  Page Header  |                                               |
 +---------------+                                               |
 |                                                               |
 |                                                               |
@@ -1351,7 +1179,7 @@ Page 5:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
+|  Page Header  |                                               |
 +---------------+                                               |
 |                                                               |
 |                                                               |
@@ -1364,7 +1192,7 @@ Page 6:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |             Broadcast Attestation             /
+|  Page Header  |             Broadcast Attestation             /
 +---------------+---------------+---------------+---------------+
 /               |      ADL      |                               |
 +---------------+---------------+                               |
@@ -1378,7 +1206,7 @@ Page 7:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-| Auth. Header  |                                               |
+|  Page Header  |                                               |
 +---------------+            Forward Error Correction           |
 |                                                               |
 +---------------+---------------+---------------+---------------+
