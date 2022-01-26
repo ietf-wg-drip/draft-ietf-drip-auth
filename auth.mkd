@@ -1,9 +1,9 @@
 ---
 coding: utf-8
 
-title: DRIP Authentication Formats for Broadcast Remote ID
+title: DRIP Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: auth-formats
-docname: draft-ietf-drip-auth-03
+docname: draft-ietf-drip-auth-05
 category: info
 
 ipr: trust200902
@@ -157,10 +157,10 @@ Authentication Payload: (23 bytes per page)
 
 {{F3411}} has the following subset of Authentication Type's defined and that can be used in the `Page Header`:
 
-| Authentication Type | Description |
-| ------------------- | ----------- |
-| 0x2                 | Operator ID Signature |
-| 0x3                 | Message Set Signature |
+| Authentication Type | Description                    |
+| ------------------- | ------------------------------ |
+| 0x2                 | Operator ID Signature          |
+| 0x3                 | Message Set Signature          |
 | 0x5                 | Specific Authentication Method |
 
 ##### Specific Authentication Method (SAM)
@@ -231,47 +231,176 @@ As such DRIP transmitters are REQUIRED to adhere to the following:
 
 For Broadcast RID, Forward Error Correction (FEC) is provided by the lower layers in Extended Transports (Bluetooth 5.X, Wi-Fi NaN, and Wi-Fi BEACON). Legacy Transports do not have supporting FEC so with DRIP Authentication the following application level FEC scheme is used.
 
-(Editors Note: add in self-protecting and more-than-self-protecting options, with their justifications)
-
-(Editors Note: Bob M. mentions that the FEC should be page aligned and the ADL includes null padding at the start to page align the data)
-
 ## Encoding
+
+For any encoding the FEC data MUST start on new ASTM Authentication Page. To do this null padding is add before the actual FEC data starts and the length of the whole blob (null padding and FEC) is used as the `Additional Data Length`. To properly fit FEC data into an Authentication Page the number of parity-bytes is limited to 23 (or a multiple thereof). This means that the `Page Header` (and anything before it) is omitted in the FEC process.
 
 ### Single Page FEC {#enc-single-page}
 
-To generate the parity a simple XOR operation using the previous and current page is used. For Page 0, a 25-byte null pad is used for the previous page. The resulting parity fills the `Additional Data` field of {{F3411}} with the `Additional Data Length` field being set to 25.
+To generate the parity a simple XOR operation using the previous and current page is used. Only the last 23-bytes are used during the XOR operation. For Page 0, a 23-byte null pad is used for the previous page. The resulting parity fills the `Additional Data` field of {{F3411}} with the `Additional Data Length` field being set to 23 or greater (depending on number of null pad bytes are needed to get onto the next page).
 
-### Multi Page FEC {#enc-multi-page}
+~~~~
+Page N-1:
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++---------------+---------------+---------------+---------------+
+|  Page Header  |                                               |
++---------------+                                               |
+|                Authentication Data / Signature                |
+|                                                               |
+|               +---------------+---------------+---------------+
+|               |    ADL=33     |                               |
++---------------+---------------+                               |
+|                          Null Padding                         |
+|                                                               |
++---------------+---------------+---------------+---------------+
 
-TODO (Reed Solomon)
+Page N:
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++---------------+---------------+---------------+---------------+
+|  Page Header  |                                               |
++---------------+                                               |
+|                                                               |
+|                     Forward Error Correction                  |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+~~~~
+{:fig #single-fec title="Example Single Page FEC Encoding"}
 
-(Editors Note: probably need a table to check against ADLs to which parameters of Reed Solomon are being used?)
-(Editors Note: this is the place to define if we are self-protecting or global-protecting with FEC...another multiplex byte here directly after the ADL?)
+### Multiple Page FEC {#enc-multi-page}
+
+For Multiple Page FEC there are two flavors: Frame Recovery and Page Recovery. Both follow a similar process, but are offset at what data is actually protected.
+
+(Editor Note: to improve interop should we explicitly select a polynomial for Reed Solomon that DRIP must use?)
+
+#### Page Recovery {#enc-page}
+
+Take the following example of an Authentication Message that 3-pages of parity are to be generated for:
+
+~~~~
+1250098960bf8c05042001001000a00145aac6b00abba268b7
+12512001001000a0014579d8a404d48f2ef9bb9a4470ada5b4
+1252ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73
+1253dca7d04e776150825863c512c6eb075a206a95c59b297e
+1254f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454
+12557101415def153a770d3e6c0b17ae560809bc634a822c1f
+12563b1064b80a000000000000000000000000000000000000
+~~~~
+
+For Page Recovery the first two columns are ignored (being the `Page Header` and any data before it), the last 23 columns are extracted and have Reed Solomon performed on it to produce parity bytes. For the example the following 3-bytes of parity are generated:
+
+~~~~
+dc6c2b = ReedSolomon.encoder(0920ffdcf2713b)
+~~~~
+
+Each set of parity is the placed into a pseudo-frame as follows (each byte in its own message in the same column):
+
+~~~~
+0000dc00000000000000000000000000000000000000000000
+00006c00000000000000000000000000000000000000000000
+00002b00000000000000000000000000000000000000000000
+~~~~
+
+The above data set produces the following full set of parity:
+
+~~~~
+0000dc6657acd30b2ec4aa582049f52adf9f922e62c469563a
+00006c636a59145a55417a3895fd543f19e94200be4abc5e94
+000002bba5e28f5896d754caf50016a983993b149b5c9e6eeb
+~~~~
+
+The last 23-bytes are then added into the `Additional Data` field.
+
+#### Frame Recovery {#enc-frame}
+
+Frame Recovery uses the full ASTM Message and performs Reed Solomon over each byte. Below is an example of a number of messages.
+
+~~~~
+1042012001001000a0014579d8a404d48f2ef9000000000000
+11249600006efeb019ee111ed37a097a0948081c10ffff0000
+1250098960bf8c05042001001000a00145aac6b00abba268b7
+12512001001000a0014579d8a404d48f2ef9bb9a4470ada5b4
+1252ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73
+1253dca7d04e776150825863c512c6eb075a206a95c59b297e
+1254f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454
+12557101415def153a770d3e6c0b17ae560809bc634a822c1f
+12563b1064b80a000000000000000000000000000000000000
+130052656372656174696f6e616c2054657374000000000000
+1402c2ffb019322d1ed3010000c008e40700fc080000000000
+15004e2e4f5031323334353600000000000000000000000000
+~~~~
+
+Each column is extracted and has Reed Solomon performed on it to produce parity bytes.  In the below example 5-bytes of parity are generated with Frame Recovery:
+
+~~~~
+6c3f42b8a8 = ReedSolomon.encoder(101112121212121212131415)
+~~~~
+
+Each set of parity is the placed into a pseudo-frame as follows (each byte in its own message in the same column):
+
+~~~~
+6c000000000000000000000000000000000000000000000000
+3f000000000000000000000000000000000000000000000000
+42000000000000000000000000000000000000000000000000
+b8000000000000000000000000000000000000000000000000
+a8000000000000000000000000000000000000000000000000
+~~~~
+
+The above data set produces the following sets of parity:
+
+~~~~
+6c86337bf7ab746f5d62bb7f8de954104b121585d3975f6e92
+3f06c1bce165b0e25930d57a63c24f751145e1dd8dc115029b
+42e9979580327a6a14d421c12a33aa2e1a2e517daaee581016
+b8012a7b3964f7b2720d387bfa77e945556f1831cd477ef3a3
+a85bb403aada89926fb8fc2a14a9caacb4ec2f3a6ed2d8e9f9
+~~~~
+
+For Frame Recovery the above data would be placed into Authentication Pages like below:
+
+~~~~
+Page 7 = 12576c86337bf7ab746f5d62bb7f8de954104b121585d3975f
+Page 8 = 12586e923f06c1bce165b0e25930d57a63c24f751145e1dd8d
+Page 9 = 1259c115029b42e9979580327a6a14d421c12a33aa2e1a2e51
+Page 10 = 125a7daaee581016b8012a7b3964f7b2720d387bfa77e94555
+Page 11 = 125b6f1831cd477ef3a3a85bb403aada89926fb8fc2a14a9ca
+Page 12 = 125cacb4ec2f3a6ed2d8e9f900000000000000000000000000
+~~~~
+
+Up to 240 (255 minus 15 pages max of FEC data) messages can be protected using Frame Recovery.
 
 ## Decoding
 
-Due to the nature of Bluetooth 4 and the existing ASTM paging structure an optimization can be used. If a Bluetooth frame fails its CRC check, then the frame is dropped without notification to the upper protocol layers. From the Remote ID perspective this means the loss of a complete frame/message/page. In Authentication Messages, each page is already numbered so the loss of a page allows the receiving application to build a "dummy" page filling the entire pages with nulls.
+Due to the nature of Bluetooth 4 and the existing ASTM paging structure an optimization can be used. If a Bluetooth frame fails its CRC check, then the frame is dropped without notification to the upper protocol layers. From the Remote ID perspective this means the loss of a complete frame/message/page. In Authentication Messages, each page is already numbered so the loss of a page allows the receiving application to build a "dummy" page filling the entire page with nulls.
 
-If Page 0 is being reconstructed an additional check of the `Last Page Index` to check against how many pages are actually present, MUST be performed for sanity. An additional check on the Data Length field SHOULD also be performed.
+If Page 0 is being reconstructed an additional check of the `Last Page Index` to check against how many pages are actually present, MUST be performed for sanity. An additional check on the `Length` field SHOULD also be performed.
 
-To determine if Single Page FEC or Multi-Page FEC has been used a simple check of the `Additional Data Length (ADL)` field can be used. If the `ADL` is equal to 25, then Single Page FEC is present, anything larger signals Multi-Page FEC.
+To determine if Single Page FEC or Multiple Page FEC has been used a simple check of the `Last Page Index` can be used. If the number of pages left after the `Length` of Authentication Data is exhausted than it is clear that the remaining pages are all FEC. The `Additional Data Length` byte can further confirm this; taking into account any null padding needed for page alignment.
 
 ### Single Page FEC {#dec-single-page}
 
-Using the same methods as encoding, an XOR operation is used between the previous and current page (a 25-byte null pad is used as the start). The resulting 25-bytes should be the missing page.
+Using the same methods as encoding, an XOR operation is used between the previous and current page (a 23-byte null pad is used as the start). The resulting 23-bytes should be data of the missing page.
 
-### Multi Page FEC {#dec-multi-page}
+### Multiple Page FEC {#dec-multi-page}
 
-TODO (Reed Solomon)
+To determine if Page Recovery or Frame Recovery is used two modulo checks with the `ADL` after the length of the null-pad is removed are needed. One against the value of 23, and the other against the value of 25. If 23 comes back with a value of 0 then Page Recovery is being used. If 25 comes back with 0 then Frame Recovery is used. Any other combination indicates an error.
 
-(Editors Note: probably need a table to check against ADLs to which parameters of Reed Solomon are being used?)
-(Editors Note: this is the place to define if we are self-protecting or global-protecting with FEC...another multiplex byte here directly after the ADL?)
+#### Page Recovery {#dec-page}
+
+To decode Page Recovery, dummy pages (pages with nulls as the data) are needed in the places no page was received. Then Reed Solomon can decode across the columns of the 23-bytes of each page. Erasures can be used as it is known which pages are missing and can improve the Reed Solomon results by specifying them.
+
+#### Frame Recovery {#dec-frame}
+
+To decode Frame Recovery, the receiver must first extract all FEC data from the pages; concatenate them and then break into 25-byte chunks. This will produce the pseudo-frames. Now Reed Solomon can be used to decode columns, with dummy frames inserted where needed.
+
+(Editors Note: for Page Recovery adding the nulls is easy - however how do we specify/know the order and number of messages for Frame Recovery to insert the null-Messages?)
 
 ## FEC Limitations
 
-If more than one page is lost (>1/5 for 5-page messages, >1/10 for 10-page messages) than the error rate of the link is already beyond saving and the application has more issues to deal with.
-
-(Editors Note: Is this valid anymore, for XOR yes but for multi-page FEC?)
+The worst case scenario is when the `Authentication Data / Signature` ends perfectly on a page (Page N-1). This means the `Additional Data Length` would start the next page (Page N) and have 22-bytes worth of null padding to align the FEC in to the next page (Page N+1). In this scenario an entire page (Page N) is being wasted just to carry the `Additional Data Length`. This should be be avoided at all costs - in an effort to maintain efficiency.
 
 # Broadcast Attestation Structure {#bas}
 
@@ -294,7 +423,9 @@ When using this structure the UA is always self-attesting its DRIP Entity Tag (D
 .                                                               .
 |                                                               |
 +---------------+---------------+---------------+---------------+
-|                   Expiration Timestamp by UA                  |
+|                   Not Before Timestamp by UA                  |
++---------------+---------------+---------------+---------------+
+|                    Not After Timestamp by UA                  |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                                                               |
@@ -317,11 +448,14 @@ When using this structure the UA is always self-attesting its DRIP Entity Tag (D
 UA DRIP Entity Tag (16 bytes):
     The UA DET in byte form (network byte order).
 
-Attestation Data (0 to 116 bytes):
+Attestation Data (0 to 112 bytes):
     Opaque attestation data.
 
-Expiration Timestamp by UA (4 bytes):
-    Timestamp denoting recommended time to trust data to.
+Not Before Timestamp by UA (4-bytes):
+    Timestamp denoting recommended time to start trusting data.
+
+Not After Timestamp by UA (4 bytes):
+    Timestamp denoting recommended time to stop trusting data.
 
 UA Signature (64 bytes):
     Signature over preceding fields using the keypair of 
@@ -329,9 +463,9 @@ UA Signature (64 bytes):
 ~~~~
 {:fig #drip-data title="Broadcast Attestation Structure"}
 
-`Attestation Data` is a field with a maximum of 116-bytes, containing data that the UA is attesting during its flight.
+`Attestation Data` is a field with a maximum of 112-bytes, containing data that the UA is attesting during its flight.
 
-The `Expiration Timestamp` MUST follow the format defined in {{F3411}}. That is a UNIX timestamp offset by 01/01/2019 00:00:00. An additional offset is then added to push the timestamp a short time into the future to avoid replay attacks. The offset used against the UNIX timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers.
+The `Not After Timestamp` and `Not Before Timestamp` MUST follow the format defined in {{F3411}}. That is a UNIX timestamp offset by 01/01/2019 00:00:00. An additional offset is then added to push the `Not After Timestamp` a short time into the future to avoid replay attacks. The offset used against the UNIX timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers.
 
 # DRIP Authentication Formats
 
@@ -361,9 +495,9 @@ The existing ASTM {{F3411}} Authentication Type 0x2 can be used to send a static
 |                                                               |
 |                                                               |
 +---------------+---------------+---------------+---------------+
-|                      Expiration Timestamp                     |
+|                Not Before Timestamp by Operator               |
 +---------------+---------------+---------------+---------------+
-|                        Signing Timestamp                      |
+|                Not After Timestamp by Operator                |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                                                               |
@@ -389,11 +523,11 @@ UA DRIP Entity Tag (16 bytes):
 Operator Host Identity (32-bytes):
     HI of the Operator.
 
-Expiration Timestamp by Operator (4 bytes):
-    Timestamp denoting recommended time to trust data to.
+Not Before Timestamp by Operator (4 bytes):
+    Timestamp denoting recommended time to start trusting data.
 
-Signing Timestamp by Operator (4 bytes):
-    Current time at signing.
+Not After Timestamp by Operator (4 bytes):
+    Timestamp denoting recommended time to stop trusting data.
 
 Operator Signature (64 bytes):
     Signature over preceding fields using the keypair of 
@@ -416,7 +550,9 @@ The concatenation of all messages in the Message Pack (excluding Authentication)
 |                        DRIP Entity Tag                        |
 |                                                               |
 +---------------+---------------+---------------+---------------+
-|                      Expiration Timestamp                     |
+|                   Not Before Timestamp by UA                  |
++---------------+---------------+---------------+---------------+
+|                    Not After Timestamp by UA                  |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                                                               |
@@ -439,8 +575,11 @@ The concatenation of all messages in the Message Pack (excluding Authentication)
 UA DRIP Entity Tag (16 bytes):
     The UA DET in byte form (network byte order).
 
-Expiration Timestamp by UA (4 bytes):
-    Timestamp denoting recommended time to trust data to.
+Not Before Timestamp by UA (4-bytes):
+    Timestamp denoting recommended time to start trusting data.
+
+Not After Timestamp by UA (4 bytes):
+    Timestamp denoting recommended time to stop trusting data.
 
 UA Signature (64 bytes):
     Signature over preceding fields using the keypair of 
@@ -480,12 +619,12 @@ SAM Authentication Data (0 to 200 bytes):
 
 The SAM Type field is maintained by the International Civil Aviation Organization (ICAO) and for DRIP four are allocated:
 
-| SAM Type | Description |
-| -------- | ----------- |
-| 0x01     | DRIP Link ({{drip-link}}) |
-| 0x02     | DRIP Wrapper ({{drip-wrapper}}) |
+| SAM Type | Description                       |
+| -------- | --------------------------------- |
+| 0x01     | DRIP Link ({{drip-link}})         |
+| 0x02     | DRIP Wrapper ({{drip-wrapper}})   |
 | 0x03     | DRIP Manifest ({{drip-manifest}}) |
-| 0x04     | DRIP Frame ({{drip-frame}}) |
+| 0x04     | DRIP Frame ({{drip-frame}})       |
 
 #### SAM Authentication Data
 
@@ -493,91 +632,25 @@ This field has a maximum size of 200-bytes, as defined by {{drip-restrictions}}.
 
 ### DRIP Link
 
-This SAM Type is used to transmit the Broadcast Attestation of the Registry (HDA) over the UA. Its structure is defined in {{drip-registries}} and is as follows:
+This SAM Type is used to transmit Broadcast Attestation's. The Broadcast Attestation of the Registry (HDA) over the UA MUST be sent (see {{drip-recommendations}}). Its structure is defined in {{drip-registries}} and an example of it can be found in {{link-example}}.
 
 ~~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-                                                +---------------+
-                                                |   Link Type   |
 +---------------+---------------+---------------+---------------+
 |                                                               |
-|                             DRIP                              |
-|                       Entity Tag of HDA                       |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                             DRIP                              |
-|                       Entity Tag of UA                        |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                      Host Identity of UA                      |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                  Expiration Timestamp by HDA                  |
-+---------------+---------------+---------------+---------------+
-|                    Signing Timestamp by HDA                   |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                       Signature by HDA                        |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
+.                                                               .
+.                      Broadcast Attestation                    .
+.                                                               .
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
-Link Type: (1-byte)
-    Multiplexing byte to define different Links being sent.
-
-DRIP Entity Tag of HDA: (16-bytes)
-    DET of HDA.
-
-DRIP Entity Tag of UA: (16-bytes)
-    DET of UA.
-
-Host Identity of UA: (32-bytes)
-    HI of UA
-
-Expiration Timestamp by HDA (4 bytes):
-    Timestamp denoting recommended time to trust data to.
-
-Signing Timestamp by HDA (4 bytes):
-    Current time at signing.
-
-HDA Signature (64 bytes):
-    Signature over preceding fields using the keypair of 
-    the HDA.
+Broadcast Attestation: (135-bytes)
+    ...
 ~~~~
-{:fig #b-axy-fig title="Example DRIP HDA-UA Broadcast Attestation"}
+{:fig #link-fig title="DRIP Link"}
 
 This DRIP format MUST be used in conjunction with the DRIP Manifest with the hash of the DRIP Link message and other dynamic data (such as the Location Message (Message Type 0x2)).
-
-#### Link Type
-
-| Link Type | Description |
-| --------- | ----------- |
-| 0x00      | Reserved |
-| 0x01      | HDA to UA |
-| 0x02      | RAA to HDA |
-| 0x03      | Root to RAA |
-| 0x05      | HDA to Operator |
-| 0x06      | Operator to UA |
 
 #### Link Limitations
 
@@ -632,7 +705,9 @@ To determine the number of messages wrapped the receiver can check that the leng
 |                                                               |
 |                                                               |
 +---------------+---------------+---------------+---------------+
-|                      Expiration Timestamp                     |
+|                   Not Before Timestamp by UA                  |
++---------------+---------------+---------------+---------------+
+|                    Not After Timestamp by UA                  |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                                                               |
@@ -658,8 +733,11 @@ UA DRIP Entity Tag (16 bytes):
 ASTM Message (25 bytes):
     Full ASTM Message.
 
-Expiration Timestamp by UA (4 bytes):
-    Timestamp denoting recommended time to trust data to.
+Not Before Timestamp by UA (4-bytes):
+    Timestamp denoting recommended time to start trusting data.
+
+Not After Timestamp by UA (4 bytes):
+    Timestamp denoting recommended time to stop trusting data.
 
 UA Signature (64 bytes):
     Signature over preceding fields using the keypair of 
@@ -726,7 +804,9 @@ The `Attestation Data` field is filled with 12-byte hashes of previous {{F3411}}
 |                       ASTM Message Hash                       |
 |                                                               |
 +---------------+---------------+---------------+---------------+
-|                      Expiration Timestamp                     |
+|                   Not Before Timestamp by UA                  |
++---------------+---------------+---------------+---------------+
+|                    Not After Timestamp by UA                  |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                                                               |
@@ -762,8 +842,11 @@ ASTM Message Hash (12 bytes):
     Hash of a single full ASTM Message. Multiple hashes should
     be in Message Type order.
 
-Expiration Timestamp by UA (4 bytes):
-    Timestamp denoting recommended time to trust data to.
+Not Before Timestamp by UA (4-bytes):
+    Timestamp denoting recommended time to start trusting data.
+
+Not After Timestamp by UA (4 bytes):
+    Timestamp denoting recommended time to stop trusting data.
 
 UA Signature (64 bytes):
     Signature over preceding fields using the keypair of 
@@ -822,21 +905,21 @@ This SAM Type is for when the authentication data does not fit in other defined 
 ~~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-                                                +---------------+
-                                                |  Frame Type   |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                              UA                               |
 |                        DRIP Entity Tag                        |
 |                                                               |
 +---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
+|  Frame Type   |                                               |
++---------------+                                               .
 .                        Attestation Data                       .
 .                                                               .
 |                                                               |
 +---------------+---------------+---------------+---------------+
-|                      Expiration Timestamp                     |
+|                   Not Before Timestamp by UA                  |
++---------------+---------------+---------------+---------------+
+|                    Not After Timestamp by UA                  |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                                                               |
@@ -856,23 +939,32 @@ This SAM Type is for when the authentication data does not fit in other defined 
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
-Frame Type (1 byte):
-    Multiplexing frame type.
-
 UA DRIP Entity Tag (16 bytes):
     The UA DET in byte form (network byte order).
 
-Attestation Data (0 to 115 bytes):
+Frame Type (1 byte):
+    Multiplexing frame type.
+
+Attestation Data (0 to 111 bytes):
     Opaque attestation data.
 
-Expiration Timestamp by UA (4 bytes):
-    Timestamp denoting recommended time to trust data to.
+Not Before Timestamp by UA (4-bytes):
+    Timestamp denoting recommended time to start trusting data.
+
+Not After Timestamp by UA (4 bytes):
+    Timestamp denoting recommended time to stop trusting data.
 
 UA Signature (64 bytes):
     Signature over preceding fields using the keypair of 
     the UA.
 ~~~~
 {:fig #frame-fig title="Example DRIP Frame"}
+
+#### Frame Type
+
+Multiplexing byte for future different DRIP Frame formats.
+
+(Editors Note: do a split and have the upper 1/4 of range set for experimental?)
 
 #### Frame Limitations
 
@@ -896,14 +988,14 @@ Without any fragmentation or loss of pages with transmission Forward Error Corre
 
 It is REQUIRED that an aircraft send the following Authentication Formats to fulfill the {{?drip-requirements}}:
 
-1. DRIP Link using the Broadcast Attestation of USS and the UA (satisfying GEN-1 and GEN-3)
+1. DRIP Link using the Broadcast Attestation of HDA and the UA (satisfying GEN-1 and GEN-3)
 2. Any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest or DRIP Wrapper) where the UA is dynamically signing data (satisfying GEN-1 and GEN-2)
 
 It is RECOMMENDED the following set of Authentication Formats are sent for support of offline Observers:
 
-1. DRIP Link using the Broadcast Attestation of HID Root and the CAA (satisfies GEN-3)
-2. DRIP Link using the Broadcast Attestation of CAA and the USS (satisfies GEN-3)
-3. DRIP Link using the Broadcast Attestation of USS and the UA (satisfies GEN-1 and GEN-3)
+1. DRIP Link using the Broadcast Attestation of HID Root and the RAA (CAA) (satisfies GEN-3)
+2. DRIP Link using the Broadcast Attestation of RAA (CAA) and the HDA (USS) (satisfies GEN-3)
+3. DRIP Link using the Broadcast Attestation of HDA (USS) and the UA (satisfies GEN-1 and GEN-3)
 4. Any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest or DRIP Wrapper) where the UA is dynamically signing data (satisfies GEN-1 and GEN-2)
 
 ## Operational
@@ -926,16 +1018,18 @@ The DRIP Wrapper has a specific use case for DRIP aware receivers. For receiver 
 
 DRIP requests the following SAM Type's to be allocated:
 
-1. DRIP Frame
+1. DRIP Link
 2. DRIP Wrapper
 3. DRIP Manifest
-4. DRIP Link
+4. DRIP Frame
+
+(Editors Note: need help on this section; how should this be formatted?)
 
 # IANA Considerations
 
-This document does not require any actions by IANA.
+This document requests a new number field for Frame Type with the initial value of 0x00 set to be Reserved.
 
-(Editors Note: needed for Link Types?)
+(Editors Note: need help on this section; how should this be formatted?)
 
 # Security Considerations
 
@@ -956,7 +1050,7 @@ The astute reader may note that the DRIP Link messages, which are recommended to
 
 ## Trust Timestamp Offsets
 
-Note the discussion of Trust Timestamp Offsets here is in context of the DRIP Wrapper ({{drip-wrapper}}) and DRIP Manifest ({{drip-manifest}}) messages. For DRIP Link ({{drip-link}}) messages these offsets are set by the Attestor (typically a registry) and have their own set of considerations as seen in (Editors Note: link to registry draft security considerations here).
+Note the discussion of Trust Timestamp Offsets here is in context of the DRIP Wrapper ({{drip-wrapper}}) and DRIP Manifest ({{drip-manifest}}) messages. For DRIP Link ({{drip-link}}) messages these offsets are set by the Attestor (typically a registry) and have their own set of considerations as seen in {{drip-registries}}.
 
 The offset of the Trust Timestamp (defined as a very short Expiration Timestamp) is one that needs careful consideration for any implementation. The offset should be shorter than any given flight duration (typically less than an hour) but be long enough to be received and processed by Observers (larger than a few seconds). It recommended that 3-5 minutes should be sufficient to serve this purpose in any scenario, but is not limited by design.
 
@@ -968,28 +1062,271 @@ Soren Friis for pointing out that Wi-Fi implementations would not always give ac
 
 --- back
 
-# Authentication Coloring Scheme {#appendix-a}
+# Authentication State Diagrams & Color Scheme {#appendix-a}
 
-For DRIP there are various Authentication states. The below diagram is the recommended state diagram to determine Authentication status:
+For DRIP there are various Authentication states. The table below lays out the RECOMMENDED colors to associate with state.
+
+| State        | Color  | Details                                                        |
+| ------------ | ------ | -------------------------------------------------------------- |
+| None         | Black  | No Authentication being received                               |
+| Partial      | Gray   | Authentication being received but missing pages                |
+| Unsupported  | Brown  | Authentication Type/SAM Type of received message not supported |
+| Unverifiable | Yellow | Data needed for verification missing                           |
+| Verified     | Green  | Valid verification results                                     |
+| Trusted      | Blue   | Valid verification results and HDA is marked as trusted        |
+| Questionable | Orange | Inconsistent verification results                              |
+| Unverified   | Red    | Invalid verification results                                   |
+| Conflicting  | Purple | Inconsistent verification results and HDA is marked as trusted |
+
+## State Diagrams
+
+This section gives some RECOMMENDED state flows that DRIP should follow.
+
+### Notations
 
 ~~~~
-TODO
+o--------------o
+|   PROCESS    |
+o--------------o
+
++--------------+
+|    STATE     |
++--------------+
+
+ ooooo
+o  N  o    Transition N
+ ooooo
+
++----->    Transition Option False/No
+
+----->     Transition Option True/Yes
+
 ~~~~
-{:fig #color-state-fig title="DRIP Authentication Colors/State"}
+{:fig #state-notations title="Diagram Notations"}
 
-Each state has a specific color associated with it:
+### General
 
-| State | Color | Details |
-| ----- | ----- | ------- |
-| None  | Black | No Authentication being received |
-| Partial | Gray | Authentication being received but missing pages |
-| Unsupported | Brown | Authentication Type/SAM Type of received message not supported |
-| Unverifiable | Yellow | Data needed for verification missing |
-| Verified | Green | Valid verification results |
-| Trusted | Blue | Valid verification results and HDA is marked as trusted |
-| Questionable | Orange | Inconsistent verification results |
-| Unverified | Red | Invalid verification results |
-| Conflicting | Purple | Inconsistent verification results and HDA is marked as trusted |
+~~~~
+o---------------------o      ooooo        +------+
+|        Start        |---->o  1  o+----->| None |
+o---------------------o      ooooo        +------+
+                               |
+                               v
+                             ooooo        +-------------+
+                            o  2  o+----->| Unsupported |
+                             ooooo        +-------------+
+                               |             ^
+                               v             |
+          +---------+        ooooo           |
+          | Partial |<-----+o  3  o          |
+          +---------+        ooooo           |
+                               |             |
+                               v             +
+                             ooooo         ooooo        o-------------o
+                            o  4  o------>o  5  o------>| SAM Decoder |
+                             ooooo         ooooo        o-------------o
+                               +
+                               |
+                               v
+                        o------------------o
+                        | AuthType Decoder |
+                        o------------------o
+~~~~
+{:fig #std-state-fig title="Standard Authentication Colors/State"}
+
+| Transition | Transition Query                              | Next State/Process/Transition (Yes, No) |
+| ---------- | --------------------------------------------- | --------------------------------------- |
+| 1          | Receiving Authentication Pages?               | 2, None                                 |
+| 2          | Authentication Type Supported?                | 3, Unsupported                          |
+| 3          | All Pages of Authentication Message Received? | 4, Partial                              |
+| 4          | Is Authentication Type received 5?            | 5, AuthType Decoder                     |
+| 5          | Is SAM Type Supported?                        | SAM Decoder, Unsupported                |
+
+### DRIP SAM
+
+~~~~
+o-------------o      ooooo        o-----------------------------o
+| SAM Decoder |---->o  6  o------>| DRIP Wrapper/Manifest/Frame |
+o-------------o      ooooo        o-----------------------------o
+                       +                 |              ^
+                       |                 |              |
+                       v                 v              |
+                o-----------o    o--------------------o |
+                | DRIP Link |--->| Update State Cache | |
+                o-----------o    o--------------------o |
+                                   |                    |
+                                   v                    |
+        o--------------o         ooooo       o----------------------o
+        | NOP / Return |<------+o  7  o----->| Extract Message from |
+        o--------------o         ooooo       | Verification Queue   |
+                                             o----------------------o
+~~~~
+{:fig #sam-state-fig title="DRIP SAM Decoder"}
+
+| Transition | Transition Query                | Next State/Process/Transition (Yes, No)               |
+| ---------- | ------------------------------- | ----------------------------------------------------- |
+| 6          | Is SAM Type DRIP Link?          | DRIP Link, DRIP Wrapper/Manifest/Frame                |
+| 7          | Messages in Verification Queue? | Extract Message from Verification Queue, NOP / Return |
+
+### DRIP Link {#link-diagram}
+
+~~~~
+o-----------o       ooooo         ooooo        +--------------+
+| DRIP Link |----->o  8  o+----->o  9  o+----->| Unverifiable |
+o-----------o       ooooo         ooooo        +--------------+
+                      |             |
+                      |-------------'
+                      v
+                    ooooo        +------------+
+                   o  10 o+----->| Unverified |
+                    ooooo        +------------+
+                      |
+                      v
+                o---------------------o
+                | Add Aircraft DET/PK |
+                | to Key Cache        |
+                o---------------------o
+                      |
+                      v
+                    ooooo         +----------+
+                   o  11 o+------>| Verified |
+                    ooooo         +----------+
+                      |              ^
+                      v              |
+                o-------------------------o
+                | Mark Aircraft DET/PK    |
+                | as Trusted in Key Cache |
+                o-------------------------o
+~~~~ 
+{:fig #drip-link-state-fig title="DRIP Link State Decoder"}
+
+| Transition | Transition Query                                | Next State/Process/Transition (Yes, No)                |
+| ---------- | ----------------------------------------------- | ------------------------------------------------------ |
+| 8          | Registry DET/PK in Key Cache?                   | 10, 9                                                  |
+| 9          | Registry PK found Online?                       | 10, Unverifiable                                       |
+| 10         | Registry Signature Verified?                    | Add Aircraft DET/PK to Key Cache, Unverified           |
+| 11         | Registry DET/PK marked as Trusted in Key Cache? | Mark Aircraft DET/PK as Trusted in Key Cache, Verified |
+
+### DRIP Wrapper/Manifest/Frame
+
+~~~~
+o-----------------------------o         +--------------+
+| DRIP Wrapper/Manifest/Frame |         | Unverifiable |
+o-----------------------------o         +--------------+
+           |                                   ^
+           v                                   |
+         ooooo         ooooo        o--------------------o
+        o  12 o+----->o  13 o+----->| Add Message to     |
+         ooooo         ooooo        | Verification Queue |
+           |             |          o--------------------o
+           |             |                    
+           |-------------'             
+           v                           
+         ooooo         ooooo         ooooo        +------------+
+        o  14 o+----->o  15 o+----->o  16 o+----->| Unverified |
+         ooooo         ooooo         ooooo        +------------+
+           |             |             |
+           v             v             |
+         ooooo        +-------------+  |
+        o  17 o+----->| Conflicting |  |
+         ooooo        +-------------+  |
+           |                           |
+           v                           v
+         ooooo                  +--------------+
+        o  18 o---------------->| Questionable |
+         ooooo                  +--------------+
+           +
+           |
+           v
+         ooooo        +----------+
+        o  19 o+----->| Verified |
+         ooooo        +----------+
+           |
+           v
+        +---------+
+        | Trusted |
+        +---------+
+~~~~
+{:fig #drip-state-fig title="DRIP Wrapper/Manifest/Frame State Decoder"}
+
+| Transition | Transition Query                                                          | Next State/Process/Transition (Yes, No) |
+| ---------- | ------------------------------------------------------------------------- | --------------------------------------- |
+| 12         | Aircraft DET/PK in Key Cache?                                             | 14, 13                                  |
+| 13         | Aircraft PK found Online?                                                 | 14, Add Message to Verification Queue   |
+| 14         | Aircraft Signature Verified?                                              | 17, 15                                  |
+| 15         | Has past Messages of this type been marked as Trusted?                    | Conflicting, 16                         |
+| 16         | Has past Messages of this type been marked as Questionable or Verified?   | Questionable, Unverified                |
+| 17         | Has past Messages of this type been marked as Conflicting?                | Conflicting, 18                         |
+| 18         | Has past Messages of this type been marked as Questionable or Unverified? | Questionable, 19                        |
+| 19         | Is Aircraft DET/PK marked as Trusted in Key Cache?                        | Trusted, Verified                       |
+
+# HDA-UA Broadcast Attestation {#link-example}
+
+~~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                             DRIP                              |
+|                       Entity Tag of HDA                       |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                             DRIP                              |
+|                       Entity Tag of UA                        |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                                                               |
+|                      Host Identity of UA                      |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                   Not Before Timestamp by HDA                 |
++---------------+---------------+---------------+---------------+
+|                    Not After Timestamp by HDA                 |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                       Signature by HDA                        |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+
+DRIP Entity Tag of HDA: (16-bytes)
+    DET of HDA.
+
+DRIP Entity Tag of UA: (16-bytes)
+    DET of UA.
+
+Host Identity of UA: (32-bytes)
+    HI of UA
+
+Expiration Timestamp by HDA (4 bytes):
+    Timestamp denoting recommended time to trust data to.
+
+Signing Timestamp by HDA (4 bytes):
+    Current time at signing.
+
+HDA Signature (64 bytes):
+    Signature over preceding fields using the keypair of 
+    the HDA.
+~~~~
+{:fig #b-axy-fig title="Example DRIP HDA-UA Broadcast Attestation"}
 
 # Example Authentication Messages {#auth-examples}
 
@@ -1082,7 +1419,7 @@ Page 2:
 |                Authentication Data / Signature                |
 |                                                               |
 |               +---------------+---------------+---------------+
-|               |      ADL      |                               |
+|               |    ADL=20     |                               |
 +---------------+---------------+                               |
 |                       Additional Data                         |
 |                                                               |
@@ -1123,6 +1460,8 @@ Page 0:
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
+Hex: 500789d9c08c05042001001000a00145aac6b00abba268b7
+
 Page 1:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1135,6 +1474,8 @@ Page 1:
 |                                                               |
 |                                                               |
 +---------------+---------------+---------------+---------------+
+
+Hex: 512001001000a0014579d8a404d48f2ef9bb9a4470ada5b4 
 
 Page 2:
  0                   1                   2                   3
@@ -1149,6 +1490,8 @@ Page 2:
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
+Hex: 52ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73 
+
 Page 3:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1161,6 +1504,8 @@ Page 3:
 |                                                               |
 |                                                               |
 +---------------+---------------+---------------+---------------+
+
+Hex: 53dca7d04e776150825863c512c6eb075a206a95c59b297e 
 
 Page 4:
  0                   1                   2                   3
@@ -1175,6 +1520,8 @@ Page 4:
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
+Hex: 54f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454 
+
 Page 5:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1188,6 +1535,8 @@ Page 5:
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
+Hex: 557101415def153a770d3e6c0b17ae560809bc634a822c1f 
+
 Page 6:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -1197,22 +1546,25 @@ Page 6:
 /               |      ADL      |                               |
 +---------------+---------------+                               |
 |                                                               |
-|                   Forward Error Correction                    |
+|                          Null Padding                         |
 |                                                               |
 |                                                               |
 +---------------+---------------+---------------+---------------+
+
+Hex: 563b1064b80a290000000000000000000000000000000000 
 
 Page 7:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
 |  Page Header  |                                               |
-+---------------+            Forward Error Correction           |
++---------------+                                               |
+|                                                               |
+|                    Forward Error Correction                   |
+|                                                               |
+|                                                               |
 |                                                               |
 +---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                         Null Padding                          |
-|                                                               |
-+---------------+---------------+---------------+---------------+
+
+Hex: 57bcbe21684809ed5284aa40b4b7bc45efeb3a47d24b6645
 ~~~~
