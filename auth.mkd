@@ -747,7 +747,7 @@ UA Signature (64 bytes):
 
 #### Wrapper Limitations
 
-TODO
+The primary limitation of the Wrapper format is the bounding of up to 4 ASTM Messages that can be sent within it. Another limitation is that the format can not be used as a surrogate for messages it is wrapping. This is due to high potential a receiver on the ground does not support DRIP. Thus when Wrapper is being used the wrapper data must effectively be sent twice; once as a single framed message (as specified in {{F3411}}) and then again wrapped within the Wrapper format.
 
 ### DRIP Manifest
 
