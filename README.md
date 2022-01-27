@@ -1,6 +1,6 @@
-# DRIP Authentication Formats
+# DRIP Authentication Formats & Protocols for Broadcast Remote ID
 
-This is the working area for the IETF [DRIP Working Group](https://datatracker.ietf.org/wg/drip/documents/) Internet-Draft, "DRIP Authentication Formats".
+This is the working area for the IETF [DRIP Working Group](https://datatracker.ietf.org/wg/drip/documents/) Internet-Draft, "DRIP Authentication Formats & Protocols for Broadcast Remote ID".
 
 * [Working Group Draft](https://tools.ietf.org/html/draft-ietf-drip-auth)
 
