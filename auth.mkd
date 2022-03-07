@@ -396,7 +396,7 @@ To decode Page Recovery, dummy pages (pages with nulls as the data) are needed i
 
 To decode Frame Recovery, the receiver must first extract all FEC data from the pages; concatenate them and then break into 25-byte chunks. This will produce the pseudo-frames. Now Reed Solomon can be used to decode columns, with dummy frames inserted where needed.
 
-(Editors Note: for Page Recovery adding the nulls is easy - however how do we specify/know the order and number of messages for Frame Recovery to insert the null-Messages?)
+<!-- Author Note (atw): for Page Recovery adding the nulls is easy - however how do we specify/know the order and number of messages for Frame Recovery to insert the null-Messages? -->
 
 ## FEC Limitations
 
@@ -878,7 +878,7 @@ Under this transport DRIP hashes the full ASTM Message Pack (Message Type 0xF) -
 
 Windows of number of ASTM Messages the manifest is applicable over.
 
-(Editors Note: needs better text here and justification of inclusion)
+<!-- Author Note (atw): needs better text here and justification of inclusion -->
 
 #### Pseudo-Blockchain Hashes {#block-hashes}
 
@@ -964,7 +964,7 @@ UA Signature (64 bytes):
 
 Multiplexing byte for future different DRIP Frame formats.
 
-(Editors Note: do a split and have the upper 1/4 of range set for experimental?)
+<!-- Author Note (atw): do a split and have the upper 1/4 of range set for experimental? -->
 
 #### Frame Limitations
 
@@ -1023,13 +1023,13 @@ DRIP requests the following SAM Type's to be allocated:
 3. DRIP Manifest
 4. DRIP Frame
 
-(Editors Note: need help on this section; how should this be formatted?)
+<!-- Author Note (atw): need help on this section; how should this be formatted? -->
 
 # IANA Considerations
 
 This document requests a new number field for Frame Type with the initial value of 0x00 set to be Reserved.
 
-(Editors Note: need help on this section; how should this be formatted?)
+<!-- Author Note (atw): need help on this section; how should this be formatted? -->
 
 # Security Considerations
 
