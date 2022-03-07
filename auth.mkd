@@ -404,7 +404,7 @@ The worst case scenario is when the `Authentication Data / Signature` ends perfe
 
 # Broadcast Attestation Structure {#bas}
 
-To directly support Broadcast RID a variation of the `Attestation Structure` format of {{drip-registries}} SHOULD be used when running DRIP under the various Authentication Types (filling the `Authentication Data / Signature` field of {{astm-auth}}) and SAM Types (filling the `SAM Authentication Data` field ({{sam-authentication-data}})).
+To directly support Broadcast RID a variation of the `Attestation Structure` format of {{drip-registries}} SHOULD be used when running DRIP under the various Authentication Types (filling the `Authentication Data / Signature` field of {{astm-auth}}) and SAM Types (filling the `SAM Authentication Data` field ({{sam-authentication-data}})). The notable changes of the structure is that the timestamps are set by the UA and the `Attestor Identity Information` is set to the DET of the UA.
 
 When using this structure the UA is always self-attesting its DRIP Entity Tag (DET). The Host Identity of the UA DET can be looked up by mechanisms described in {{drip-registries}} or by extracting it from Broadcast Attestation (see {{drip-link}} and {{drip-recommendations}}).
 
@@ -465,7 +465,7 @@ UA Signature (64 bytes):
 
 `Attestation Data` is a field with a maximum of 112-bytes, containing data that the UA is attesting during its flight.
 
-The `Not After Timestamp` and `Not Before Timestamp` MUST follow the format defined in {{F3411}}. That is a UNIX timestamp offset by 01/01/2019 00:00:00. An additional offset is then added to push the `Not After Timestamp` a short time into the future to avoid replay attacks. The offset used against the UNIX timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers.
+The `Not After Timestamp` and `Not Before Timestamp` MUST follow the format defined in {{F3411}}. That is a UNIX timestamp offset by 01/01/2019 00:00:00. `Not Before Timestamp` MUST be set to the time the structure is signed over. An additional offset is then added to push the `Not After Timestamp` a short time into the future to avoid replay attacks. The offset used against the UNIX timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers. A reasonable time would be to set `Not After Timestamp` 2 minutes ahead of `Not Before Timestamp`.
 
 # DRIP Authentication Formats
 
@@ -539,7 +539,7 @@ Operator Signature (64 bytes):
 
 When running under Extended Transports, the existing ASTM {{F3411}} Authentication Type 0x3 can be used to sign over the adjacent ASTM Messages in the Message Pack (Message Type 0xF).
 
-The concatenation of all messages in the Message Pack (excluding Authentication) before signing MUST be in Message Type order and be placed between the UA DRIP Entity Tag and Expiration Timestamp field.
+The concatenation of all messages in the Message Pack (excluding Authentication) before signing MUST be in Message Type order and be placed between the `UA DRIP Entity Tag` and `Not Before Timestamp` field.
 
 ~~~~
  0                   1                   2                   3
@@ -755,13 +755,11 @@ This SAM Type is used to create message manifests. It MUST use the Broadcast Att
 
 By hashing previously sent messages and signing them we gain trust in UAs previous reports. An observer who has been listening for any considerable length of time can hash received messages and cross-check against listed hashes. This is a way to evade the limitation of a maximum of 4 messages in the Wrapper Format and reduce overhead.
 
-The `Attestation Data` field is filled with 12-byte hashes of previous {{F3411}} Broadcast messages.
+The `Attestation Data` field is filled with 12-byte hashes of previous {{F3411}} Broadcast messages. A receiver does not need to have received every message in the manifest to verify it. A manifest SHOULD typically encompass a single transmission cycle of messages being sent, see {{operational}}.
 
 ~~~~
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-                                                +---------------+
-                                                |  Msg Window   |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                              UA                               |
@@ -826,9 +824,6 @@ The `Attestation Data` field is filled with 12-byte hashes of previous {{F3411}}
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
-Msg Window (1 byte):
-    Variable window size - TODO
-
 UA DRIP Entity Tag (16 bytes):
     The UA DET in byte form (network byte order).
 
@@ -873,12 +868,6 @@ Under this transport DRIP hashes the full ASTM Message being sent over the Bluet
 ##### Extended Transport Hashing
 
 Under this transport DRIP hashes the full ASTM Message Pack (Message Type 0xF) - regardless of its content.
-
-#### Variable Message Window
-
-Windows of number of ASTM Messages the manifest is applicable over.
-
-<!-- Author Note (atw): needs better text here and justification of inclusion -->
 
 #### Pseudo-Blockchain Hashes {#block-hashes}
 
@@ -964,7 +953,10 @@ UA Signature (64 bytes):
 
 Multiplexing byte for future different DRIP Frame formats.
 
-<!-- Author Note (atw): do a split and have the upper 1/4 of range set for experimental? -->
+| Frame Type | Name | Description |
+| ---------- | ---- | ----------- |
+| 0x00       | Reserved | Reserved |
+| 0xC0-0xFF  | Experimental | Experimental Use |
 
 #### Frame Limitations
 
@@ -1004,9 +996,11 @@ UAS operation may impact the frequency of sending DRIP Authentication messages. 
 
 Thus how/when these DRIP authentication messages are sent is up to each implementation. Further complication comes in contrasting Legacy and Extended Transports.  In Legacy, each message is a separate hash within the Manifest. So, again in dwelling, may lean toward occasional message authentication. In Extended Transports, the hash is over the Message Pack so only few hashes need to be in a Manifest. A single Manifest can handle a potential two Message Packs (for a full set of messages) and a DRIP Link Authentication Message for the HDA UA assertion.
 
-A separate issue is the frequency of transmitting the DRIP Link Authentication Message for the HDA UA assertion. This message content is static; its hash never changes radically. The only change is the 4-byte timestamp in the Authentication Message headers. Thus, potentially, in a dwelling operation it can be sent once per minute, where its hash is in every Manifest. A receiver can cache all DRIP Link Authentication Message for the HDA UA assertion to mitigate potential packet loss.
+A separate issue is the frequency of transmitting the DRIP Link Authentication Message for the HDA UA assertion when using a Manifest Message. This message content is static; its hash never changes radically. The only change is the 4-byte timestamp in the Authentication Message headers. Thus, potentially, in a dwelling operation it can be sent once per minute, where its hash is in every Manifest. A receiver can cache all DRIP Link Authentication Message for the HDA UA assertion to mitigate potential packet loss.
 
 The preferred mode of operation is to send the HDA UA assertion every 3 seconds and Manifest messages immediately after a set of UA operation messages (e.g. Basic, Location, and System messages).
+
+<!-- Author Note (atw): is this really what we want? Manifest as the default and Wrapper as the secondary? Or should this language become looser to allow both as its six of one half a dozen the other to which is used. -->
 
 ### DRIP Wrapper {#wrapper-operations}
 
@@ -1027,9 +1021,7 @@ DRIP requests the following SAM Type's to be allocated:
 
 # IANA Considerations
 
-This document requests a new number field for Frame Type with the initial value of 0x00 set to be Reserved.
-
-<!-- Author Note (atw): need help on this section; how should this be formatted? -->
+This document requests a new number field for Frame Type with initial values as defined in {{frame-type}}.
 
 # Security Considerations
 
@@ -1568,3 +1560,35 @@ Page 7:
 
 Hex: 57bcbe21684809ed5284aa40b4b7bc45efeb3a47d24b6645
 ~~~~
+
+# Example TX/RX Flow
+
+In this example the UA is sending all DRIP Authentication Message formats (DRIP Link, DRIP Wrapper and DRIP Manifest) during flight, along with standard ASTM Messages. The objective is to show the combinations of messages that must be received to properly validate a DRIP equipped aircraft and examples of their various states ({{appendix-a}}).
+
+~~~~
+        +-------------------+
+  .-----| Unmanned Aircraft |-----.
+  |     +-------------------+     |
+  | 1       | 2         | 3       | 4
+  |         |           |         |
+
+  O         O           O         O
+--|--     --|--       --|--     --|--
+ / \       / \         / \       / \
+  A         B           C         D
+
+
+Broadcast Paths: Messages Received
+1: DRIP Link
+2: DRIP Link and DRIP Wrapper or DRIP Manifest
+3: DRIP Wrapper or DRIP Manifest
+4: None
+
+Observers: Authentication State
+A: Unverifiable
+B: Verified, Trusted, Unverified, Questionable, or Conflicting
+C: Unverifiable
+D: None
+~~~~
+
+As the above example shows to properly authenticate both a DRIP Link and a DRIP Wrapper or DRIP Manifest are required.
