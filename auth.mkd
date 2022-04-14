@@ -847,11 +847,11 @@ UA Signature (64 bytes):
 ~~~~
 {:fig #manifest-fig title="Example DRIP Manifest"}
 
-#### Hash Algorithms and Operation {#hash-op}
+#### Message Hash Algorithms and Operation {#hash-op}
 
-The hash algorithm used for the Manifest Message is the same hash algorithm used in creation of the HHIT that is signing the Manifest.
+The hash algorithm used for the Manifest Message is the same hash algorithm used in creation of the DET {{drip-rid}} that is signing the Manifest.
 
-An HHIT using cSHAKE128 {{!NIST.SP.800-185}} computes the hash as follows:
+An DET using cSHAKE128 {{!NIST.SP.800-185}} computes the hash as follows:
 
 ~~~~
 cSHAKE128(ASTM Message, 96, "", "Remote ID Auth Hash")
