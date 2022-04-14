@@ -219,9 +219,9 @@ Full examples of Authentication Messages (fully paginated; both with and without
 
 To keep consistent formatting across the different transports (Legacy and Extended) and their independent restrictions the authentication data being sent is REQUIRED to fit within the page limit of the most constrained existing transport can support. Under Broadcast RID the transport that can hold the least amount of authentication data is Bluetooth 5 and Wi-Fi BEACON at 9-pages.
 
-As such DRIP transmitters are REQUIRED to adhere to the following:
+As such DRIP transmitters are REQUIRED to adhere to the following when using the Authentication Message:
 
-1. `Authentication Data / Signature` data MUST fit in a 9-page Authentication Message (Page Numbers 0 through 8).
+1. `Authentication Data / Signature` data MUST fit in a 9-pages (Page Numbers 0 through 8).
 2. The `Length` field in the `Authentication Headers` (which denotes the length in bytes of `Authentication Data / Signature` only) MUST NOT exceed the value of 201.
 
 # Forward Error Correction {#fec-details}
