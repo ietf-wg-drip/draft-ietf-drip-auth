@@ -152,6 +152,8 @@ Authentication Payload: (23 bytes per page)
 ~~~~
 {:fig #astm-auth-page title="Standard ASTM Authentication Message Page"}
 
+A single Authentication Page is akin to a TCP or UDP packet. For Authentication Pages the structure is further wrapped by outer ASTM framing and the specific link framing (Bluetooth or Wi-Fi).
+
 #### Authentication Type
 
 {{F3411}} has the following subset of Authentication Type's defined and that can be used in the `Page Header`:
