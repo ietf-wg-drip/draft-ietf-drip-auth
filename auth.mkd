@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: auth-formats
-docname: draft-ietf-drip-auth-05
+docname: draft-ietf-drip-auth-06
 category: info
 
 ipr: trust200902
@@ -100,10 +100,6 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 ## Definitions
 
 See {{?drip-requirements}} for common DRIP terms.
-
-Aircraft:
-
-: In this document whenever the word Aircraft is used it is referring to an Unmanned Aircraft (UA) not a Manned Aircraft.
 
 Legacy Transports:
 
@@ -618,7 +614,7 @@ SAM Authentication Data (0 to 200 bytes):
 
 #### SAM Type
 
-The SAM Type field is maintained by the International Civil Aviation Organization (ICAO) and for DRIP four are allocated:
+The SAM Type field is maintained by the International Civil Aviation Organization (ICAO) and for DRIP four are planned to be allocated:
 
 | SAM Type | Description                       |
 | -------- | --------------------------------- |
@@ -980,7 +976,7 @@ Without any fragmentation or loss of pages with transmission Forward Error Corre
 
 ## Authentication {#drip-recommendations}
 
-It is REQUIRED that an aircraft send the following Authentication Formats to fulfill the {{?drip-requirements}}:
+It is REQUIRED that a UA send the following Authentication Formats to fulfill the {{?drip-requirements}}:
 
 1. DRIP Link using the Broadcast Attestation of HDA and the UA (satisfying GEN-1 and GEN-3)
 2. Any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest or DRIP Wrapper) where the UA is dynamically signing data (satisfying GEN-1 and GEN-2)
@@ -1040,7 +1036,7 @@ For DRIP Manifest an 12-byte hash length has been selected by the authors for a 
 The astute reader may note that the DRIP Link messages, which are recommended to be sent, are static in nature and contain various timestamps. These Attestation Link messages can easily be replayed by an attacker who has copied them from previous broadcasts. There are two things to mitigate this in DRIP:
 
 1. If an attacker (who is smart and spoofs more than just the UAS ID/data payloads) willing replays an Attestation Link message they have in principle actually helped by ensuring the message is sent more frequently and be received by potential Observers.
-2. It is RECOMMENDED to send more than just DRIP Link messages, specifically those that sign over changing data using the current session keypair, and those messages are sent more frequently. An aircraft beaconing these messages then actually signing other messages using the keypair validates the data receiver by an Observer. An UA who does not either run DRIP themselves or does not have possession of the same private key, would be clearly exposed upon signature verification.
+2. It is RECOMMENDED to send more than just DRIP Link messages, specifically those that sign over changing data using the current session keypair, and those messages are sent more frequently. An UA beaconing these messages then actually signing other messages using the keypair validates the data receiver by an Observer. An UA who does not either run DRIP themselves or does not have possession of the same private key, would be clearly exposed upon signature verification.
 
 ## Trust Timestamp Offsets
 
@@ -1177,7 +1173,7 @@ o-----------o       ooooo         ooooo        +--------------+
                       |
                       v
                 o---------------------o
-                | Add Aircraft DET/PK |
+                | Add UA DET/PK       |
                 | to Key Cache        |
                 o---------------------o
                       |
@@ -1188,7 +1184,7 @@ o-----------o       ooooo         ooooo        +--------------+
                       |              ^
                       v              |
                 o-------------------------o
-                | Mark Aircraft DET/PK    |
+                | Mark UA DET/PK          |
                 | as Trusted in Key Cache |
                 o-------------------------o
 ~~~~ 
@@ -1198,8 +1194,8 @@ o-----------o       ooooo         ooooo        +--------------+
 | ---------- | ----------------------------------------------- | ------------------------------------------------------ |
 | 8          | Registry DET/PK in Key Cache?                   | 10, 9                                                  |
 | 9          | Registry PK found Online?                       | 10, Unverifiable                                       |
-| 10         | Registry Signature Verified?                    | Add Aircraft DET/PK to Key Cache, Unverified           |
-| 11         | Registry DET/PK marked as Trusted in Key Cache? | Mark Aircraft DET/PK as Trusted in Key Cache, Verified |
+| 10         | Registry Signature Verified?                    | Add UA DET/PK to Key Cache, Unverified                 |
+| 11         | Registry DET/PK marked as Trusted in Key Cache? | Mark UA DET/PK as Trusted in Key Cache, Verified       |
 
 ### DRIP Wrapper/Manifest/Frame
 
@@ -1245,14 +1241,14 @@ o-----------------------------o         +--------------+
 
 | Transition | Transition Query                                                          | Next State/Process/Transition (Yes, No) |
 | ---------- | ------------------------------------------------------------------------- | --------------------------------------- |
-| 12         | Aircraft DET/PK in Key Cache?                                             | 14, 13                                  |
-| 13         | Aircraft PK found Online?                                                 | 14, Add Message to Verification Queue   |
-| 14         | Aircraft Signature Verified?                                              | 17, 15                                  |
+| 12         | UA DET/PK in Key Cache?                                                   | 14, 13                                  |
+| 13         | UA PK found Online?                                                       | 14, Add Message to Verification Queue   |
+| 14         | UA Signature Verified?                                                    | 17, 15                                  |
 | 15         | Has past Messages of this type been marked as Trusted?                    | Conflicting, 16                         |
 | 16         | Has past Messages of this type been marked as Questionable or Verified?   | Questionable, Unverified                |
 | 17         | Has past Messages of this type been marked as Conflicting?                | Conflicting, 18                         |
 | 18         | Has past Messages of this type been marked as Questionable or Unverified? | Questionable, 19                        |
-| 19         | Is Aircraft DET/PK marked as Trusted in Key Cache?                        | Trusted, Verified                       |
+| 19         | Is UA DET/PK marked as Trusted in Key Cache?                              | Trusted, Verified                       |
 
 # HDA-UA Broadcast Attestation {#link-example}
 
@@ -1565,7 +1561,7 @@ Hex: 57bcbe21684809ed5284aa40b4b7bc45efeb3a47d24b6645
 
 # Example TX/RX Flow
 
-In this example the UA is sending all DRIP Authentication Message formats (DRIP Link, DRIP Wrapper and DRIP Manifest) during flight, along with standard ASTM Messages. The objective is to show the combinations of messages that must be received to properly validate a DRIP equipped aircraft and examples of their various states ({{appendix-a}}).
+In this example the UA is sending all DRIP Authentication Message formats (DRIP Link, DRIP Wrapper and DRIP Manifest) during flight, along with standard ASTM Messages. The objective is to show the combinations of messages that must be received to properly validate a DRIP equipped UA and examples of their various states ({{appendix-a}}).
 
 ~~~~
         +-------------------+
