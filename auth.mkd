@@ -930,7 +930,7 @@ UA DRIP Entity Tag (16 bytes):
     The UA DET in byte form (network byte order).
 
 Frame Type (1 byte):
-    Multiplexing frame type.
+    Sub-type for future different DRIP Frame formats.
 
 Attestation Data (0 to 111 bytes):
     Opaque attestation data.
@@ -949,7 +949,7 @@ UA Signature (64 bytes):
 
 #### Frame Type
 
-Multiplexing byte for future different DRIP Frame formats.
+Byte to sub-type for future different DRIP Frame formats.
 
 | Frame Type | Name | Description |
 | ---------- | ---- | ----------- |
