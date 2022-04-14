@@ -53,14 +53,13 @@ normative:
         date: 2020-02
 
 informative:
-    drip-requirements: I-D.ietf-drip-reqs
+    drip-requirements: RFC9153
     drip-rid: I-D.ietf-drip-uas-rid
     drip-registries: I-D.wiethuechter-drip-registries
 
 --- abstract
 
-This document describes how to include trust into the ASTM Remote ID specification defined in ASTM F3411 under Broadcast Remote ID (RID). It defines a few message schemes (sent within the
-Authentication Message) that can be used to authenticate past messages sent by a unmanned aircraft (UA) and provide proof of UA trustworthiness even in the absence of Internet connectivity at the receiving node.
+This document describes how to include trust into the ASTM Remote ID specification defined in ASTM F3411 under Broadcast Remote ID (RID). It defines a few message schemes (sent within the Authentication Message) that can be used to authenticate past messages sent by a unmanned aircraft (UA) and provide proof of UA trustworthiness even in the absence of Internet connectivity at the receiving node.
 
 --- middle
 
