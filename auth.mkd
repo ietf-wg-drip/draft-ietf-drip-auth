@@ -278,13 +278,13 @@ For Multiple Page FEC there are two flavors: Frame Recovery and Page Recovery. B
 Take the following example of an Authentication Message that 3-pages of parity are to be generated for:
 
 ~~~~
-1250098960bf8c05042001001000a00145aac6b00abba268b7
-12512001001000a0014579d8a404d48f2ef9bb9a4470ada5b4
-1252ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73
-1253dca7d04e776150825863c512c6eb075a206a95c59b297e
-1254f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454
-12557101415def153a770d3e6c0b17ae560809bc634a822c1f
-12563b1064b80a000000000000000000000000000000000000
+12 50 098960bf8c05 042001001000a00145aac6b00abba268b7
+12 51 2001001000a0014579d8a404d48f2ef9bb9a4470ada5b4
+12 52 ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73
+12 53 dca7d04e776150825863c512c6eb075a206a95c59b297e
+12 54 f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454
+12 55 7101415def153a770d3e6c0b17ae560809bc634a822c1f
+12 56 3b1064b80a000000000000000000000000000000000000
 ~~~~
 
 For Page Recovery the first two columns are ignored (being the `Page Header` and any data before it), the last 23 columns are extracted and have Reed Solomon performed on it to produce parity bytes. For the example the following 3-bytes of parity are generated:
@@ -296,38 +296,44 @@ dc6c2b = ReedSolomon.encoder(0920ffdcf2713b)
 Each set of parity is the placed into a pseudo-frame as follows (each byte in its own message in the same column):
 
 ~~~~
-0000dc00000000000000000000000000000000000000000000
-00006c00000000000000000000000000000000000000000000
-00002b00000000000000000000000000000000000000000000
+00 00 dc00000000000000000000000000000000000000000000
+00 00 6c00000000000000000000000000000000000000000000
+00 00 2b00000000000000000000000000000000000000000000
 ~~~~
 
 The above data set produces the following full set of parity:
 
 ~~~~
-0000dc6657acd30b2ec4aa582049f52adf9f922e62c469563a
-00006c636a59145a55417a3895fd543f19e94200be4abc5e94
-000002bba5e28f5896d754caf50016a983993b149b5c9e6eeb
+00 00 dc6657acd30b2ec4aa582049f52adf9f922e62c469563a
+00 00 6c636a59145a55417a3895fd543f19e94200be4abc5e94
+00 00 02bba5e28f5896d754caf50016a983993b149b5c9e6eeb
 ~~~~
 
-The last 23-bytes are then added into the `Additional Data` field.
+The last 23-bytes are then added into the `Additional Data` fields of their respective pages:
+
+~~~~
+12 57 dc6657acd30b2ec4aa582049f52adf9f922e62c469563a
+12 58 6c636a59145a55417a3895fd543f19e94200be4abc5e94
+12 59 02bba5e28f5896d754caf50016a983993b149b5c9e6eeb
+~~~~
 
 #### Frame Recovery {#enc-frame}
 
 Frame Recovery uses the full ASTM Message and performs Reed Solomon over each byte. Below is an example of a number of messages.
 
 ~~~~
-1042012001001000a0014579d8a404d48f2ef9000000000000
-11249600006efeb019ee111ed37a097a0948081c10ffff0000
-1250098960bf8c05042001001000a00145aac6b00abba268b7
-12512001001000a0014579d8a404d48f2ef9bb9a4470ada5b4
-1252ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73
-1253dca7d04e776150825863c512c6eb075a206a95c59b297e
-1254f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454
-12557101415def153a770d3e6c0b17ae560809bc634a822c1f
-12563b1064b80a000000000000000000000000000000000000
-130052656372656174696f6e616c2054657374000000000000
-1402c2ffb019322d1ed3010000c008e40700fc080000000000
-15004e2e4f5031323334353600000000000000000000000000
+10 42012001001000a0014579d8a404d48f2ef9000000000000
+11 249600006efeb019ee111ed37a097a0948081c10ffff0000
+12 50 098960bf8c05 042001001000a00145aac6b00abba268b7
+12 51 2001001000a0014579d8a404d48f2ef9bb9a4470ada5b4
+12 52 ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73
+12 53 dca7d04e776150825863c512c6eb075a206a95c59b297e
+12 54 f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454
+12 55 7101415def153a770d3e6c0b17ae560809bc634a822c1f
+12 56 3b1064b80a000000000000000000000000000000000000
+13 0052656372656174696f6e616c2054657374000000000000
+14 02c2ffb019322d1ed3010000c008e40700fc080000000000
+15 004e2e4f5031323334353600000000000000000000000000
 ~~~~
 
 Each column is extracted and has Reed Solomon performed on it to produce parity bytes.  In the below example 5-bytes of parity are generated with Frame Recovery:
@@ -359,12 +365,12 @@ a85bb403aada89926fb8fc2a14a9caacb4ec2f3a6ed2d8e9f9
 For Frame Recovery the above data would be placed into Authentication Pages like below:
 
 ~~~~
-Page 7 = 12576c86337bf7ab746f5d62bb7f8de954104b121585d3975f
-Page 8 = 12586e923f06c1bce165b0e25930d57a63c24f751145e1dd8d
-Page 9 = 1259c115029b42e9979580327a6a14d421c12a33aa2e1a2e51
-Page 10 = 125a7daaee581016b8012a7b3964f7b2720d387bfa77e94555
-Page 11 = 125b6f1831cd477ef3a3a85bb403aada89926fb8fc2a14a9ca
-Page 12 = 125cacb4ec2f3a6ed2d8e9f900000000000000000000000000
+12 57 6c86337bf7ab746f5d62bb7f8de954104b121585d3975f
+12 58 6e923f06c1bce165b0e25930d57a63c24f751145e1dd8d
+12 59 c115029b42e9979580327a6a14d421c12a33aa2e1a2e51
+12 5a 7daaee581016b8012a7b3964f7b2720d387bfa77e94555
+12 5b 6f1831cd477ef3a3a85bb403aada89926fb8fc2a14a9ca
+12 5c acb4ec2f3a6ed2d8e9f900000000000000000000000000
 ~~~~
 
 Up to 240 (255 minus 15 pages max of FEC data) messages can be protected using Frame Recovery.
@@ -462,7 +468,10 @@ UA Signature (64 bytes):
 
 `Attestation Data` is a field with a maximum of 112-bytes, containing data that the UA is attesting during its flight.
 
-The `Not After Timestamp` and `Not Before Timestamp` MUST follow the format defined in {{F3411}}. That is a UNIX timestamp offset by 01/01/2019 00:00:00. `Not Before Timestamp` MUST be set to the time the structure is signed over. An additional offset is then added to push the `Not After Timestamp` a short time into the future to avoid replay attacks. The offset used against the UNIX timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers. A reasonable time would be to set `Not After Timestamp` 2 minutes ahead of `Not Before Timestamp`.
+The `Not After Timestamp` and `Not Before Timestamp` MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp
+but with an epoch of 01/01/2019 00:00:00. `Not Before Timestamp` MUST be set to the time the structure is signed over. An additional offset is then added to push the `Not After Timestamp` a short time into the future to avoid replay attacks.
+
+The offset used against the Unix-style timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers. A reasonable time would be to set `Not After Timestamp` 2 minutes ahead of `Not Before Timestamp`.
 
 # DRIP Authentication Formats
 
