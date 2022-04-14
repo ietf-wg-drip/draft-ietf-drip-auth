@@ -1054,7 +1054,15 @@ Soren Friis for pointing out that Wi-Fi implementations would not always give ac
 
 # Authentication State Diagrams & Color Scheme {#appendix-a}
 
-For DRIP there are various Authentication states. The table below lays out the RECOMMENDED colors to associate with state.
+ASTM Authentication has really only 3 states: None, Invalid or Valid. This is because under ASTM the idea is that Authentication is done by an external service hosted somewhere on the Internet so it is assumed you will always get some sort of answer back. With DRIP this classification becomes more complex with the support of "offline" scenarios where the receiver does not have Internet connectivity. With the use of asymmetric keys this means the public key (PK) must somehow be obtained - {{drip-registries}} gets more into detail how these keys are stored on DNS and one reason for DRIP Authentication is to send PK's over Broadcast RID.
+
+There are two keys of interest: the PK of the UA and the PK of the HDA (or Registry). This document gives a clear way to send the PK of the UA over the Broadcast RID messages - however the PK of the Registry is not. It can be using the same mechanism but is not required to do so due to potential operational constraints and implementation of a given UA transmitter. As such there are scenarios where you may have part of the key-chain but not all of it.
+
+The intent of this appendix is to give some kind of recommended way to classify these various states and convey it to the user through colors and state names/text.
+
+## State Table
+
+The table below lays out the RECOMMENDED colors to associate with state.
 
 | State        | Color  | Details                                                        |
 | ------------ | ------ | -------------------------------------------------------------- |
