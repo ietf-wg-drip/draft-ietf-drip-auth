@@ -17,7 +17,7 @@ pi: [toc, sortrefs, symrefs, comments]
 
 author:
 
--   ins: A. Wiethuechter
+-   ins: A. Wiethuechter (Editor)
     name: Adam Wiethuechter
     org: AX Enterprize, LLC
     street: 4947 Commercial Drive
