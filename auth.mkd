@@ -148,7 +148,7 @@ Authentication Payload: (23 bytes per page)
 ~~~~
 {:fig #astm-auth-page title="Standard ASTM Authentication Message Page"}
 
-A single Authentication Page is akin to a TCP or UDP packet. For Authentication Pages the structure is further wrapped by outer ASTM framing and the specific link framing (Bluetooth or Wi-Fi).
+A single Authentication Page is akin to a UDP packet. For Authentication Pages the structure is further wrapped by outer ASTM framing and the specific link framing (Bluetooth or Wi-Fi).
 
 #### Authentication Type
 
@@ -219,7 +219,7 @@ To keep consistent formatting across the different transports (Legacy and Extend
 
 As such DRIP transmitters are REQUIRED to adhere to the following when using the Authentication Message:
 
-1. `Authentication Data / Signature` data MUST fit in a 9-pages (Page Numbers 0 through 8).
+1. `Authentication Data / Signature` data MUST fit in a 9 pages (Page Numbers 0 through 8).
 2. The `Length` field in the `Authentication Headers` (which denotes the length in bytes of `Authentication Data / Signature` only) MUST NOT exceed the value of 201.
 
 # Forward Error Correction {#fec-details}
@@ -1061,7 +1061,7 @@ Soren Friis for pointing out that Wi-Fi implementations would not always give ac
 
 # Authentication State Diagrams & Color Scheme {#appendix-a}
 
-ASTM Authentication has really only 3 states: None, Invalid or Valid. This is because under ASTM the idea is that Authentication is done by an external service hosted somewhere on the Internet so it is assumed you will always get some sort of answer back. With DRIP this classification becomes more complex with the support of "offline" scenarios where the receiver does not have Internet connectivity. With the use of asymmetric keys this means the public key (PK) must somehow be obtained - {{drip-registries}} gets more into detail how these keys are stored on DNS and one reason for DRIP Authentication is to send PK's over Broadcast RID.
+ASTM Authentication has only 3 states: None, Invalid or Valid. This is because under ASTM the idea is that Authentication is done by an external service hosted somewhere on the Internet so it is assumed you will always get some sort of answer back. With DRIP this classification becomes more complex with the support of "offline" scenarios where the receiver does not have Internet connectivity. With the use of asymmetric keys this means the public key (PK) must somehow be obtained - {{drip-registries}} gets more into detail how these keys are stored on DNS and one reason for DRIP Authentication is to send PK's over Broadcast RID.
 
 There are two keys of interest: the PK of the UA and the PK of the HDA (or Registry). This document gives a clear way to send the PK of the UA over the Broadcast RID messages - however the PK of the Registry is not. It can be using the same mechanism but is not required to do so due to potential operational constraints and implementation of a given UA transmitter. As such there are scenarios where you may have part of the key-chain but not all of it.
 
