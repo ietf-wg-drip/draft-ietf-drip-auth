@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: auth-formats
-docname: draft-ietf-drip-auth-07
+docname: draft-ietf-drip-auth-08
 category: info
 
 ipr: trust200902
@@ -121,7 +121,7 @@ The ASTM Authentication Message has provisions in {{F3411}} to allow for other o
 
 ## ASTM Authentication Message
 
-The ASTM Authentication Message (Message Type 0x2) is a unique message in the Broadcast {{F3411}} standard as it is the only one that is paged.
+The ASTM Authentication Message (Message Type 0x2) is a unique message in the Broadcast {{F3411}} standard as it is the only one that is larger than the Bluetooth 4 frame size. To address this, it is defined as a set of "pages" that each fits into a single Bluetooth 4 broadcast frame. For other media these pages are still used but all in a single frame.
 
 ### Authentication Page
 
@@ -213,7 +213,7 @@ Additional Data: (0 to 255 bytes):
 
 When `Additional Data` is being sent, a single unsigned byte (`Additional Data Length`) directly follows the `Authentication Data / Signature` and has the length, in bytes, of the following `Additional Data`. For DRIP, this field is used to carry Forward Error Correction as defined in {{fec-details}}.
 
-### DRIP Constraints {#drip-restrictions}
+### ASTM Constraints {#drip-restrictions}
 
 To keep consistent formatting across the different transports (Legacy and Extended) and their independent restrictions the authentication data being sent is REQUIRED to fit within the page limit of the most constrained existing transport can support. Under Broadcast RID the transport that can hold the least amount of authentication data is Bluetooth 5 and Wi-Fi BEACON at 9-pages.
 
@@ -655,7 +655,7 @@ Broadcast Attestation: (136-bytes)
 ~~~~
 {:fig #link-fig title="DRIP Link"}
 
-This DRIP format MUST be used in conjunction with the DRIP Manifest with the hash of the DRIP Link message and other dynamic data (such as the Location Message (Message Type 0x2)).
+This DRIP format MUST be used in conjunction with another DRIP SAM Type (such as Manifest or Wrapper) that contains data that is guaranteed to be unique and easily cross checked by the receiving device. A good candidate for this is using the DRIP Wrapper to encapsulate a Location Message (Message Type 0x2).
 
 #### Link Limitations
 
