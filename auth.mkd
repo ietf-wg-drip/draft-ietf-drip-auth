@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: auth-formats
-docname: draft-ietf-drip-auth-08
+docname: draft-ietf-drip-auth-09
 category: info
 
 ipr: trust200902
@@ -115,6 +115,12 @@ Extended Transports:
 
 The current standard for Remote ID does not, in any meaningful capacity, address the concerns of trust in the UA space with communication in the Broadcast RID environment. This is a requirement that will need to be addressed eventually for various different parties that have a stake in the UA industry.
 
+### Broadcast RID RF Options
+
+A UA has the option of broadcasting using Bluetooth (4 and 5) or Wi-Fi (BEACON or NAN), see {{reqs}}.  With Bluetooth, FAA and other CAA mandate transmitting simultaneously over both 4 and 5. With Wi-Fi, use of BEACON is recommended. Wi-Fi NAN is another option, depending on CAA.
+
+Bluetooth 4 presents a payload size challenge in that it can only transmit 25 bytes of payload where the others all can support 252 byte payloads.
+
 ## Reasoning for IETF DRIP Authentication
 
 The ASTM Authentication Message has provisions in {{F3411}} to allow for other organizations to standardize additional Authentication formats beyond those explicitly in {{F3411}}.  The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID.  No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
@@ -148,7 +154,9 @@ Authentication Payload: (23 bytes per page)
 ~~~~
 {:fig #astm-auth-page title="Standard ASTM Authentication Message Page"}
 
-A single Authentication Page is akin to a UDP packet. For Authentication Pages the structure is further wrapped by outer ASTM framing and the specific link framing (Bluetooth or Wi-Fi).
+A single Authentication Message is akin to a UDP packet. The Authentication Message is structured as a set of up to 16 pages. Over Bluetooth 4, these pages are "fragmented" into separate Bluetooth 4 broadcast frames.
+
+Either as a single Authentication Message or a set of fragmented Authentication Message Pages the structure(s) is further wrapped by outer ASTM framing and the specific link framing (Bluetooth or Wi-Fi).
 
 #### Authentication Type
 
@@ -166,7 +174,7 @@ This document leverages Authentication Type 0x5, Specific Authentication Method 
 
 #### Page Number
 
-There is a technical maximum of 16-pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a max 23-byte `Authentication Payload`. See {{drip-restrictions}} for more details.
+There is a technical maximum of 16 pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a max 23-byte `Authentication Payload`. See {{drip-restrictions}} for more details.
 
 #### Authentication Payload Field
 
@@ -967,7 +975,7 @@ Byte to sub-type for future different DRIP Frame formats.
 
 With the Broadcast Attestation Structure only 115-bytes of `Attestation Data` are free for use.
 
-# Requirements & Recommendations
+# Requirements & Recommendations {#reqs}
 
 ## Legacy Transports
 
