@@ -1,9 +1,9 @@
 ---
 coding: utf-8
 
-title: DRIP Authentication Formats & Protocols for Broadcast Remote ID
+title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: auth-formats
-docname: draft-ietf-drip-auth-09
+docname: draft-ietf-drip-auth-10
 category: info
 
 ipr: trust200902
@@ -73,6 +73,8 @@ The ASTM {{F3411}} standard focuses on two ways of communicating to a UAS for Re
 
 This document will focus on adding trust to Broadcast RID via the Authentication Message by combining dynamically signed data with an Attestation of the UA's identity from a Registry.
 
+This authentication methodology also provides the missing, but US FAA mandated, Error Correction for the Bluetooth 4 transmissions (see {{fec-details}}). This is error correction not only for the authentication message itself, but indirectly, to other messages authenticated via the Manifest method (see {{drip-manifest}}).
+
 ## DRIP Requirements Addressed
 
 The following {{?drip-requirements}} will be addressed:
@@ -103,11 +105,11 @@ See {{?drip-requirements}} for common DRIP terms.
 
 Legacy Transports:
 
-:  uses broadcast frames (Bluetooth 4.x).
+:  uses broadcast frames (Bluetooth 4).
 
 Extended Transports:
 
-: uses the extended advertisements (Bluetooth 5.X), service info (Wi-Fi NaN) or vendor specific element information (Wi-Fi BEACON). Must use ASTM {{F3411}} Message Pack (Message Type 0xF).
+: uses the extended advertisements (Bluetooth 5), service info (Wi-Fi NaN) or vendor specific element information (Wi-Fi BEACON). Must use ASTM {{F3411}} Message Pack (Message Type 0xF).
 
 # Background
 
@@ -201,23 +203,22 @@ The following is shown in its complete format.
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
-Authentication Headers: (6 bytes)
-    Contains other header information for the Authentication
-    Message as defined in F3411.
+Authentication Headers: (6-bytes)
+    As defined in F3411.
 
-Authentication Data / Signature: (0 to 255 bytes)
+Authentication Data / Signature: (255-bytes max)
     Opaque authentication data.
 
-Additional Data Length (ADL): (1 byte - unsigned)
+Additional Data Length (ADL): (1-byte - unsigned)
     Length in bytes of Additional Data.
 
-Additional Data: (0 to 255 bytes):
+Additional Data: (255-bytes max):
     Data that follows the Authentication Data / Signature but
     is not considered part of the Authentication Data.
 ~~~~
 {:fig #astm-auth title="ASTM Authentication Message Fields"}
 
-{{astm-auth}} is the abstract view of the data fields found in the Authentication Message as defined by {{F3411}}. This data is placed into {{astm-auth-page}}'s `Authentication Payload`, spanning multiple pages.
+{{astm-auth}} is the source data view of the data fields found in the Authentication Message as defined by {{F3411}}. This data is placed into {{astm-auth-page}}'s `Authentication Payload`, spanning multiple pages.
 
 When `Additional Data` is being sent, a single unsigned byte (`Additional Data Length`) directly follows the `Authentication Data / Signature` and has the length, in bytes, of the following `Additional Data`. For DRIP, this field is used to carry Forward Error Correction as defined in {{fec-details}}.
 
@@ -232,15 +233,15 @@ As such DRIP transmitters are REQUIRED to adhere to the following when using the
 
 # Forward Error Correction {#fec-details}
 
-For Broadcast RID, Forward Error Correction (FEC) is provided by the lower layers in Extended Transports (Bluetooth 5.X, Wi-Fi NaN, and Wi-Fi BEACON). Legacy Transports do not have supporting FEC so with DRIP Authentication the following application level FEC scheme is used.
+For Broadcast RID, Forward Error Correction (FEC) is provided by the lower layers in Extended Transports (Bluetooth 5, Wi-Fi NaN, and Wi-Fi BEACON). The Bluetooth 4 Legacy Transport does not have supporting FEC so with DRIP Authentication the following application level FEC scheme is used to add FEC. This section is only used for Bluetooth 4 transmission/reception.
 
 ## Encoding
 
-For any encoding the FEC data MUST start on new ASTM Authentication Page. To do this null padding is add before the actual FEC data starts and the length of the whole blob (null padding and FEC) is used as the `Additional Data Length`. To properly fit FEC data into an Authentication Page the number of parity-bytes is limited to 23 (or a multiple thereof). This means that the `Page Header` (and anything before it) is omitted in the FEC process.
+For any encoding the FEC data MUST start on a new ASTM Authentication Page. To do this, null padding is added before the actual FEC data starts and the length of the whole blob (null padding and FEC) is used as the Additional Data Length. To properly fit FEC data into an Authentication Page the number of parity-bytes is limited to 23 or a multiple thereof (size of Authentication data per page). That is, the Page Header (and anything before it) is omitted in the FEC process.
 
 ### Single Page FEC {#enc-single-page}
 
-To generate the parity a simple XOR operation using the previous and current page is used. Only the last 23-bytes are used during the XOR operation. For Page 0, a 23-byte null pad is used for the previous page. The resulting parity fills the `Additional Data` field of {{F3411}} with the `Additional Data Length` field being set to 23 or greater (depending on number of null pad bytes are needed to get onto the next page).
+To generate the parity a simple XOR operation using the previous and current page is used.  Only the 23-byte Authentication Page data is used in the XOR operation.  For Page 0, a 23-byte null pad is used for the previous page. The resulting parity fills the last 23 bytes of the `Additional Data` field of {{F3411}} with the `Additional Data Length` field being set to 23 or greater (depending on number of null pad bytes are needed to get onto the next page).
 
 ~~~~
 Page N-1:
@@ -277,88 +278,64 @@ Page N:
 
 For Multiple Page FEC there are two flavors: Frame Recovery and Page Recovery. Both follow a similar process, but are offset at what data is actually protected.
 
-(Editor Note: to improve interop should we explicitly select a polynomial for Reed Solomon that DRIP must use?)
+(Editor Note: to improve interop we MUST explicitly select a polynomial for Reed Solomon for DRIP - need suggestions)
 
 #### Page Recovery {#enc-page}
 
-Take the following example of an Authentication Message that 3-pages of parity are to be generated for:
+Take the following example of an Authentication Message with 7 pages that 3 pages of parity are to be generated for. The first column is just the `Page Header` with a visual space here to show the boundary.
 
 ~~~~
-12 50 098960bf8c05 042001001000a00145aac6b00abba268b7
-12 51 2001001000a0014579d8a404d48f2ef9bb9a4470ada5b4
-12 52 ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73
-12 53 dca7d04e776150825863c512c6eb075a206a95c59b297e
-12 54 f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454
-12 55 7101415def153a770d3e6c0b17ae560809bc634a822c1f
-12 56 3b1064b80a000000000000000000000000000000000000
+50 098960bf8c05042001001000a00145aac6b00abba268b7
+51 2001001000a0014579d8a404d48f2ef9bb9a4470ada5b4
+52 ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73
+53 dca7d04e776150825863c512c6eb075a206a95c59b297e
+54 f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454
+55 7101415def153a770d3e6c0b17ae560809bc634a822c1f
+56 3b1064b80a000000000000000000000000000000000000
 ~~~~
 
-For Page Recovery the first two columns are ignored (being the `Page Header` and any data before it), the last 23 columns are extracted and have Reed Solomon performed on it to produce parity bytes. For the example the following 3-bytes of parity are generated:
+For Page Recovery the first column is ignored and the last 23-bytes of each page are extracted to have Reed Solomon performed on them in a column wise fashion to produce parity bytes. For the example the following 3-bytes of parity are generated with the first byte of each page:
 
 ~~~~
 dc6c2b = ReedSolomon.encoder(0920ffdcf2713b)
 ~~~~
 
-Each set of parity is the placed into a pseudo-frame as follows (each byte in its own message in the same column):
+Each set of parity is the placed into a pseudo-frame as follows (each byte in its own message in the same column). Below is an example of the full parity generated and each 23-bytes of parity added into the additional pages as `Additional Data`:
 
 ~~~~
-00 00 dc00000000000000000000000000000000000000000000
-00 00 6c00000000000000000000000000000000000000000000
-00 00 2b00000000000000000000000000000000000000000000
-~~~~
-
-The above data set produces the following full set of parity:
-
-~~~~
-00 00 dc6657acd30b2ec4aa582049f52adf9f922e62c469563a
-00 00 6c636a59145a55417a3895fd543f19e94200be4abc5e94
-00 00 02bba5e28f5896d754caf50016a983993b149b5c9e6eeb
-~~~~
-
-The last 23-bytes are then added into the `Additional Data` fields of their respective pages:
-
-~~~~
-12 57 dc6657acd30b2ec4aa582049f52adf9f922e62c469563a
-12 58 6c636a59145a55417a3895fd543f19e94200be4abc5e94
-12 59 02bba5e28f5896d754caf50016a983993b149b5c9e6eeb
+57 dc6657acd30b2ec4aa582049f52adf9f922e62c469563a
+58 6c636a59145a55417a3895fd543f19e94200be4abc5e94
+59 02bba5e28f5896d754caf50016a983993b149b5c9e6eeb
 ~~~~
 
 #### Frame Recovery {#enc-frame}
 
-Frame Recovery uses the full ASTM Message and performs Reed Solomon over each byte. Below is an example of a number of messages.
+Frame Recovery uses the full ASTM Message and performs Reed Solomon over each byte. Up to 240 (255 minus 15 pages max of FEC data) messages can be protected using Frame Recovery.
+
+Below is an example of a number of messages. Here the first column is an additional ASTM Header that contain the Message Type; with a visual space for clarity. The last 24-bytes are the actual message contents; be it location information or an Authentication Page.
 
 ~~~~
 10 42012001001000a0014579d8a404d48f2ef9000000000000
 11 249600006efeb019ee111ed37a097a0948081c10ffff0000
-12 50 098960bf8c05 042001001000a00145aac6b00abba268b7
-12 51 2001001000a0014579d8a404d48f2ef9bb9a4470ada5b4
-12 52 ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73
-12 53 dca7d04e776150825863c512c6eb075a206a95c59b297e
-12 54 f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454
-12 55 7101415def153a770d3e6c0b17ae560809bc634a822c1f
-12 56 3b1064b80a000000000000000000000000000000000000
+12 50098960bf8c05042001001000a00145aac6b00abba268b7
+12 512001001000a0014579d8a404d48f2ef9bb9a4470ada5b4
+12 52ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73
+12 53dca7d04e776150825863c512c6eb075a206a95c59b297e
+12 54f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454
+12 557101415def153a770d3e6c0b17ae560809bc634a822c1f
+12 563b1064b80a000000000000000000000000000000000000
 13 0052656372656174696f6e616c2054657374000000000000
 14 02c2ffb019322d1ed3010000c008e40700fc080000000000
 15 004e2e4f5031323334353600000000000000000000000000
 ~~~~
 
-Each column is extracted and has Reed Solomon performed on it to produce parity bytes.  In the below example 5-bytes of parity are generated with Frame Recovery:
+A similar process is followed as in {{enc-page}}. Here every column of bytes has parity generated for it (even the ASTM Header). In the below example 5-bytes of parity are generated using the ASTM Header column:
 
 ~~~~
 6c3f42b8a8 = ReedSolomon.encoder(101112121212121212131415)
 ~~~~
 
-Each set of parity is the placed into a pseudo-frame as follows (each byte in its own message in the same column):
-
-~~~~
-6c000000000000000000000000000000000000000000000000
-3f000000000000000000000000000000000000000000000000
-42000000000000000000000000000000000000000000000000
-b8000000000000000000000000000000000000000000000000
-a8000000000000000000000000000000000000000000000000
-~~~~
-
-The above data set produces the following sets of parity:
+After doing this to all columns the following pseudo-frames would have been generated:
 
 ~~~~
 6c86337bf7ab746f5d62bb7f8de954104b121585d3975f6e92
@@ -368,7 +345,7 @@ b8012a7b3964f7b2720d387bfa77e945556f1831cd477ef3a3
 a85bb403aada89926fb8fc2a14a9caacb4ec2f3a6ed2d8e9f9
 ~~~~
 
-For Frame Recovery the above data would be placed into Authentication Pages like below:
+These 25-byte chunks are now concatenated together and are placed in Authentication Pages, using the `Additional Data`, 23-bytes at a time. In the below figure the first column is the ASTM Header as before, the second column is the `Page Header` for each Authentication Page and then last column is the 23-bytes of data for each page.
 
 ~~~~
 12 57 6c86337bf7ab746f5d62bb7f8de954104b121585d3975f
@@ -378,8 +355,6 @@ For Frame Recovery the above data would be placed into Authentication Pages like
 12 5b 6f1831cd477ef3a3a85bb403aada89926fb8fc2a14a9ca
 12 5c acb4ec2f3a6ed2d8e9f900000000000000000000000000
 ~~~~
-
-Up to 240 (255 minus 15 pages max of FEC data) messages can be protected using Frame Recovery.
 
 ## Decoding
 
@@ -481,77 +456,63 @@ The offset used against the Unix-style timestamp is not defined in this document
 
 # DRIP Authentication Formats
 
-All formats defined in this section fill the `Authentication Data / Signature` field in {{astm-auth}}.
+All formats defined in this section are the content for the `Authentication Data / Signature` field in {{astm-auth}}.
 
 When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Bluetooth 4, then {{fec-details}} MUST be used.
 
-## Operator ID Signature
+## DRIP Authentication Field Definitions
 
-The existing ASTM {{F3411}} Authentication Type 0x2 can be used to send a static Self-Attestation of the Operator.
+UA DRIP Entity Tag (16-bytes):
 
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                            Operator                           |
-|                        DRIP Entity Tag                        |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                     Operator Host Identity                    |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                Not Before Timestamp by Operator               |
-+---------------+---------------+---------------+---------------+
-|                Not After Timestamp by Operator                |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                       Operator Signature                      |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
+: The UA DET in byte form (network byte order)
 
-UA DRIP Entity Tag (16 bytes):
-    The Operator DET in byte form (network byte order).
+Not Before Timestamp by UA (4-bytes):
 
-Operator Host Identity (32-bytes):
-    HI of the Operator.
+: Timestamp denoting recommended time to start trusting data. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp but with an epoch of 01/01/2019 00:00:00.  MUST be set to the time the signature is generated.
 
-Not Before Timestamp by Operator (4 bytes):
-    Timestamp denoting recommended time to start trusting data.
+Not After Timestamp by UA (4-bytes):
 
-Not After Timestamp by Operator (4 bytes):
-    Timestamp denoting recommended time to stop trusting data.
+: Timestamp denoting recommended time to stop trusting data. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp but with an epoch of 01/01/2019 00:00:00 with an additional offset is then added to push a short time into the future (relative to `Not Before Timestamp`) to avoid replay attacks. The offset used against the Unix-style timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers. A reasonable time would be to set `Not After Timestamp` 2 minutes ahead of `Not Before Timestamp`.
 
-Operator Signature (64 bytes):
-    Signature over preceding fields using the keypair of 
-    the Operator.
-~~~~
-{:fig #op-sig title="DRIP Operator ID Signature"}
+UA Signature (64-bytes):
+
+: Signature over preceding fields using the keypair of the UA.
+
+ASTM Message (25-bytes):
+
+: Full ASTM Message as defined in {{F3411}} specifically Message Types 0x0, 0x1, 0x3, 0x4, and 0x5
+
+Previous Manifest Hash (12-bytes):
+
+: See {{block-hashes}}.
+
+Current Manifest Hash (12-bytes):
+
+: See {{block-hashes}}.
+
+ASTM Message Hash (12-bytes):
+
+: Hash of a single full ASTM Message using hash operations described in ({{hash-op}}). Multiple hashes MUST be in Message Type order.
+
+Broadcast Attestation (136-bytes):
+
+: HDA over UA. Generated by a DRIP Registry during Session ID registration. Used in {{drip-link}}.
+
+Frame Type (1-byte):
+
+: Sub-type for future different DRIP Frame formats. See {{frame-type}}.
+
+Attestation Data (0 to 111 bytes):
+
+: Opaque attestation data.
 
 ## Message Set Signature
 
-When running under Extended Transports, the existing ASTM {{F3411}} Authentication Type 0x3 can be used to sign over the adjacent ASTM Messages in the Message Pack (Message Type 0xF).
+When running under Extended Transports, the Authentication Message can be used to sign other messages within the Message Pack (Message Type 0xF).
 
-The concatenation of all messages in the Message Pack (excluding Authentication) before signing MUST be in Message Type order and be placed between the `UA DRIP Entity Tag` and `Not Before Timestamp` field.
+To generate the below structure the sender must concatenate all of the messages in the Message Pack (excluding Authentication) in Message Type order. This blob of Message is then set between the `UA DRIP Entity Tag` and `Not Before Timestamp` to generate the signature. The blob of Messages is then removed as it is redundant and the below structure is placed into an Authentication Message (of Authentication Type 0x3) to be sent in the same Message Pack.
+
+To verify the signature the receiver must concatenate all of the messages in the Message Pack (excluding Authentication Message found in the same Message Pack) in Message Type order and place the blob between the `UA DRIP Entity Tag` and `Not Before Timestamp` before performing signature verification.
 
 ~~~~
  0                   1                   2                   3
@@ -583,25 +544,12 @@ The concatenation of all messages in the Message Pack (excluding Authentication)
 |                                                               |
 |                                                               |
 +---------------+---------------+---------------+---------------+
-
-UA DRIP Entity Tag (16 bytes):
-    The UA DET in byte form (network byte order).
-
-Not Before Timestamp by UA (4-bytes):
-    Timestamp denoting recommended time to start trusting data.
-
-Not After Timestamp by UA (4 bytes):
-    Timestamp denoting recommended time to stop trusting data.
-
-UA Signature (64 bytes):
-    Signature over preceding fields using the keypair of 
-    the UA.
 ~~~~
 {:fig #set-sig title="DRIP Message Set Signature"}
 
 ## Specific Authentication Method {#specific-method}
 
-For ASTM Specific Authentication Method (Authentication Type 0x5) a special SAM Type field, specified as the first byte of the `Authentication Data / Signature` by {{F3411}}, is used to multiplex between various formats.
+DRIP Authentication uses the Specific Authentication Method (SAM, Authentication Type 0x5). The first byte of the `Authentication Data / Signature` of {{astm-auth}}, is used to multiplex between various formats.
 
 ### SAM Data Format
 
@@ -656,10 +604,6 @@ This SAM Type is used to transmit Broadcast Attestation's. The Broadcast Attesta
 .                                                               .
 |                                                               |
 +---------------+---------------+---------------+---------------+
-
-Broadcast Attestation: (136-bytes)
-    HDA over UA. Generated by a DRIP Registry during Session ID 
-    registration.
 ~~~~
 {:fig #link-fig title="DRIP Link"}
 
@@ -739,22 +683,6 @@ To determine the number of messages wrapped the receiver can check that the leng
 |                                                               |
 |                                                               |
 +---------------+---------------+---------------+---------------+
-
-UA DRIP Entity Tag (16 bytes):
-    The UA DET in byte form (network byte order).
-
-ASTM Message (25 bytes):
-    Full ASTM Message.
-
-Not Before Timestamp by UA (4-bytes):
-    Timestamp denoting recommended time to start trusting data.
-
-Not After Timestamp by UA (4 bytes):
-    Timestamp denoting recommended time to stop trusting data.
-
-UA Signature (64 bytes):
-    Signature over preceding fields using the keypair of 
-    the UA.
 ~~~~
 {:fig #wrapper-fig title="Example 4-Message DRIP Wrapper"}
 
@@ -836,29 +764,6 @@ The `Attestation Data` field is filled with 12-byte hashes of previous {{F3411}}
 |                                                               |
 |                                                               |
 +---------------+---------------+---------------+---------------+
-
-UA DRIP Entity Tag (16 bytes):
-    The UA DET in byte form (network byte order).
-
-Previous Manifest Hash (12 bytes):
-    See Section 6.3.4.3.
-
-Current Manifest Hash (12 bytes):
-    See Section 6.3.4.3.
-
-ASTM Message Hash (12 bytes):
-    Hash of a single full ASTM Message. Multiple hashes should
-    be in Message Type order.
-
-Not Before Timestamp by UA (4-bytes):
-    Timestamp denoting recommended time to start trusting data.
-
-Not After Timestamp by UA (4 bytes):
-    Timestamp denoting recommended time to stop trusting data.
-
-UA Signature (64 bytes):
-    Signature over preceding fields using the keypair of 
-    the UA.
 ~~~~
 {:fig #manifest-fig title="Example DRIP Manifest"}
 
@@ -940,25 +845,6 @@ This SAM Type is for when the authentication data does not fit in other defined 
 |                                                               |
 |                                                               |
 +---------------+---------------+---------------+---------------+
-
-UA DRIP Entity Tag (16 bytes):
-    The UA DET in byte form (network byte order).
-
-Frame Type (1 byte):
-    Sub-type for future different DRIP Frame formats.
-
-Attestation Data (0 to 111 bytes):
-    Opaque attestation data.
-
-Not Before Timestamp by UA (4-bytes):
-    Timestamp denoting recommended time to start trusting data.
-
-Not After Timestamp by UA (4 bytes):
-    Timestamp denoting recommended time to stop trusting data.
-
-UA Signature (64 bytes):
-    Signature over preceding fields using the keypair of 
-    the UA.
 ~~~~
 {:fig #frame-fig title="Example DRIP Frame"}
 
@@ -979,13 +865,13 @@ With the Broadcast Attestation Structure only 115-bytes of `Attestation Data` ar
 
 ## Legacy Transports
 
-With Legacy Advertisements the goal is to attempt to bring reliable receipt of the paged Authentication Message. Forward Error Correction ({{fec-details}}) MUST be used when using Legacy Advertising methods (such as Bluetooth 4.X).
+With Legacy Advertisements the goal is to attempt to bring reliable receipt of the paged Authentication Message. Forward Error Correction ({{fec-details}}) MUST be used when using Legacy Advertising methods (such as Bluetooth 4).
 
-Under ASTM Bluetooth 4.X rules, transmission of dynamic messages are at least every 1 second. DRIP Authentication Messages typically contain dynamic data (such as the DRIP Manifest or DRIP Wrapper) and must be sent at the dynamic rate of 1 per second.
+Under ASTM Bluetooth 4 rules, transmission of dynamic messages are at least every 1 second. DRIP Authentication Messages typically contain dynamic data (such as the DRIP Manifest or DRIP Wrapper) and must be sent at the dynamic rate of 1 per second.
 
 ## Extended Transports
 
-Under the ASTM specification, Bluetooth 5.X Wi-Fi NaN, and Wi-Fi BEACON transport of Remote ID is to use the Message Pack (Message Type 0xF) format for all transmissions. Under Message Pack messages are sent together (in Message Type order) in a single Bluetooth 5 extended frame (up to 9 single frame equivalent messages under Bluetooth 4.X). Message Packs are required by ASTM to be sent at a rate of 1 per second (like dynamic messages).
+Under the ASTM specification, Bluetooth 5, Wi-Fi NaN, and Wi-Fi BEACON transport of Remote ID is to use the Message Pack (Message Type 0xF) format for all transmissions. Under Message Pack messages are sent together (in Message Type order) in a single Bluetooth 5 extended frame (up to 9 single frame equivalent messages under Bluetooth 4). Message Packs are required by ASTM to be sent at a rate of 1 per second (like dynamic messages).
 
 Without any fragmentation or loss of pages with transmission Forward Error Correction ({{fec-details}}) MUST NOT be used as it is impractical.
 
