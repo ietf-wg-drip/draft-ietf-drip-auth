@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: auth-formats
-docname: draft-ietf-drip-auth-10
+docname: draft-ietf-drip-auth-12
 category: info
 
 ipr: trust200902
@@ -56,6 +56,13 @@ informative:
     drip-requirements: RFC9153
     drip-rid: I-D.ietf-drip-uas-rid
     drip-registries: I-D.wiethuechter-drip-registries
+    faa-rid:
+        title: Remote Identification of Unmanned Aircraft
+        author:
+        -
+            org: United States Federal Aviation Administration (FAA)
+        target: https://www.govinfo.gov/content/pkg/FR-2021-01-15/pdf/2020-28948.pdf
+        date: 2021
 
 --- abstract
 
@@ -162,7 +169,7 @@ Either as a single Authentication Message or a set of fragmented Authentication 
 
 #### Authentication Type
 
-{{F3411}} has the following subset of Authentication Type's defined and that can be used in the `Page Header`:
+{{F3411}} has the following example subset of Authentication Type's defined and that can be used in the `Page Header`:
 
 | Authentication Type | Description                    |
 | ------------------- | ------------------------------ |
@@ -172,7 +179,7 @@ Either as a single Authentication Message or a set of fragmented Authentication 
 
 ##### Specific Authentication Method (SAM)
 
-This document leverages Authentication Type 0x5, Specific Authentication Method (SAM), defining a set of SAM Types in {{specific-method}}. Other Authentication Types are also used in DRIP and their use is defined in {{drip-authentication-formats}}.
+This document leverages Authentication Type 0x5, Specific Authentication Method (SAM), defining a set of SAM Types in {{drip-authentication-formats}}.
 
 #### Page Number
 
@@ -228,12 +235,14 @@ To keep consistent formatting across the different transports (Legacy and Extend
 
 As such DRIP transmitters are REQUIRED to adhere to the following when using the Authentication Message:
 
-1. `Authentication Data / Signature` data MUST fit in a 9 pages (Page Numbers 0 through 8).
+1. `Authentication Data / Signature` data MUST fit in the first 9 pages (Page Numbers 0 through 8).
 2. The `Length` field in the `Authentication Headers` (which denotes the length in bytes of `Authentication Data / Signature` only) MUST NOT exceed the value of 201.
 
 # Forward Error Correction {#fec-details}
 
 For Broadcast RID, Forward Error Correction (FEC) is provided by the lower layers in Extended Transports (Bluetooth 5, Wi-Fi NaN, and Wi-Fi BEACON). The Bluetooth 4 Legacy Transport does not have supporting FEC so with DRIP Authentication the following application level FEC scheme is used to add FEC. This section is only used for Bluetooth 4 transmission/reception.
+
+The data added during FEC is not included in the `Authentication Data / Signature` but instead in the `Additional Data` field of {{astm-auth}}. This may cause the Authentication Message to exceed 9-pages, up to a max of 16-pages.
 
 ## Encoding
 
@@ -241,7 +250,7 @@ For any encoding the FEC data MUST start on a new ASTM Authentication Page. To d
 
 ### Single Page FEC {#enc-single-page}
 
-To generate the parity a simple XOR operation using the previous and current page is used.  Only the 23-byte Authentication Page data is used in the XOR operation.  For Page 0, a 23-byte null pad is used for the previous page. The resulting parity fills the last 23 bytes of the `Additional Data` field of {{F3411}} with the `Additional Data Length` field being set to 23 or greater (depending on number of null pad bytes are needed to get onto the next page).
+To generate the parity a simple XOR operation using the previous and current page is used.  Only the 23-byte Authentication Page data is used in the XOR operation.  For Page 0, a 23-byte null pad is used for the previous page. The resulting parity fills the last 23 bytes of the `Additional Data` field of {{astm-auth}} with the `Additional Data Length` field being set to 23 or greater (depending on number of null pad bytes are needed to get onto the next page).
 
 ~~~~
 Page N-1:
@@ -386,9 +395,61 @@ To decode Frame Recovery, the receiver must first extract all FEC data from the 
 
 The worst case scenario is when the `Authentication Data / Signature` ends perfectly on a page (Page N-1). This means the `Additional Data Length` would start the next page (Page N) and have 22-bytes worth of null padding to align the FEC in to the next page (Page N+1). In this scenario an entire page (Page N) is being wasted just to carry the `Additional Data Length`. This should be be avoided at all costs - in an effort to maintain efficiency.
 
-# Broadcast Attestation Structure {#bas}
+# DRIP Authentication Formats
 
-To directly support Broadcast RID a variation of the `Attestation Structure` format of {{drip-registries}} SHOULD be used when running DRIP under the various Authentication Types (filling the `Authentication Data / Signature` field of {{astm-auth}}) and SAM Types (filling the `SAM Authentication Data` field ({{sam-authentication-data}})). The notable changes of the structure is that the timestamps are set by the UA and the `Attestor Identity Information` is set to the DET of the UA.
+All formats defined in this section are the content for the `Authentication Data / Signature` field in {{astm-auth}} and uses the Specific Authentication Method (SAM, Authentication Type 0x5). The first byte of the `Authentication Data / Signature` of {{astm-auth}}, is used to multiplex between these various formats.
+
+When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Bluetooth 4, then {{fec-details}} MUST be used.
+
+## DRIP Authentication Field Definitions
+
+ASTM Message (25-bytes):
+
+: Full ASTM Message as defined in {{F3411}} specifically Message Types 0x0, 0x1, 0x3, 0x4, and 0x5
+
+ASTM Message Hash (12-bytes):
+
+: Hash of a single full ASTM Message using hash operations described in ({{hash-op}}). Multiple hashes MUST be in Message Type order.
+
+Attestation Data (0 to 112 bytes):
+
+: Opaque attestation data that the UA is attesting during its flight in {{drip-data}}.
+
+Broadcast Attestation (136-bytes):
+
+: HDA HI over UA DET/HI. Generated by a DRIP Registry during Session ID registration. Used in {{drip-link}}.
+
+Current Manifest Hash (12-bytes):
+
+: See {{block-hashes}}.
+
+Frame Type (1-byte):
+
+: Sub-type for future different DRIP Frame formats. See {{frame-type}}.
+
+Not Before Timestamp by UA (4-bytes):
+
+: Timestamp denoting recommended time to start trusting data in {{drip-data}}. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp but with an epoch of 01/01/2019 00:00:00.  MUST be set to the time the signature is generated.
+
+Not After Timestamp by UA (4-bytes):
+
+: Timestamp denoting recommended time to stop trusting data in {{drip-data}}. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp but with an epoch of 01/01/2019 00:00:00 with an additional offset is then added to push a short time into the future (relative to `Not Before Timestamp`) to avoid replay attacks. The offset used against the Unix-style timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers. A reasonable time would be to set `Not After Timestamp` 2 minutes ahead of `Not Before Timestamp`.
+
+Previous Manifest Hash (12-bytes):
+
+: See {{block-hashes}}.
+
+UA DRIP Entity Tag (16-bytes):
+
+: The UA DET in byte form (network byte order) and is part of {{drip-data}}.
+
+UA Signature (64-bytes):
+
+: Signature over preceding fields of {{drip-data}} using the HI of the UA.
+
+### Broadcast Attestation Structure {#bas}
+
+To directly support Broadcast RID a variation of the `Attestation Structure` format of {{drip-registries}} SHOULD be used when running DRIP under the various SAM Types (filling the `SAM Authentication Data` field ({{sam-authentication-data}})). The notable changes of the structure is that the timestamps are set by the UA and the `Attestor Identity Information` is set to the DET of the UA.
 
 When using this structure the UA is always self-attesting its DRIP Entity Tag (DET). The Host Identity of the UA DET can be looked up by mechanisms described in {{drip-registries}} or by extracting it from Broadcast Attestation (see {{drip-link}} and {{drip-recommendations}}).
 
@@ -428,128 +489,8 @@ When using this structure the UA is always self-attesting its DRIP Entity Tag (D
 |                                                               |
 |                                                               |
 +---------------+---------------+---------------+---------------+
-
-UA DRIP Entity Tag (16 bytes):
-    The UA DET in byte form (network byte order).
-
-Attestation Data (0 to 112 bytes):
-    Opaque attestation data.
-
-Not Before Timestamp by UA (4-bytes):
-    Timestamp denoting recommended time to start trusting data.
-
-Not After Timestamp by UA (4 bytes):
-    Timestamp denoting recommended time to stop trusting data.
-
-UA Signature (64 bytes):
-    Signature over preceding fields using the keypair of 
-    the UA.
 ~~~~
 {:fig #drip-data title="Broadcast Attestation Structure"}
-
-`Attestation Data` is a field with a maximum of 112-bytes, containing data that the UA is attesting during its flight.
-
-The `Not After Timestamp` and `Not Before Timestamp` MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp
-but with an epoch of 01/01/2019 00:00:00. `Not Before Timestamp` MUST be set to the time the structure is signed over. An additional offset is then added to push the `Not After Timestamp` a short time into the future to avoid replay attacks.
-
-The offset used against the Unix-style timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers. A reasonable time would be to set `Not After Timestamp` 2 minutes ahead of `Not Before Timestamp`.
-
-# DRIP Authentication Formats
-
-All formats defined in this section are the content for the `Authentication Data / Signature` field in {{astm-auth}}.
-
-When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Bluetooth 4, then {{fec-details}} MUST be used.
-
-## DRIP Authentication Field Definitions
-
-UA DRIP Entity Tag (16-bytes):
-
-: The UA DET in byte form (network byte order)
-
-Not Before Timestamp by UA (4-bytes):
-
-: Timestamp denoting recommended time to start trusting data. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp but with an epoch of 01/01/2019 00:00:00.  MUST be set to the time the signature is generated.
-
-Not After Timestamp by UA (4-bytes):
-
-: Timestamp denoting recommended time to stop trusting data. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp but with an epoch of 01/01/2019 00:00:00 with an additional offset is then added to push a short time into the future (relative to `Not Before Timestamp`) to avoid replay attacks. The offset used against the Unix-style timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers. A reasonable time would be to set `Not After Timestamp` 2 minutes ahead of `Not Before Timestamp`.
-
-UA Signature (64-bytes):
-
-: Signature over preceding fields using the keypair of the UA.
-
-ASTM Message (25-bytes):
-
-: Full ASTM Message as defined in {{F3411}} specifically Message Types 0x0, 0x1, 0x3, 0x4, and 0x5
-
-Previous Manifest Hash (12-bytes):
-
-: See {{block-hashes}}.
-
-Current Manifest Hash (12-bytes):
-
-: See {{block-hashes}}.
-
-ASTM Message Hash (12-bytes):
-
-: Hash of a single full ASTM Message using hash operations described in ({{hash-op}}). Multiple hashes MUST be in Message Type order.
-
-Broadcast Attestation (136-bytes):
-
-: HDA over UA. Generated by a DRIP Registry during Session ID registration. Used in {{drip-link}}.
-
-Frame Type (1-byte):
-
-: Sub-type for future different DRIP Frame formats. See {{frame-type}}.
-
-Attestation Data (0 to 111 bytes):
-
-: Opaque attestation data.
-
-## Message Set Signature
-
-When running under Extended Transports, the Authentication Message can be used to sign other messages within the Message Pack (Message Type 0xF).
-
-To generate the below structure the sender must concatenate all of the messages in the Message Pack (excluding Authentication) in Message Type order. This blob of Message is then set between the `UA DRIP Entity Tag` and `Not Before Timestamp` to generate the signature. The blob of Messages is then removed as it is redundant and the below structure is placed into an Authentication Message (of Authentication Type 0x3) to be sent in the same Message Pack.
-
-To verify the signature the receiver must concatenate all of the messages in the Message Pack (excluding Authentication Message found in the same Message Pack) in Message Type order and place the blob between the `UA DRIP Entity Tag` and `Not Before Timestamp` before performing signature verification.
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                              UA                               |
-|                        DRIP Entity Tag                        |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-|                   Not Before Timestamp by UA                  |
-+---------------+---------------+---------------+---------------+
-|                    Not After Timestamp by UA                  |
-+---------------+---------------+---------------+---------------+
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                          UA Signature                         |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-~~~~
-{:fig #set-sig title="DRIP Message Set Signature"}
-
-## Specific Authentication Method {#specific-method}
-
-DRIP Authentication uses the Specific Authentication Method (SAM, Authentication Type 0x5). The first byte of the `Authentication Data / Signature` of {{astm-auth}}, is used to multiplex between various formats.
 
 ### SAM Data Format
 
@@ -588,11 +529,13 @@ The SAM Type field is maintained by the International Civil Aviation Organizatio
 
 #### SAM Authentication Data
 
-This field has a maximum size of 200-bytes, as defined by {{drip-restrictions}}. When possible the Broadcast Attestation Structure ({{bas}}) should be used in this space.
+This field has a maximum size of 200-bytes, as defined by {{drip-restrictions}}. The Broadcast Attestation Structure ({{bas}}) SHOULD be used in this space.
 
-### DRIP Link
+## DRIP Link
 
-This SAM Type is used to transmit Broadcast Attestation's. The Broadcast Attestation of the Registry (HDA) over the UA MUST be sent (see {{drip-recommendations}}). Its structure is defined in {{drip-registries}} and an example of it can be found in {{link-example}}.
+This SAM Type is used to transmit Broadcast Attestation's. For example, the Broadcast Attestation of the Registry (HDA) over the UA is sent (see {{drip-recommendations}}) as a DRIP Link message. Its structure is defined in {{drip-registries}} and an example of it can be found in Appendix B.
+
+DRIP Link is important as its contents are used to provide trust in the DET/HI that the UA is currently broadcasting. This message does not require internet connectivity to perform signature validations of the contents when the registry DET/HI is in the receivers cache. It also provides the UA HI so that connectivity is not required when performing validation of other DRIP Authentication Messages.
 
 ~~~~
  0                   1                   2                   3
@@ -607,13 +550,9 @@ This SAM Type is used to transmit Broadcast Attestation's. The Broadcast Attesta
 ~~~~
 {:fig #link-fig title="DRIP Link"}
 
-This DRIP format MUST be used in conjunction with another DRIP SAM Type (such as Manifest or Wrapper) that contains data that is guaranteed to be unique and easily cross checked by the receiving device. A good candidate for this is using the DRIP Wrapper to encapsulate a Location Message (Message Type 0x2).
+This DRIP Authentication Message is used in conjunction with other DRIP SAM Types (such as Manifest or Wrapper) that contain data that is guaranteed to be unique and easily cross checked by the receiving device. A good candidate for this is using the DRIP Wrapper to encapsulate a Location Message (Message Type 0x2).
 
-#### Link Limitations
-
-See {{replay-attacks}} for details on why this structure is not dynamically signed.
-
-### DRIP Wrapper
+## DRIP Wrapper
 
 This SAM Type is used to wrap and sign over a list of other {{F3411}} Broadcast RID messages. It MUST use the Broadcast Attestation Structure ({{bas}}).
 
@@ -686,15 +625,54 @@ To determine the number of messages wrapped the receiver can check that the leng
 ~~~~
 {:fig #wrapper-fig title="Example 4-Message DRIP Wrapper"}
 
-#### Wrapper Limitations
+### Wrapper over Extended Transports
+
+To send the DRIP Wrapper over Extended Transports the messages being wrapped are co-located with the Authentication Message in a Message Pack (0xF). The ASTM Messages are removed from the DRIP Wrapper after signing (as they are redundant) leaving the following structure that is placed into the `SAM Authentication Data` of {{sam-frame}} and sent in the same Message Pack.
+
+~~~~
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                              UA                               |
+|                        DRIP Entity Tag                        |
+|                                                               |
++---------------+---------------+---------------+---------------+
+|                   Not Before Timestamp by UA                  |
++---------------+---------------+---------------+---------------+
+|                    Not After Timestamp by UA                  |
++---------------+---------------+---------------+---------------+
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                          UA Signature                         |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+~~~~
+{:fig #set-sig title="DRIP Wrapper under Extended Transports"}
+
+To verify the signature the receiver must concatenate all of the messages in the Message Pack (excluding Authentication Message found in the same Message Pack) in Message Type order and place the blob between the `UA DRIP Entity Tag` and `Not Before Timestamp` before performing signature verification.
+
+### Wrapper Limitations
 
 The primary limitation of the Wrapper format is the bounding of up to 4 ASTM Messages that can be sent within it. Another limitation is that the format can not be used as a surrogate for messages it is wrapping. This is due to high potential a receiver on the ground does not support DRIP. Thus when Wrapper is being used the wrapper data must effectively be sent twice; once as a single framed message (as specified in {{F3411}}) and then again wrapped within the Wrapper format.
 
-### DRIP Manifest
+## DRIP Manifest
 
 This SAM Type is used to create message manifests. It MUST use the Broadcast Attestation Structure ({{bas}}).
 
-By hashing previously sent messages and signing them we gain trust in UAs previous reports. An observer who has been listening for any considerable length of time can hash received messages and cross-check against listed hashes. This is a way to evade the limitation of a maximum of 4 messages in the Wrapper Format and reduce overhead.
+By hashing previously sent messages and signing them we gain trust in UAs previous reports. An observer who has been listening for any length of time can hash received messages and cross-check against listed hashes. This is a way to evade the limitation of a maximum of 4 messages in the Wrapper Format and reduce overhead.
 
 The `Attestation Data` field is filled with 12-byte hashes of previous {{F3411}} Broadcast messages. A receiver does not need to have received every message in the manifest to verify it. A manifest SHOULD typically encompass a single transmission cycle of messages being sent, see {{operational}}.
 
@@ -705,7 +683,7 @@ The `Attestation Data` field is filled with 12-byte hashes of previous {{F3411}}
 |                                                               |
 |                              UA                               |
 |                        DRIP Entity Tag                        |
-
+|                                                               |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                     Previous Manifest Hash                    |
@@ -767,7 +745,11 @@ The `Attestation Data` field is filled with 12-byte hashes of previous {{F3411}}
 ~~~~
 {:fig #manifest-fig title="Example DRIP Manifest"}
 
-#### Message Hash Algorithms and Operation {#hash-op}
+### Hash Count
+
+The number of hashes in the Manifest can be variable (3-9). An easy way to determine the number of hashes is to take the length of the data between the end of the `UA DRIP Entity Tag` and `Not Before Timestamp by UA` and divide it by the hash length (12). If this value is not rational, the message is invalid.
+
+### Message Hash Algorithms and Operation {#hash-op}
 
 The hash algorithm used for the Manifest Message is the same hash algorithm used in creation of the DET {{drip-rid}} that is signing the Manifest.
 
@@ -779,15 +761,15 @@ cSHAKE128(ASTM Message, 96, "", "Remote ID Auth Hash")
 
 >> Note: {{drip-rid}} specifies cSHAKE128 but is open for the expansion of other OGAs.
 
-##### Legacy Transport Hashing
+#### Legacy Transport Hashing
 
 Under this transport DRIP hashes the full ASTM Message being sent over the Bluetooth Advertising frame. For Authentication Messages all the Authentication Message Pages are concatenated together and hashed as one object. For all other Message Types the 25-byte message is hashed.
 
-##### Extended Transport Hashing
+#### Extended Transport Hashing
 
 Under this transport DRIP hashes the full ASTM Message Pack (Message Type 0xF) - regardless of its content.
 
-#### Pseudo-Blockchain Hashes {#block-hashes}
+### Pseudo-Blockchain Hashes {#block-hashes}
 
 Two special hashes are included in all Manifest messages; a previous manifest hash, which links to the previous manifest message, as well as a current manifest hash. This gives a pseudo-blockchain provenance to the manifest message that could be traced back if the observer was present for extended periods of time.
 
@@ -799,15 +781,15 @@ Cycling:
 
 : There a few different ways to cycle this message. We can "roll up" the hash of 'current' to 'previous' when needed or to completely recompute the hash. This mostly depends on the previous note.
 
-#### Manifest Limitations
+### Manifest Limitations
 
 A potential limitation to this format is dwell time of the UA. If the UA is not sticking to a general area then most likely the Observer will not obtain many (if not all) of the messages in the manifest. Examples of such scenarios include delivery or survey UA.
 
 Another limitation is the length of hash, which is discussed in {{manifest-hash-length}}.
 
-### DRIP Frame
+## DRIP Frame
 
-This SAM Type is for when the authentication data does not fit in other defined formats under DRIP and is reserved for future expansion under DRIP if required. This SAM Type SHOULD use the Broadcast Attestation Structure ({{bas}}).
+This SAM Type is for when the authentication data does not fit in other defined formats under DRIP and is reserved for future expansion under DRIP if required. This SAM Type MUST use the Broadcast Attestation Structure ({{bas}}).
 
 ~~~~
  0                   1                   2                   3
@@ -820,7 +802,7 @@ This SAM Type is for when the authentication data does not fit in other defined 
 +---------------+---------------+---------------+---------------+
 |  Frame Type   |                                               |
 +---------------+                                               .
-.                        Attestation Data                       .
+.                     Frame Attestation Data                    .
 .                                                               .
 |                                                               |
 +---------------+---------------+---------------+---------------+
@@ -848,24 +830,20 @@ This SAM Type is for when the authentication data does not fit in other defined 
 ~~~~
 {:fig #frame-fig title="Example DRIP Frame"}
 
-#### Frame Type
+### Frame Type
 
-Byte to sub-type for future different DRIP Frame formats.
+Byte to sub-type for future different DRIP Frame formats. It takes the first byte of `Attestation Data` in {{bas}} leaving 111-bytes for `Frame Attestation Data`.
 
 | Frame Type | Name | Description |
 | ---------- | ---- | ----------- |
 | 0x00       | Reserved | Reserved |
 | 0xC0-0xFF  | Experimental | Experimental Use |
 
-#### Frame Limitations
-
-With the Broadcast Attestation Structure only 115-bytes of `Attestation Data` are free for use.
-
 # Requirements & Recommendations {#reqs}
 
 ## Legacy Transports
 
-With Legacy Advertisements the goal is to attempt to bring reliable receipt of the paged Authentication Message. Forward Error Correction ({{fec-details}}) MUST be used when using Legacy Advertising methods (such as Bluetooth 4).
+With Legacy Advertisements the goal is to attempt to bring reliable receipt of the paged Authentication Message. FEC ({{fec-details}}) MUST be used, per mandated Remote ID rules (for example the US FAA Remote ID Rule {{faa-rid}}), when using Legacy Advertising methods (such as Bluetooth 4).
 
 Under ASTM Bluetooth 4 rules, transmission of dynamic messages are at least every 1 second. DRIP Authentication Messages typically contain dynamic data (such as the DRIP Manifest or DRIP Wrapper) and must be sent at the dynamic rate of 1 per second.
 
@@ -880,14 +858,14 @@ Without any fragmentation or loss of pages with transmission Forward Error Corre
 It is REQUIRED that a UA send the following Authentication Formats to fulfill the {{?drip-requirements}}:
 
 1. DRIP Link using the Broadcast Attestation of HDA and the UA (satisfying GEN-1 and GEN-3)
-2. Any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest or DRIP Wrapper) where the UA is dynamically signing data (satisfying GEN-1 and GEN-2)
+2. Any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest or DRIP Wrapper) where the UA is dynamically signing data that is guaranteed to be unique and easily cross checked by the receiving device (satisfying GEN-1 and GEN-2)
 
 It is RECOMMENDED the following set of Authentication Formats are sent for support of offline Observers:
 
 1. DRIP Link using the Broadcast Attestation of HID Root and the RAA (CAA) (satisfies GEN-3)
 2. DRIP Link using the Broadcast Attestation of RAA (CAA) and the HDA (USS) (satisfies GEN-3)
 3. DRIP Link using the Broadcast Attestation of HDA (USS) and the UA (satisfies GEN-1 and GEN-3)
-4. Any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest or DRIP Wrapper) where the UA is dynamically signing data (satisfies GEN-1 and GEN-2)
+4. Any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest or DRIP Wrapper) where the UA is dynamically signing data that is guaranteed to be unique and easily cross checked by the receiving device (satisfying GEN-1 and GEN-2)
 
 ## Operational
 
@@ -899,11 +877,9 @@ A separate issue is the frequency of transmitting the DRIP Link Authentication M
 
 The preferred mode of operation is to send the HDA UA assertion every 3 seconds and Manifest messages immediately after a set of UA operation messages (e.g. Basic, Location, and System messages).
 
-<!-- Author Note (atw): is this really what we want? Manifest as the default and Wrapper as the secondary? Or should this language become looser to allow both as its six of one half a dozen the other to which is used. -->
-
 ### DRIP Wrapper {#wrapper-operations}
 
-The DRIP Wrapper MUST NOT be used in place of sending the ASTM messages as is. All receivers MUST be able to process all the messages specified in {{F3411}}. Only sending them within the DRIP Wrapper will make them opaque to receivers lacking support for DRIP authentication messages. Thus messages within a Wrapper are sent twice: in the clear, and authenticated within the Wrapper. The DRIP Manifest format would seem to be a more efficient use of the transport channel.
+The DRIP Wrapper MUST NOT be used in place of sending the ASTM messages as is. All receivers MUST be able to process all the messages specified in {{F3411}}.  Sending them within the DRIP Wrapper makes them opaque to receivers lacking support for DRIP authentication messages. Thus messages within a Wrapper are sent twice: in the clear, and authenticated within the Wrapper. The DRIP Manifest format would seem to be a more efficient use of the transport channel.
 
 The DRIP Wrapper has a specific use case for DRIP aware receivers. For receiver plotting received Location Messages (Message Type 0x2) on a map display an embedded Location Message in a DRIP Wrapper can be colored differently to signify trust in the Location data - be it current or previous Location reports that are wrapped.
 
@@ -920,7 +896,18 @@ DRIP requests the following SAM Type's to be allocated:
 
 # IANA Considerations
 
-This document requests a new number field for Frame Type with initial values as defined in {{frame-type}}.
+## Update IANA DRIP Registry
+
+This document requests a new subregistry for Frame Type.
+
+DRIP Frame Type:
+
+: This 8-bit valued subregistry is for Frame Types in DRIP Frame Authentication Messages. Future additions to this subregistry are to be made through Expert Review (Section 4.5 of [RFC8126]). The following values are defined:
+
+| Frame Type | Name | Description |
+| ---------- | ---- | ----------- |
+| 0x00       | Reserved | Reserved |
+| 0xC0-0xFF  | Experimental | Experimental Use |
 
 # Security Considerations
 
