@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: auth-formats
-docname: draft-ietf-drip-auth-12
+docname: draft-ietf-drip-auth-13
 category: info
 
 ipr: trust200902
@@ -66,7 +66,7 @@ informative:
 
 --- abstract
 
-This document describes how to include trust into the ASTM Remote ID specification defined in ASTM F3411 under Broadcast Remote ID (RID). It defines a few message schemes (sent within the Authentication Message) that can be used to authenticate past messages sent by a unmanned aircraft (UA) and provide proof of UA trustworthiness even in the absence of Internet connectivity at the receiving node.
+This document describes how to add trust into the ASTM Remote ID specification defined in ASTM F3411 under Broadcast Remote ID (RID). It defines a few message schemes (sent within the Authentication Message) that can be used to authenticate past messages sent by a unmanned aircraft (UA) and provide proof of UA trustworthiness even in the absence of Internet connectivity at the receiving node.
 
 --- middle
 
@@ -132,7 +132,9 @@ Bluetooth 4 presents a payload size challenge in that it can only transmit 25 by
 
 ## Reasoning for IETF DRIP Authentication
 
-The ASTM Authentication Message has provisions in {{F3411}} to allow for other organizations to standardize additional Authentication formats beyond those explicitly in {{F3411}}.  The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID.  No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
+The ASTM Authentication Message has provisions in {{F3411}} to allow for other organizations to standardize additional Authentication formats beyond those explicitly in {{F3411}} that require use of a multi-party online validator system. This has a heavy reliance on real-time connectivity onto the Internet (specifically into UTM) that is not always guaranteed.
+
+The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
 
 ## ASTM Authentication Message
 
@@ -163,7 +165,7 @@ Authentication Payload: (23 bytes per page)
 ~~~~
 {:fig #astm-auth-page title="Standard ASTM Authentication Message Page"}
 
-A single Authentication Message is akin to a UDP packet. The Authentication Message is structured as a set of up to 16 pages. Over Bluetooth 4, these pages are "fragmented" into separate Bluetooth 4 broadcast frames.
+The Authentication Message is structured as a set of up to 16 pages. Over Bluetooth 4, these pages are "fragmented" into separate Bluetooth 4 broadcast frames.
 
 Either as a single Authentication Message or a set of fragmented Authentication Message Pages the structure(s) is further wrapped by outer ASTM framing and the specific link framing (Bluetooth or Wi-Fi).
 
@@ -173,17 +175,16 @@ Either as a single Authentication Message or a set of fragmented Authentication 
 
 | Authentication Type | Description                    |
 | ------------------- | ------------------------------ |
-| 0x2                 | Operator ID Signature          |
 | 0x3                 | Message Set Signature          |
 | 0x5                 | Specific Authentication Method |
 
 ##### Specific Authentication Method (SAM)
 
-This document leverages Authentication Type 0x5, Specific Authentication Method (SAM), defining a set of SAM Types in {{drip-authentication-formats}}.
+This document leverages Authentication Type 0x5, Specific Authentication Method (SAM), as the principal authentication container, defining a set of SAM Types in {{drip-authentication-formats}}. Message Set Signature (Authentication Type 0x3) is also used in parallel form to its use in {{F3411}}. However, the SAM formats provide a more complete authentication approach.
 
 #### Page Number
 
-There is a technical maximum of 16 pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a max 23-byte `Authentication Payload`. See {{drip-restrictions}} for more details.
+There is a technical maximum of 16 pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a maximum 23-byte `Authentication Payload`. See {{drip-restrictions}} for more details.
 
 #### Authentication Payload Field
 
@@ -231,7 +232,7 @@ When `Additional Data` is being sent, a single unsigned byte (`Additional Data L
 
 ### ASTM Constraints {#drip-restrictions}
 
-To keep consistent formatting across the different transports (Legacy and Extended) and their independent restrictions the authentication data being sent is REQUIRED to fit within the page limit of the most constrained existing transport can support. Under Broadcast RID the transport that can hold the least amount of authentication data is Bluetooth 5 and Wi-Fi BEACON at 9-pages.
+To keep consistent formatting across the different transports (Legacy and Extended) and their independent restrictions, the authentication data being sent is REQUIRED to fit within the page limit of the most constrained existing transport can support. Under Broadcast RID the transport that can hold the least amount of authentication data is Bluetooth 5 and Wi-Fi BEACON at 9-pages.
 
 As such DRIP transmitters are REQUIRED to adhere to the following when using the Authentication Message:
 
@@ -242,7 +243,7 @@ As such DRIP transmitters are REQUIRED to adhere to the following when using the
 
 For Broadcast RID, Forward Error Correction (FEC) is provided by the lower layers in Extended Transports (Bluetooth 5, Wi-Fi NaN, and Wi-Fi BEACON). The Bluetooth 4 Legacy Transport does not have supporting FEC so with DRIP Authentication the following application level FEC scheme is used to add FEC. This section is only used for Bluetooth 4 transmission/reception.
 
-The data added during FEC is not included in the `Authentication Data / Signature` but instead in the `Additional Data` field of {{astm-auth}}. This may cause the Authentication Message to exceed 9-pages, up to a max of 16-pages.
+The data added during FEC is not included in the `Authentication Data / Signature` but instead in the `Additional Data` field of {{astm-auth}}. This may cause the Authentication Message to exceed 9-pages, up to a maximum of 16-pages.
 
 ## Encoding
 
@@ -285,9 +286,9 @@ Page N:
 
 ### Multiple Page FEC {#enc-multi-page}
 
-For Multiple Page FEC there are two flavors: Frame Recovery and Page Recovery. Both follow a similar process, but are offset at what data is actually protected.
+For Multiple Page FEC there are two variations: Frame Recovery and Page Recovery. Both follow a similar process, but are offset at what data is actually protected.
 
-(Editor Note: to improve interop we MUST explicitly select a polynomial for Reed Solomon for DRIP - need suggestions)
+For DRIP the polynomial to use for Reed Solomon is: `1 + x^2 + x^3 + x^4 + x^8`.
 
 #### Page Recovery {#enc-page}
 
@@ -319,7 +320,7 @@ Each set of parity is the placed into a pseudo-frame as follows (each byte in it
 
 #### Frame Recovery {#enc-frame}
 
-Frame Recovery uses the full ASTM Message and performs Reed Solomon over each byte. Up to 240 (255 minus 15 pages max of FEC data) messages can be protected using Frame Recovery.
+Frame Recovery uses the full ASTM Message and performs Reed Solomon over each byte. Up to 240 (255 minus 15 pages maximum of FEC data) messages can be protected using Frame Recovery.
 
 Below is an example of a number of messages. Here the first column is an additional ASTM Header that contain the Message Type; with a visual space for clarity. The last 24-bytes are the actual message contents; be it location information or an Authentication Page.
 
@@ -449,9 +450,9 @@ UA Signature (64-bytes):
 
 ### Broadcast Attestation Structure {#bas}
 
-To directly support Broadcast RID a variation of the `Attestation Structure` format of {{drip-registries}} SHOULD be used when running DRIP under the various SAM Types (filling the `SAM Authentication Data` field ({{sam-authentication-data}})). The notable changes of the structure is that the timestamps are set by the UA and the `Attestor Identity Information` is set to the DET of the UA.
+Variations of the `Attestation Structure` format of {{drip-registries}} SHOULD be used when running DRIP Authentication under the DRIP SAM Types (filling the `SAM Authentication Data` field ({{sam-authentication-data}})). The notable changes of the structure is that the timestamps are set by the UA and the `Attestor Identity Information` is set to the DET of the UA.
 
-When using this structure the UA is always self-attesting its DRIP Entity Tag (DET). The Host Identity of the UA DET can be looked up by mechanisms described in {{drip-registries}} or by extracting it from Broadcast Attestation (see {{drip-link}} and {{drip-recommendations}}).
+When using this structure the UA is minimally self-attesting its DRIP Entity Tag (DET). It may be attesting the DET registration in a specific HID (see {{link-example}}). The Host Identity of the UA DET can be looked up by mechanisms described in {{drip-registries}} or by extracting it from Broadcast Attestation (see {{drip-link}} and {{drip-recommendations}}).
 
 ~~~~
  0                   1                   2                   3
@@ -533,7 +534,7 @@ This field has a maximum size of 200-bytes, as defined by {{drip-restrictions}}.
 
 ## DRIP Link
 
-This SAM Type is used to transmit Broadcast Attestation's. For example, the Broadcast Attestation of the Registry (HDA) over the UA is sent (see {{drip-recommendations}}) as a DRIP Link message. Its structure is defined in {{drip-registries}} and an example of it can be found in Appendix B.
+This SAM Type is used to transmit Broadcast Attestations. For example, the Broadcast Attestation of the Registry (HDA) over the UA is sent (see {{drip-recommendations}}) as a DRIP Link message. Its structure is defined in {{drip-registries}} and an example of it can be found in Appendix B.
 
 DRIP Link is important as its contents are used to provide trust in the DET/HI that the UA is currently broadcasting. This message does not require internet connectivity to perform signature validations of the contents when the registry DET/HI is in the receivers cache. It also provides the UA HI so that connectivity is not required when performing validation of other DRIP Authentication Messages.
 
@@ -664,6 +665,8 @@ To send the DRIP Wrapper over Extended Transports the messages being wrapped are
 
 To verify the signature the receiver must concatenate all of the messages in the Message Pack (excluding Authentication Message found in the same Message Pack) in Message Type order and place the blob between the `UA DRIP Entity Tag` and `Not Before Timestamp` before performing signature verification.
 
+The functionality of Wrapper in this form is identical to Authentication Type 0x3 (Message Set Signature) when running over Extended Transports. What Wrapper provides is the same format but over both Extended and Legacy Transports allowing the transports to be similar. Message Set Signature also implies using the ASTM validator system architecture which relies on Internet connectivity for verification which the receiver may not have at the time of receipt of an Authentication Message. This is something Wrapper, and all DRIP Authentication Formats, avoids when the UA key is obtained via a DRIP Link Authentication Message.
+
 ### Wrapper Limitations
 
 The primary limitation of the Wrapper format is the bounding of up to 4 ASTM Messages that can be sent within it. Another limitation is that the format can not be used as a surrogate for messages it is wrapping. This is due to high potential a receiver on the ground does not support DRIP. Thus when Wrapper is being used the wrapper data must effectively be sent twice; once as a single framed message (as specified in {{F3411}}) and then again wrapped within the Wrapper format.
@@ -784,8 +787,6 @@ Cycling:
 ### Manifest Limitations
 
 A potential limitation to this format is dwell time of the UA. If the UA is not sticking to a general area then most likely the Observer will not obtain many (if not all) of the messages in the manifest. Examples of such scenarios include delivery or survey UA.
-
-Another limitation is the length of hash, which is discussed in {{manifest-hash-length}}.
 
 ## DRIP Frame
 
@@ -911,14 +912,6 @@ DRIP Frame Type:
 
 # Security Considerations
 
-## Manifest Hash Length
-
-For DRIP Manifest an 12-byte hash length has been selected by the authors for a number of reasons.
-
-1. Hash lengths smaller than 8-bytes (for example 4-bytes) were originally contemplated but ruled out by comments by various cryptographers. The main concern raised in this forum was that the length of hash would not provide strong resistance against collision rate. The authors also after further review agreed with this and also realized operationally it was not necessarily viable. While 4-byte hashes would allow more messages to be filled into a single DRIP Manifest payload (up to 22 individual hashes) the length of time for the UA to stay in a single place where the Observer would receive all the originally messages to rehash to verify such a message was impractical.
-2. Hash lengths larger than 8-bytes (for example 12 or 16-bytes) were also considered by the authors. These got the approval of the cryptographers but the number of hashes to send became much lower (only 5 individual hashes). While this lower number is a more reasonable number of original messages the Observer would have to capture it would also mean that potentially more DRIP Manifests would need to be sent. Overall the increase length of the hash did not operationally justify the cost.
-3. Simplifying the current design and locking it into using the same hash as the HHIT instead of allowing for agility in either hash algorithm or length seemed more realistic to the authors today.
-
 ## Replay Attacks
 
 The astute reader may note that the DRIP Link messages, which are recommended to be sent, are static in nature and contain various timestamps. These Attestation Link messages can easily be replayed by an attacker who has copied them from previous broadcasts. There are two things to mitigate this in DRIP:
@@ -936,7 +929,7 @@ The offset of the Trust Timestamp (defined as a very short Expiration Timestamp)
 
 Ryan Quigley and James Mussi of AX Enterprize, LLC for early prototyping to find holes in the draft specifications.
 
-Soren Friis for pointing out that Wi-Fi implementations would not always give access to the MAC Address, originally used in calculation of the hashes for DRIP Manifest. Also, for confirming that Message Packs (0xF) can only carry up to 9 ASTM frames worth of data (9 Authentication pages) - this drove the requirement for max page length of Authentication Data itself.
+Soren Friis for pointing out that Wi-Fi implementations would not always give access to the MAC Address, originally used in calculation of the hashes for DRIP Manifest. Also, for confirming that Message Packs (0xF) can only carry up to 9 ASTM frames worth of data (9 Authentication pages) - this drove the requirement for maximum page length of Authentication Data itself.
 
 --- back
 
@@ -944,11 +937,11 @@ Soren Friis for pointing out that Wi-Fi implementations would not always give ac
 
 ASTM Authentication has only 3 states: None, Invalid or Valid. This is because under ASTM the idea is that Authentication is done by an external service hosted somewhere on the Internet so it is assumed you will always get some sort of answer back. With DRIP this classification becomes more complex with the support of "offline" scenarios where the receiver does not have Internet connectivity. With the use of asymmetric keys this means the public key (PK) must somehow be obtained - {{drip-registries}} gets more into detail how these keys are stored on DNS and one reason for DRIP Authentication is to send PK's over Broadcast RID.
 
-There are two keys of interest: the PK of the UA and the PK of the HDA (or Registry). This document gives a clear way to send the PK of the UA over the Broadcast RID messages - however the PK of the Registry is not. It can be using the same mechanism but is not required to do so due to potential operational constraints and implementation of a given UA transmitter. As such there are scenarios where you may have part of the key-chain but not all of it.
+There are two keys of interest: the PK of the UA and the PK of the HDA (or Registry). This document gives a clear way to send the PK of the UA over the Broadcast RID messages. The key of the HDA can be sent over Broadcast RID using the same mechanisms (see {{drip-link}} and {{drip-recommendations}}) but is not required due to potential operational constraints of sending multiple DRIP Link messages. As such there are scenarios where you may have part of the key-chain but not all of it.
 
 The intent of this appendix is to give some kind of recommended way to classify these various states and convey it to the user through colors and state names/text.
 
-## State Table
+## State Colors
 
 The table below lays out the RECOMMENDED colors to associate with state.
 
@@ -966,7 +959,7 @@ The table below lays out the RECOMMENDED colors to associate with state.
 
 ## State Diagrams
 
-This section gives some RECOMMENDED state flows that DRIP should follow.
+This section gives some RECOMMENDED state flows that DRIP should follow. Note that the state diagrams do not have all error conditions mapped.
 
 ### Notations
 
