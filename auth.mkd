@@ -900,7 +900,7 @@ DRIP requests the following SAM Type's to be allocated:
 
 ## Update IANA DRIP Registry
 
-This document requests a new subregistry for Frame Type.
+This document requests a new subregistry for Frame Type under the DRIP registry.
 
 DRIP Frame Type:
 
