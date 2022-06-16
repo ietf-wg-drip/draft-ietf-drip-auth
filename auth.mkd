@@ -134,7 +134,7 @@ Bluetooth 4 presents a payload size challenge in that it can only transmit 25 by
 
 The ASTM Authentication Message has provisions in {{F3411}} to allow for other organizations to standardize additional Authentication formats beyond those explicitly in {{F3411}} that require use of a multi-party online validator system. This has a heavy reliance on real-time connectivity onto the Internet (specifically into UTM) that is not always guaranteed.
 
-The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
+The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. Per {{drip-arch}} in Section 5, there is a need to have Authentication formats to relay information for observers to determine trust. No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
 
 ## ASTM Authentication Message
 
