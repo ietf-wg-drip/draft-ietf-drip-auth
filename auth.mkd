@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: auth-formats
-docname: draft-ietf-drip-auth-13
+docname: draft-ietf-drip-auth-14
 category: info
 
 ipr: trust200902
@@ -927,9 +927,9 @@ The offset of the Trust Timestamp (defined as a very short Expiration Timestamp)
 
 # Acknowledgments
 
-Ryan Quigley and James Mussi of AX Enterprize, LLC for early prototyping to find holes in the draft specifications.
-
-Soren Friis for pointing out that Wi-Fi implementations would not always give access to the MAC Address, originally used in calculation of the hashes for DRIP Manifest. Also, for confirming that Message Packs (0xF) can only carry up to 9 ASTM frames worth of data (9 Authentication pages) - this drove the requirement for maximum page length of Authentication Data itself.
+- Ryan Quigley and James Mussi of AX Enterprize, LLC for early prototyping to find holes in the draft specifications.
+- Soren Friis for pointing out that Wi-Fi implementations would not always give access to the MAC Address, originally used in calculation of the hashes for DRIP Manifest. Also, for confirming that Message Packs (0xF) can only carry up to 9 ASTM frames worth of data (9 Authentication pages) - this drove the requirement for maximum page length of Authentication Data itself.
+- Many thanks to Rick Salz for the secdir review.
 
 --- back
 
