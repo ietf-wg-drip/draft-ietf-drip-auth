@@ -53,6 +53,7 @@ normative:
         date: 2020-02
 
 informative:
+    drip-arch: I-D.ietf-drip-arch
     drip-requirements: RFC9153
     drip-rid: I-D.ietf-drip-uas-rid
     drip-registries: I-D.wiethuechter-drip-registries
