@@ -900,7 +900,7 @@ DRIP requests the following SAM Type's to be allocated:
 
 ## IANA DRIP Registry
 
-This document requests a new subregistry for Frame Type under the DRIP registry.
+This document requests a new subregistry for Frame Type under the [DRIP registry](https://datatracker.ietf.org/doc/html/draft-ietf-drip-rid-28#section-8.2).
 
 DRIP Frame Type:
 
