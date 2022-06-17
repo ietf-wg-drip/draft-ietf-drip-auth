@@ -2,7 +2,7 @@
 coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
-abbrev: auth-formats
+abbrev: DRIP Auth Formats
 docname: draft-ietf-drip-auth-14
 category: info
 
@@ -73,33 +73,17 @@ This document describes how to add trust into the ASTM Remote ID specification d
 
 # Introduction
 
-Unmanned Aircraft Systems (UAS) are usually in a volatile environment when it comes to communication. UA are generally small with little computational (or flying) horsepower to carry standard communication equipment. This limits  the mediums of communication to few viable options.
+Unmanned Aircraft Systems (UAS) operate usually in a volatile environment when it comes to communication. Unmanned Aircraft (UA) are generally small with little computational (or flying) horsepower to carry standard communication equipment. This limits the mediums of communication to few viable options.
 
-Observer systems (e.g. smartphones and tablets) place further constraints on the communication options. The Remote ID Broadcast messages MUST be available to applications on these platforms without modifying the devices.
+Observer systems (e.g., smartphones and tablets) place further constraints on the communication options. The Remote ID Broadcast messages must be available to applications on these platforms without modifying the devices.
 
-The ASTM {{F3411}} standard focuses on two ways of communicating to a UAS for Remote ID (RID): Broadcast and Network.
+As discussed in {{?drip-requirements}} two communication schemes to a UAS for Remote ID (RID) are considered: Broadcast and Network RIDs.
 
-This document will focus on adding trust to Broadcast RID via the Authentication Message by combining dynamically signed data with an Attestation of the UA's identity from a Registry.
+This document focuses on adding trust to Broadcast RID (Section 3.2 of {{?drip-requirements}}) via the Authentication Message by combining dynamically signed data with an Attestation of the UA's identity from a Registry.
 
-This authentication methodology also provides the missing, but US FAA mandated, Error Correction for the Bluetooth 4 transmissions (see {{fec-details}}). This is error correction not only for the authentication message itself, but indirectly, to other messages authenticated via the Manifest method (see {{drip-manifest}}).
+This authentication approach also provides the missing, but US FAA mandated, Error Correction for the Bluetooth 4 transmissions (see {{fec-details}}). This is error correction not only for the authentication message itself, but indirectly, to other messages authenticated via the Manifest method (see {{drip-manifest}}).
 
-## DRIP Requirements Addressed
-
-The following {{?drip-requirements}} will be addressed:
-
-GEN 1: Provable Ownership
-
-: This will be addressed using the DRIP Link and DRIP Wrapper or DRIP Manifest.
-
-GEN 2: Provable Binding
-
-: This requirement is addressed using the DRIP Wrapper or DRIP Manifest.
-
-GEN 3: Provable Registration
-
-: This requirement is addressed using the DRIP Link.
-
-See {{drip-recommendations}} for further clarification.
+A summary of addressed DRIP requirempents is provided in {{req-sum}}
 
 # Terminology {#terminology}
 
@@ -109,7 +93,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Definitions
 
-See {{?drip-requirements}} for common DRIP terms.
+This document makes use fo the terms defined in {{?drip-requirements}}. In addition, the following terms are defined: 
 
 Legacy Transports:
 
@@ -885,6 +869,22 @@ The DRIP Wrapper MUST NOT be used in place of sending the ASTM messages as is. A
 
 The DRIP Wrapper has a specific use case for DRIP aware receivers. For receiver plotting received Location Messages (Message Type 0x2) on a map display an embedded Location Message in a DRIP Wrapper can be colored differently to signify trust in the Location data - be it current or previous Location reports that are wrapped.
 
+# Summary of Addressed DRIP Requirements {#req-sum}
+
+The following {{?drip-requirements}} are addressed in this document:
+
+GEN-1: Provable Ownership
+
+: This will be addressed using the DRIP Link and DRIP Wrapper or DRIP Manifest.
+
+GEN-2: Provable Binding
+
+: This requirement is addressed using the DRIP Wrapper or DRIP Manifest.
+
+GEN-3: Provable Registration
+
+: This requirement is addressed using the DRIP Link.
+
 # ICAO Considerations
 
 DRIP requests the following SAM Type's to be allocated:
@@ -898,7 +898,7 @@ DRIP requests the following SAM Type's to be allocated:
 
 # IANA Considerations
 
-## Update IANA DRIP Registry
+## IANA DRIP Registry
 
 This document requests a new subregistry for Frame Type under the DRIP registry.
 
