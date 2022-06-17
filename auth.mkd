@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-13
+docname: draft-ietf-drip-auth-14
 category: info
 
 ipr: trust200902
@@ -53,6 +53,7 @@ normative:
         date: 2020-02
 
 informative:
+    drip-arch: I-D.ietf-drip-arch
     drip-requirements: RFC9153
     drip-rid: I-D.ietf-drip-uas-rid
     drip-registries: I-D.wiethuechter-drip-registries
@@ -118,7 +119,7 @@ Bluetooth 4 presents a payload size challenge in that it can only transmit 25 by
 
 The ASTM Authentication Message has provisions in {{F3411}} to allow for other organizations to standardize additional Authentication formats beyond those explicitly in {{F3411}} that require use of a multi-party online validator system. This has a heavy reliance on real-time connectivity onto the Internet (specifically into UTM) that is not always guaranteed.
 
-The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
+The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. Per {{drip-arch}} in Section 5, there is a need to have Authentication formats to relay information for observers to determine trust. No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
 
 ## ASTM Authentication Message
 
@@ -899,7 +900,7 @@ DRIP requests the following SAM Type's to be allocated:
 
 ## IANA DRIP Registry
 
-This document requests a new subregistry for Frame Type.
+This document requests a new subregistry for Frame Type under the DRIP registry.
 
 DRIP Frame Type:
 
@@ -927,9 +928,9 @@ The offset of the Trust Timestamp (defined as a very short Expiration Timestamp)
 
 # Acknowledgments
 
-Ryan Quigley and James Mussi of AX Enterprize, LLC for early prototyping to find holes in the draft specifications.
-
-Soren Friis for pointing out that Wi-Fi implementations would not always give access to the MAC Address, originally used in calculation of the hashes for DRIP Manifest. Also, for confirming that Message Packs (0xF) can only carry up to 9 ASTM frames worth of data (9 Authentication pages) - this drove the requirement for maximum page length of Authentication Data itself.
+- Ryan Quigley and James Mussi of AX Enterprize, LLC for early prototyping to find holes in the draft specifications.
+- Soren Friis for pointing out that Wi-Fi implementations would not always give access to the MAC Address, originally used in calculation of the hashes for DRIP Manifest. Also, for confirming that Message Packs (0xF) can only carry up to 9 ASTM frames worth of data (9 Authentication pages) - this drove the requirement for maximum page length of Authentication Data itself.
+- Many thanks to Rick Salz for the secdir review.
 
 --- back
 
