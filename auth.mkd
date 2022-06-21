@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-14
+docname: draft-ietf-drip-auth-15
 category: info
 
 ipr: trust200902
@@ -51,11 +51,11 @@ normative:
         author:
         org: ASTM International
         date: 2020-02
+    drip-rid: I-D.ietf-drip-uas-rid
 
 informative:
     drip-arch: I-D.ietf-drip-arch
     drip-requirements: RFC9153
-    drip-rid: I-D.ietf-drip-uas-rid
     drip-registries: I-D.wiethuechter-drip-registries
     faa-rid:
         title: Remote Identification of Unmanned Aircraft
@@ -83,7 +83,7 @@ This document focuses on adding trust to Broadcast RID (Section 3.2 of {{?drip-r
 
 This authentication approach also provides the missing, but US FAA mandated, Error Correction for the Bluetooth 4 transmissions (see {{fec-details}}). This is error correction not only for the authentication message itself, but indirectly, to other messages authenticated via the Manifest method (see {{drip-manifest}}).
 
-A summary of addressed DRIP requirempents is provided in {{req-sum}}
+A summary of addressed DRIP requirements is provided in {{req-sum}}
 
 # Terminology {#terminology}
 
@@ -433,7 +433,7 @@ Previous Manifest Hash (12-bytes):
 
 UA DRIP Entity Tag (16-bytes):
 
-: The UA DET in byte form (network byte order) and is part of {{drip-data}}.
+: The UA DET {{drip-rid}} in byte form (network byte order) and is part of {{drip-data}}.
 
 UA Signature (64-bytes):
 
