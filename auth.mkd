@@ -77,7 +77,7 @@ Unmanned Aircraft Systems (UAS) operate usually in a volatile environment when i
 
 Observer systems (e.g., smartphones and tablets) place further constraints on the communication options. The Remote ID Broadcast messages must be available to applications on these platforms without modifying the devices.
 
-As discussed in {{?drip-requirements}} two communication schemes to a UAS for Remote ID (RID) are considered: Broadcast and Network RIDs.
+As discussed in {{?drip-requirements}} two communication schemes to a UAS for Remote ID (RID) are considered: Broadcast and Network RID.
 
 This document focuses on adding trust to Broadcast RID (Section 3.2 of {{?drip-requirements}}) via the Authentication Message by combining dynamically signed data with an Attestation of the UA's identity from a Registry.
 
@@ -93,7 +93,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Definitions
 
-This document makes use fo the terms defined in {{?drip-requirements}}. In addition, the following terms are defined: 
+This document makes use fo the terms defined in {{?drip-requirements}}. In addition, the following terms are defined:
 
 Legacy Transports:
 
