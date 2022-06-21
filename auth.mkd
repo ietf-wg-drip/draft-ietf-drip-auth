@@ -107,7 +107,13 @@ Extended Transports:
 
 ## Problem Space and Focus
 
-The current standard for Remote ID does not, in any meaningful capacity, address the concerns of trust in the UA space with communication in the Broadcast RID environment. This is a requirement that will need to be addressed eventually for various different parties that have a stake in the UA industry.
+The initial standards for Remote ID do not, in any meaningful capacity, address the concerns of trust in the UA space with communication in the Broadcast RID environment. This is a requirement that will need to be addressed eventually for various different parties that have a stake in the UA industry.
+
+DRIPs goal as stated in {{?drip-requirements}} is:
+
+>  to enable enhanced related services, and it will enable online and offline verification that RID information is trustworthy.
+
+This document focuses on providing the first observable "link" of this trust chain over Broadcast RID; with an importance of the observer being offline. This first link is the primary stepping stone for an observer to gain access and use "enhanced related services".
 
 ### Broadcast RID RF Options
 
