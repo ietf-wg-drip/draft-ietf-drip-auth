@@ -391,7 +391,7 @@ The worst case scenario is when the `Authentication Data / Signature` ends perfe
 
 All formats defined in this section are the content for the `Authentication Data / Signature` field in {{astm-auth}} and uses the Specific Authentication Method (SAM, Authentication Type 0x5). The first byte of the `Authentication Data / Signature` of {{astm-auth}}, is used to multiplex between these various formats.
 
-When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Bluetooth 4, then {{fec-details}} MUST be used.
+When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Bluetooth 4, then {{fec-details}} MUST be used. {{appendix-a}} gives a high level overview of a state machine for decoding and determining a trustworthiness state. {{appendix-c}} shows an example of using the formats defined in this section.
 
 ## DRIP Authentication Field Definitions
 
@@ -525,7 +525,7 @@ This field has a maximum size of 200-bytes, as defined by {{drip-restrictions}}.
 
 ## DRIP Link
 
-This SAM Type is used to transmit Broadcast Attestations. For example, the Broadcast Attestation of the Registry (HDA) over the UA is sent (see {{drip-recommendations}}) as a DRIP Link message. Its structure is defined in {{drip-registries}} and an example of it can be found in Appendix B.
+This SAM Type is used to transmit Broadcast Attestations. For example, the Broadcast Attestation of the Registry (HDA) over the UA is sent (see {{drip-recommendations}}) as a DRIP Link message. Its structure is defined in {{drip-registries}} and an example of it can be found in {{link-example}}.
 
 DRIP Link is important as its contents are used to provide trust in the DET/HI that the UA is currently broadcasting. This message does not require internet connectivity to perform signature validations of the contents when the registry DET/HI is in the receivers cache. It also provides the UA HI so that connectivity is not required when performing validation of other DRIP Authentication Messages.
 
@@ -1214,9 +1214,9 @@ HDA Signature (64 bytes):
 ~~~~
 {:fig #b-axy-fig title="Example DRIP HDA-UA Broadcast Attestation"}
 
-# Example TX/RX Flow
+# Example TX/RX Flow {#appendix-c}
 
-In this example the UA is sending all DRIP Authentication Message formats (DRIP Link, DRIP Wrapper and DRIP Manifest) during flight, along with standard ASTM Messages. The objective is to show the combinations of messages that must be received to properly validate a DRIP equipped UA and examples of their various states ({{appendix-a}}).
+In this example the UA is sending all DRIP Authentication Message formats (DRIP Link, DRIP Wrapper and DRIP Manifest) during flight, along with standard ASTM Messages. The objective is to show the combinations of messages that must be received to properly validate a DRIP equipped UA and examples of their various states (as described in {{appendix-a}}).
 
 ~~~~
         +-------------------+
