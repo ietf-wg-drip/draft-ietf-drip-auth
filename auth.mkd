@@ -85,6 +85,26 @@ This authentication approach also provides the missing, but US FAA mandated, Err
 
 A summary of addressed DRIP requirements is provided in {{req-sum}}
 
+## UAS Observers and DRIP Authentication
+
+Without authentication, a UA Observer has no basis for trust. As the messages are sent wirelessly, they may be sourced anywhere within wireless range, making any claims desired by the sender.  The ASTM Authentication Message, as defined herein, provides a high level of trust on the message content and source. These messages are designed to provide the Observers with actionable information.
+
+### UA Attestation
+
+When an Observer receives a DRIP based Authentication Message (Section 5.3, Section 5.4, Section 5.5) that only contains the UA DET, timestamps, and signature; it SHOULD use the DET to retrieve the HI from DNS (Section 5, {{drip-registries}}) or a local cache to validate the signature. Now that it has the DET/HI pair, all further (or cached previous) DRIP Authentication Messages can be validated. The content signed over can now be trusted but not the context of it.
+
+### HDA Attestation
+
+When an Observer receives a DRIP Link Authentication Message (Section 5.2), that contains Attestation Data of the UA DET HDA registration (Appendix B); it SHOULD use the DET of the HDA to retrieve the HDA HI from DNS (Section 5, {{drip-registries}}) or a local cache to validate the signature. The UA DET/HI pair is now known, as it is part of the Attestation Data, and all further (or cached previous) DRIP Authentication Messages using the UA DET can be validated.
+
+### Chain of Registries to Trust Root
+
+An Observer can receive a series of DRIP Link Authentication Messages (Section 5.2) each one pertaining to a registry's registration on the registry chain. Similar to #hda-attestation, each link can be validated. Another way to obtain a chain to the root of the registration hierarchy is when #hda-attestation is received the Observer can "walk" the registry tree obtaining CERT RRs containing the Attestations/Certificates required to build the chain.
+
+### Authentication Content Correlation
+
+While the content of DRIP Authentication Messages can be validated via their signature this does not resolves issues due to context of that information. The Observer after signature validation MUST use other sources of information, for example a visual confirmation of UA position, to correlate against and provided context. When a correlation does not make sense it SHOULD be rejected as if the signature failed to validate.
+
 # Terminology {#terminology}
 
 ## Required Terminology
