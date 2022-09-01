@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-19
+docname: draft-ietf-drip-auth-20
 category: info
 
 ipr: trust200902
@@ -64,12 +64,6 @@ informative:
         org: United States Federal Aviation Administration (FAA)
         target: https://www.govinfo.gov/content/pkg/FR-2021-01-15/pdf/2020-28948.pdf
         date: 2021-01
-    VOYAGER:
-        title: Reed-Solomon Codes and the Exploration of the Solar System
-        author:
-        org: California Institute of Technology’s Jet Propulsion Laboratory
-        target: https://trs.jpl.nasa.gov/bitstream/handle/2014/34531/94-0881.pdf
-        date: 1993-08
 
 --- abstract
 
@@ -79,7 +73,7 @@ This document describes how to add trust into the Broadcast Remote ID (RID) spec
 
 # Introduction
 
-The initial regulations (e.g. {{FAA-14CFR}}) and standards (e.g. {{F3411}}) for Unmanned Aircraft (UA) Systems (UAS) Remote Identification and tracking (RID) do not address trust. This is a requirement that will need to be addressed for various different parties that have a stake in the safe operation of National Airspace System's (NAS). DRIP's goal as stated in the charter is:
+The initial regulations (e.g. {{FAA-14CFR}}) and standards (e.g. {{F3411}}) for Unmanned Aircraft (UA) Systems (UAS) Remote Identification and tracking (RID) do not address trust. This is a requirement that will need to be addressed for various different parties that have a stake in the safe operation of National Airspace Systems (NAS). DRIP's goal as stated in the charter is:
 
 > to specify how RID can be made trustworthy and available in both Internet and local-only connected scenarios, especially in emergency situations.
 
@@ -617,20 +611,57 @@ For Broadcast RID, Forward Error Correction (FEC) is provided by the lower layer
 
 The Bluetooth 4.x lower layers have error detection but not correction. Any frame in which Bluetooth detects an error is dropped and not delivered to higher layers (in our case, DRIP). Thus it can be treated as an erasure.
 
-DRIP supports 2 different FEC encodings. Single Page FEC is the simpler scheme, but can correct for only a single erased page. Multiple Page FEC is more complex, but can correct for multiple erased pages.
+DRIP supports 2 different FEC encodings. Single Page FEC is the simpler scheme, but can correct for only a single erased page. Multiple Page FEC is more complex, but can correct for multiple erased pages. 
 
 The data added during FEC is not included in the `Authentication Data / Signature` but instead in the `Additional Data` field of {{astm-auth}}. This may cause the Authentication Message to exceed 9-pages, up to a maximum of 16-pages.
 
-## General Encoding Rules
+## Encoding {#enc-single-page}
 
 When encoding two things are REQUIRED:
 
 1. The FEC data MUST start on a new Authentication Page. To do this the results of parity encoding MUST be placed in the `Additional Data` field of {{astm-auth}} with null padding before it to line up with the next page. The `Additional Data Length` field MUST be set to `number of padding bytes + number of parity bytes`.
 2. The `Last Page Index` field (in Page 0) MUST be incremented from what it would have been without FEC by the number of pages required for the `Additional Data Length` field, null padding and FEC.
 
-## General Decoding Rules
+To generate the parity a simple XOR operation using the previous parity page and current page is used. Only the 23-byte `Authentication Payload` field of {{astm-auth-page}} is used in the XOR operations. For Page 0, a 23-byte null pad is used for the previous parity page.
 
-To determine if Single Page FEC or Multiple Page FEC has been used a simple check of the `Last Page Index` can be used. In general if the `Last Page Index` field is one greater than that necessary to hold `Length` bytes of Authentication Data then Single Page FEC has been used otherwise Multiple Page FEC has been used. Note however that if `Length` bytes was exhausted exactly at the end of an Authentication Page then the `Additional Data Length` will occupy the first byte of the following page the remainder of which under DRIP will be null padded: in this case the `Last Page Index` will have been incremented by one more for either Single Page FEC or Multiple Page FEC.
+{{fig-single-fec}} shows an example of the last two pages (out of N) of an Authentication Message using DRIP Single Page FEC. The `Additional Data Length` is set to 33 as there are always 23-bytes of FEC data and in this example 10-bytes of padding to line it up into Page N.
+
+~~~~
+Page N-1:
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++---------------+---------------+---------------+---------------+
+|  Page Header  |                                               |
++---------------+                                               |
+|                Authentication Data / Signature                |
+|                                                               |
+|               +---------------+---------------+---------------+
+|               |    ADL=33     |                               |
++---------------+---------------+                               |
+|                          Null Padding                         |
+|                                                               |
++---------------+---------------+---------------+---------------+
+
+Page N:
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++---------------+---------------+---------------+---------------+
+|  Page Header  |                                               |
++---------------+                                               |
+|                                                               |
+|                     Forward Error Correction                  |
+|                                                               |
+|                                                               |
+|                                                               |
++---------------+---------------+---------------+---------------+
+~~~~
+{:fig #fig-single-fec title="Example Single Page FEC Encoding"}
+
+## Decoding {#dec-single-page}
+
+To determine if FEC has been used a simple check of the `Last Page Index` can be used. In general if the `Last Page Index` field is one greater than that necessary to hold `Length` bytes of Authentication Data then FEC has been used. Note however that if `Length` bytes was exhausted exactly at the end of an Authentication Page then the `Additional Data Length` will occupy the first byte of the following page the remainder of which under DRIP will be null padded: in this case the `Last Page Index` will have been incremented by one more for FEC.
+
+To decode FEC in DRIP a rolling XOR is used on each `Authentication Page` received in the current `Authentication Message`. A Message Counter, outside of the ASTM Message but specified in {{F3411}} is used to signal a different `Authentication Message` and to correlate pages to messages. This Message Counter is only 1-byte in length, so it will roll over (to 0x00) after reaching its maximum value (0xFF). If only 1-page is missing in the `Authentication Message` the resulting parity bytes should be the data of the erased page.
 
 Authentication Page 0 contains various important fields, only located on that page, that help decode the full ASTM Authentication Message. If Page 0 has been reconstructed the `Last Page Index` and `Length` fields are REQUIRED to be sanity checked by DRIP. The pseudo-code in {{decode-pseudo}} can be used for both checks.
 
@@ -676,160 +707,6 @@ function decode_check(auth_pages[], decoded_lpi, decoded_length) {
 {: #decode-pseudo title="Pseudo-code for Decode Checks"}
 
 Implementations MAY also implement an heuristic extension ({{decoding-optimization}}) to decode if both the first page (Page 0) and last page (`Last Page Index`) are missing.
-
-## Single Page {#single-fec}
-
-### Encoding {#enc-single-page}
-
-To generate the parity a simple XOR operation using the previous parity page and current page is used. Only the 23-byte `Authentication Payload` field of {{astm-auth-page}} is used in the XOR operations. For Page 0, a 23-byte null pad is used for the previous parity page.
-
-{{fig-single-fec}} shows an example of the last two pages (out of N) of an Authentication Message using DRIP Single Page FEC. The `Additional Data Length` is set to 33 as there are always 23-bytes of FEC data and in this example 10-bytes of padding to line it up into Page N.
-
-~~~~
-Page N-1:
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|  Page Header  |                                               |
-+---------------+                                               |
-|                Authentication Data / Signature                |
-|                                                               |
-|               +---------------+---------------+---------------+
-|               |    ADL=33     |                               |
-+---------------+---------------+                               |
-|                          Null Padding                         |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Page N:
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|  Page Header  |                                               |
-+---------------+                                               |
-|                                                               |
-|                     Forward Error Correction                  |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-~~~~
-{:fig #fig-single-fec title="Example Single Page FEC Encoding"}
-
-### Decoding {#dec-single-page}
-
-To decode Single Page FEC in DRIP a rolling XOR is used on each `Authentication Page` received in the current `Authentication Message`. A Message Counter, outside of the ASTM Message but specified in {{F3411}} is used to signal a different `Authentication Message` and to correlate pages to messages. This Message Counter is only 1-byte in length, so it will roll over (to 0x00) after reaching its maximum value (0xFF). If only 1-page is missing in the `Authentication Message` the resulting parity bytes should be the data of the erased page.
-
-## Multiple Page {#multi-fec}
-
-### Encoding {#enc-multi-page}
-
-For Multiple Page FEC there are two variations: Frame Recovery and Page Recovery. Both follow a similar process, but are offset at what data is protected.
-
-For DRIP it is REQUIRED to use a Reed Solomon codes over a Galois Field of `2^8`. The Galois Field is constructed using the primitive polynomial of `1 + x^2 + x^3 + x^4 + x^8`.
-
-These parameters were selected as it commonly used in Reed Solomon implementations. A form of it was deployed by the National Aeronautics and Space Administration (NASA) for the Voyager probes [VOYAGER]; a problem space (pun intended) with far tighter constraints than RID.
-
-{{fig-multi-fec}} is a generic example of Multiple Page FEC Authentication Message where 3-pages out of N are used for Reed Solomon FEC. The `Additional Data Length` is set to 72 as there are 10-bytes of padding and 62-bytes of parity from Reed Solomon.
-
-~~~~
-Page N-3:
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|  Page Header  |                                               |
-+---------------+                                               |
-|                Authentication Data / Signature                |
-|                                                               |
-|               +---------------+---------------+---------------+
-|               |    ADL=72     |                               |
-+---------------+---------------+                               |
-|                          Null Padding                         |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Page N-2:
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|  Page Header  |                                               |
-+---------------+                                               |
-|                                                               |
-|                     Forward Error Correction                  |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Page N-1:
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|  Page Header  |                                               |
-+---------------+                                               |
-|                                                               |
-|                     Forward Error Correction                  |
-|                                                               |
-|                                                               |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Page N:
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|  Page Header  |                                               |
-+---------------+                                               |
-|                                                               |
-|                     Forward Error Correction                  |
-|                                                               |
-|               +---------------+---------------+---------------+
-|               |                                               |
-+---------------+          Null Padding                         |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-~~~~
-{:fig #fig-multi-fec title="Example Multiple Page FEC Encoding"}
-
-> Informative Note: the last page in the example is padded to fill the full page as specified by {{F3411}}.
-
-#### Page Recovery {#enc-page}
-
-Page Recovery in Multiple Page FEC protects the same content, just the Authentication Message, as Single Page FEC. The benefit is increased protection from a maximum of one page, up to the page maximum (minus pages being used for authentication).
-
-In Page Recovery, the `Authentication Payload` field of {{astm-auth-page}} for each page is used. Reed Solomon is performed in a byte-wise fashion across each Authentication Page to generate a number of parity bytes. The number of these parity bytes directly corresponds to the number of pages of FEC to be append to the Authentication Message. The resulting parity bytes are placed to the corresponding bytes in the FEC pages. This can be considered a form of interleaving that takes advantage of the fixed page length. 
-
-See {{page-example}} for a detailed example of encoding for Page Recovery.
-
-#### Frame Recovery {#enc-frame}
-
-Frame Recovery in Multiple Page FEC protects not just the Authentication Message it is carried in but also other ASTM Messages being sent. This is at the cost of much longer Authentication Messages. Up to 240 messages (255 minus 15 pages maximum for FEC) can be protected using Frame Recovery.
-
-For Frame Recovery both transmitter and receiver need to agree on what messages are being Reed Solomon'd over. It is RECOMMENDED that the data is limited to a full transmission set of ASTM Messages. For example in the European Union (EU) a full set of ASTM Messages would include: 1x Basic ID, 1x Location/Vector, 1x System and 1x Operator ID. With DRIP this would also included 1x Authentication that would be carrying the FEC (along with DRIP Authentication).
-
-Similar to {{enc-page}}, Reed Solomon is performed in a bytes-wise fashion across messages to generate the desired number of parity bytes. These messages MUST be in Message Type order when performing the Reed Solomon operation. All 25-bytes of the ASTM Message are used during this operation for Frame Recovery. After the computation the new pseudo-frames formed by the parity are concatenated together. The length of this data is used in the calculation of the `Additional Data Length` with the amount of padding needed to align to a new Authentication Page. The padding and parity data are then placed in the `Additional Data` field.
-
-See {{frame-example}} for a detailed example of encoding for Frame Recovery.
-
-### Decoding {#dec-multi-page}
-
-To determine if Page Recovery or Frame Recovery is used two modulo checks with the `ADL` after the length of the null-pad is removed are needed. One against the value of 23, and the other against the value of 25. If 23 comes back with a value of 0 then Page Recovery is being used. If 25 comes back with 0 then Frame Recovery is used. Any other combination indicates an error.
-
-As it is known which pages were not received in an `Authentication Message` (or were erased by Bluetooth due to detected errors), the Reed Solomon capacity can be dedicated exclusively to correction of erasures, rather than to detection and correction of errors, thereby doubling its effective capacity. This is accomplished by marking the erasures, i.e., filling the dummy page(s) or frames with nulls.
-
-For either Page Recovery or Frame recovery the first step on the receiver is to create empty (or dummy) `Authentication Pages` for any pages missing in the `Authentication Message`. Then the `Additional Data` can be extracted from the `Authentication Message`, have its null-padding removed and further processed.
-
-#### Page Recovery {#dec-page}
-
-To decode Page Recovery, the received FEC data along with the `Authentication Payload` of each `Authentication Page` has Reed Solomon performed using erasures byte-wise across the pages. The results should have all pages of the `Authentication Message` recovered. The receiver SHOULD validate the rebuilt message before decoding the actual authentication.
-
-#### Frame Recovery {#dec-frame}
-
-To decode Frame Recovery, the receiver breaks the `Additional Data` into 25-byte chunks. This will produce the pseudo-frames of parity bytes from the `Authentication Message`.
-
-To build the rest of the message set, static messages such as Basic ID and Operator ID are constant and can be filled in using any received copy that is cache by the receiver for that UA. Dynamic messages in the set, such as Location/Vector or System can be nulled out to have Reed Solomon alway recover them and the results checked against cached copies from recent transmissions of the UA.
-
-With all the frames in the set, Reed Solomon can be used in an erasure mode to decode byte-wise across the frames to fill in the erasures and rebuild the entire set of messages. Validation of the `Authentication Message` SHOULD be performed before further processing of authentication data.
 
 ## FEC Limitations
 
@@ -1227,13 +1104,14 @@ DRIP Entity Tag of UA: (16-bytes)
 Host Identity of UA: (32-bytes)
     HI of UA.
 
-VNB Timestamp by DIME (4 bytes):
+VNB Timestamp by DIME (4-bytes):
     Current time at signing.
 
-VNA Timestamp by DIME (4 bytes):
-    Timestamp denoting recommended time to trust data to.
+VNA Timestamp by DIME (4-bytes):
+    Timestamp denoting recommended time to trust DIME Endorsement
+    of UA DET and HI (may be minutes to months in the future).
 
-DIME Signature (64 bytes):
+DIME Signature (64-bytes):
     Signature over preceding fields using the keypair of 
     the DIME.
 ~~~~
@@ -1247,37 +1125,33 @@ In this example the UA is sending all DRIP Authentication Message formats (DRIP 
         +-------------------+
   .-----| Unmanned Aircraft |-----.
   |     +-------------------+     |
-  | 1       | 2         | 3       | 4
-  |         |           |         |
+  | 0             | 1             | 2
+  |               |               |
 
-  O         O           O         O
---|--     --|--       --|--     --|--
- / \       / \         / \       / \
-  A         B           C         D
+  O               O               O
+--|--           --|--           --|--
+ / \             / \             / \
+  A               B               C
 
 
 Broadcast Paths: Messages Received
-1: DRIP Link
+0: None
+1: DRIP Link or DRIP Wrapper or DRIP Manifest
 2: DRIP Link and DRIP Wrapper or DRIP Manifest
-3: DRIP Wrapper or DRIP Manifest
-4: None
 
 Observers: Authentication State
-A: Unverifiable
-B: Verified, Trusted, Unverified, Questionable, or Conflicting
-C: Unverifiable
-D: None
+A: None
+B: Unverifiable
+C: Verified, Trusted, Unverified, Questionable, or Conflicting
 ~~~~
 
 As the above example shows to properly authenticate both a DRIP Link and a DRIP Wrapper or DRIP Manifest are required.
 
-# Additional FEC Information
+# Additional FEC Decoding Heuristic {#decoding-optimization}
 
-## Optional Decoding Heuristic {#decoding-optimization}
+With {{fec-details}}, if Page 0 and the FEC page are missing from the Authentication Message there is a heuristic that can be applied instead of FEC decoding to obtain the Authentication Data. This is based on the structure of the DRIP Authentication Messages and additional information sent over the broadcast or via lookup in DNS.
 
-With {{single-fec}}, if Page 0 and the FEC page are missing from the Authentication Message there is a heuristic that can be applied instead of FEC decoding to obtain the Authentication Data. This is based on the structure of the DRIP Authentication Messages and additional information sent over the broadcast or via lookup in DNS.
-
-Looking at Page 0 ({{fec-pg0}}) of any DRIP Authentication Format the payload data is always a DET. For DRIP Link ({{drip-link}}) this DET is of the DIME while for DRIP Wrapper ({{drip-wrapper}}), Manifest ({{drip-manifest}}) and Frame ({{drip-frame}}) it is the DET of the DIME.
+Looking at Page 0 ({{fec-pg0}}) of any DRIP Authentication Format the payload data is always a DET. For DRIP Link ({{drip-link}}) this DET is of the DIME while for DRIP Wrapper ({{drip-wrapper}}), Manifest ({{drip-manifest}}) and Frame ({{drip-frame}}) it is the DET of the UA.
 
 ~~~~
  0                   1                   2                   3
@@ -1293,8 +1167,8 @@ Looking at Page 0 ({{fec-pg0}}) of any DRIP Authentication Format the payload da
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
-Page Header: (1 byte)
-    Authentication Type (4 bits)
+Page Header: (1-byte)
+    Authentication Type (4-bits)
     Page Number (4 bits)
 
 Authentication Headers: (6-bytes)
@@ -1308,93 +1182,15 @@ DRIP Entity Tag: (16-bytes)
 ~~~~
 {:fig #fec-pg0 title="Example Page 0 from DRIP Authentication Message"}
 
-Under DRIP, the Basic ID Message (Message Type 0x1) SHOULD be using Specific Session ID (ID Type 4) subtype IETF DRIP Entity ID (Type 1). This DET of the UA can be used in place of the missing DET in DRIP Wrapper, Manifest and Frame. For DRIP Link, which is missing the DET of the DIME, the lookup properties of the DET enables the discovery, via DNS, DIME's DET.
+Under DRIP, the Basic ID Message (Message Type 0x1) SHOULD be using Specific Session ID (ID Type 4) subtype IETF DRIP Entity ID (Type 1). This DET of the UA can be used in place of the missing DET in DRIP Wrapper, Manifest and Frame. For DRIP Link, which is missing the DET of the DIME, the lookup properties of the DET enables the discovery, via DNS, the DIME's DET.
 
 These DETs obtained via other means can replace the missing payload of Authentication Page 0 and enable the full decoding and verification of the DRIP Authentication Message.
 
 When the missing DET is supposed to be of the UA the DET MAY be sourced from the Basic ID Message (Message Type 0x1). Under DRIP, this SHOULD be set to the DET missing in the Authentication Data.
 
-## Example: Page Recovery {#page-example}
-
-<!-- TODO(atw): clean up -->
-
-The following example is an Authentication Message with 7 pages that 3 pages of parity are to be generated for. The first column is just the `Page Header` with a visual space here to show the boundary.
-
-~~~~
-50 098960bf8c05042001001000a00145aac6b00abba268b7
-51 2001001000a0014579d8a404d48f2ef9bb9a4470ada5b4
-52 ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73
-53 dca7d04e776150825863c512c6eb075a206a95c59b297e
-54 f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454
-55 7101415def153a770d3e6c0b17ae560809bc634a822c1f
-56 3b1064b80a000000000000000000000000000000000000
-~~~~
-
-For Page Recovery the first column is ignored and the last 23-bytes of each page are extracted to have Reed Solomon performed on them in a column wise fashion to produce parity bytes. This can be considered a form of interleaving that takes advantage of the fixed page length. For the example the following 3-bytes of parity are generated with the first byte of each page:
-
-~~~~
-dc6c02 = ReedSolomon.encoder(0920ffdcf2713b)
-~~~~
-
-Each set of parity is the placed into a pseudo-frame as follows (each byte in its own message in the same column). Below is an example of the full parity generated and each 23-bytes of parity added into the additional pages as `Additional Data`:
-
-~~~~
-57 dc6657acd30b2ec4aa582049f52adf9f922e62c469563a
-58 6c636a59145a55417a3895fd543f19e94200be4abc5e94
-59 02bba5e28f5896d754caf50016a983993b149b5c9e6eeb
-~~~~
-
-## Example: Frame Recovery {#frame-example}
-
-<!-- TODO(atw): clean up -->
-
-Below is an example of a number of messages. The first column is an additional ASTM Header that contain the Message Type; with a visual space for clarity. The last 24-bytes are the actual message contents; be it location information or an Authentication Page.
-
-~~~~
-10 42012001001000a0014579d8a404d48f2ef9000000000000
-11 249600006efeb019ee111ed37a097a0948081c10ffff0000
-12 50098960bf8c05042001001000a00145aac6b00abba268b7
-12 512001001000a0014579d8a404d48f2ef9bb9a4470ada5b4
-12 52ff1352c7402af9d9ebd20034e8d7a12920f4d7e91c1a73
-12 53dca7d04e776150825863c512c6eb075a206a95c59b297e
-12 54f2935fd416f27b1b42fd5d9dfaa0dec79f32287f41b454
-12 557101415def153a770d3e6c0b17ae560809bc634a822c1f
-12 563b1064b80a000000000000000000000000000000000000
-13 0052656372656174696f6e616c2054657374000000000000
-14 02c2ffb019322d1ed3010000c008e40700fc080000000000
-15 004e2e4f5031323334353600000000000000000000000000
-~~~~
-
-A similar process is followed as in {{enc-page}}. Here every column of bytes has parity generated for it (even the ASTM Header). In the below example 5-bytes of parity are generated using the ASTM Header column:
-
-~~~~
-6c3f42b8a8 = ReedSolomon.encoder(101112121212121212131415)
-~~~~
-
-After doing this to all columns the following pseudo-frames would have been generated:
-
-~~~~
-6c86337bf7ab746f5d62bb7f8de954104b121585d3975f6e92
-3f06c1bce165b0e25930d57a63c24f751145e1dd8dc115029b
-42e9979580327a6a14d421c12a33aa2e1a2e517daaee581016
-b8012a7b3964f7b2720d387bfa77e945556f1831cd477ef3a3
-a85bb403aada89926fb8fc2a14a9caacb4ec2f3a6ed2d8e9f9
-~~~~
-
-These 25-byte chunks are now concatenated together and are placed in Authentication Pages, using the `Additional Data`, 23-bytes at a time. In the below figure the first column is the ASTM Header as before, the second column is the `Page Header` for each Authentication Page and then last column is the 23-bytes of data for each page.
-
-~~~~
-12 57 6c86337bf7ab746f5d62bb7f8de954104b121585d3975f
-12 58 6e923f06c1bce165b0e25930d57a63c24f751145e1dd8d
-12 59 c115029b42e9979580327a6a14d421c12a33aa2e1a2e51
-12 5a 7daaee581016b8012a7b3964f7b2720d387bfa77e94555
-12 5b 6f1831cd477ef3a3a85bb403aada89926fb8fc2a14a9ca
-12 5c acb4ec2f3a6ed2d8e9f900000000000000000000000000
-~~~~
-
 # Operational Recommendation Proof {#operational-proof}
 
-The recommendations found in ({{operational-recommendations}}) may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there. This section is solely based on operations using Bluetooth 4.x; as such all calculations of frame counts for DRIP included FEC using ({{single-fec}}).
+The recommendations found in ({{operational-recommendations}}) may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there. This section is solely based on operations using Bluetooth 4.x; as such all calculations of frame counts for DRIP included FEC using ({{fec-details}}).
 
 ## Definitions {#proof-defs}
 
