@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-20
+docname: draft-ietf-drip-auth-21
 category: info
 
 ipr: trust200902
@@ -611,7 +611,7 @@ For Broadcast RID, Forward Error Correction (FEC) is provided by the lower layer
 
 The Bluetooth 4.x lower layers have error detection but not correction. Any frame in which Bluetooth detects an error is dropped and not delivered to higher layers (in our case, DRIP). Thus it can be treated as an erasure.
 
-DRIP supports 2 different FEC encodings. Single Page FEC is the simpler scheme, but can correct for only a single erased page. Multiple Page FEC is more complex, but can correct for multiple erased pages. 
+DRIP standardizes a single page FEC scheme using XOR parity across all page data of an Authentication Message. This allows the correction of single erased page in an Authentication Message. Other FEC schemes, to protect more than a single page of an Authentication Message or multiple {{F3411}} Messages, is left for future standardization if operational experience proves it necessary and/or practical.
 
 The data added during FEC is not included in the `Authentication Data / Signature` but instead in the `Additional Data` field of {{astm-auth}}. This may cause the Authentication Message to exceed 9-pages, up to a maximum of 16-pages.
 
