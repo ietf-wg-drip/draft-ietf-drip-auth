@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-21
+docname: draft-ietf-drip-auth-22
 category: info
 
 ipr: trust200902
@@ -1188,7 +1188,7 @@ These DETs obtained via other means can replace the missing payload of Authentic
 
 When the missing DET is supposed to be of the UA the DET MAY be sourced from the Basic ID Message (Message Type 0x1). Under DRIP, this SHOULD be set to the DET missing in the Authentication Data.
 
-# Operational Recommendation Proof {#operational-proof}
+# Operational Recommendation Analysis {#operational-proof}
 
 The recommendations found in ({{operational-recommendations}}) may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there. This section is solely based on operations using Bluetooth 4.x; as such all calculations of frame counts for DRIP included FEC using ({{fec-details}}).
 
@@ -1200,76 +1200,94 @@ Frame:
 
 Cycle:
 
-> A set of frames transmitted in a 1 second window.
+> A set of frames containing all required information elements within the maximum allowable time as per applicable regulation. In the us this a 1 second window with basic, location, system. in eu this is a 1 second window with basic, location, system and operator id as of the publication of this document (2022).
+
+Schedule:
+
+> Broadcast RID messages
 
 ## Methodology
 
-In the US, the required ASTM Messages to be transmitted every cycle are: Basic ID (0x1), Location (0x2) and System (0x4). Typical implementations will most likely send at a higher rate (2x sets per cycle) resulting in 6 frames sent per cycle.
+In the US, the required ASTM Messages to be transmitted every second are: Basic ID (0x1), Location (0x2) and System (0x4). Typical implementations will most likely send at a higher rate (2x sets per cycle) resulting in 6 frames sent per cycle.
+
+<!-- do we regard the the set when sent twice a second as a retransmission or as an update? -->
 
 > Information Note: in Europe the Operator ID Message (0x5) is also included; pushing the frame count to 8 per cycle.
 
 To calculate the frame count of a given DRIP Authentication Message the following formula is used:
 
-> 1 + ceiling(((88 + (Item Size * Item Count)) - 16) / 23) + 1
+> 1 + ceiling((((16 + 8 + 64) + (Item Size * Item Count) + 2) - 16) / 23) + 1
 
-The leading 1 is counting for the Page 0 which is always present. 88 is the number of bytes for the DRIP framing in every DRIP Authentication Format, this is the DET (16-bytes), timestamps (8-bytes) and signature (64-bytes). Item Size (in bytes) is size of each item in a given format; for Wrapper it is 25 (a full ASTM Message), while for Manifest it is 8 (A single hash). The value 16 is the number of bytes not counted (as they are part of Page 0 which is already counted for). 23 is the number of bytes per Authentication Page (pages 1 - 15). After dividing by 23 the value is raised to the nearest whole value as we can only send full frames, not partial. The final 1 is counting for a single page of FEC applied in DRIP under Bluetooth 4.x.
+The leading 1 is counting for the Page 0 which is always present. The DET (16-bytes), timestamps (8-bytes) and signature (64-bytes) all make up the required fields for DRIP. Item Size (in bytes) is size of each item in a given format; for Wrapper it is 25 (a full ASTM Message), while for Manifest it is 8 (a single hash). 2 more is added to account for the SAM Type and the ADL byte. The value 16 is the number of bytes not counted (as they are part of Page 0 which is already counted for). 23 is the number of bytes per Authentication Page (pages 1 - 15). After dividing by 23 the value is raised to the nearest whole value as we can only send full frames, not partial. The final 1 is counting for a single page of FEC applied in DRIP under Bluetooth 4.x.
 
 > Informational Note: for DRIP Link the Item Size is 48 and Item Count is 1; resulting in a frame count of 8
 
-Comparing all DRIP Authentication Message frame counts we have the following:
+Comparing DRIP Wrapper and Manifest Authentication Message frame counts we have the following:
 
-| Item Count | Wrapper Frames | Manifest Frames | Total Frames (Wrapper, Manifest) |
-| ---------- | -------------- | --------------- | -------------------------------- |
-| 1          | 7              | 6               | 8, 7
-| 2          | 8              | 6               | 10, 8
-| 3          | 9              | 7               | 12, 10
-| 4          | 10             | 7               | 14, 11
-| 5          | N/A            | 7               | N/A, 12
-| 6          | N/A            | 8               | N/A, 14
-| 7          | N/A            | 8               | N/A, 15
-| 8          | N/A            | 8               | N/A, 16
-| 9          | N/A            | 9               | N/A, 18
-| 10         | N/A            | 9               | N/A, 19
-| 11         | N/A            | 9               | N/A, 20
-| 12         | N/A            | 10              | N/A, 22
+| Authenticated Frames | Wrapper Frames | Manifest Frames | Total Wrapper Frames | Total Manifest Frames |
+| -------------------- | -------------- | --------------- | -------------------- | --------------------- |
+| 1                    | 7              | 7               | 8                    | 8
+| 2                    | 8              | 7               | 10                   | 9
+| 3                    | 9              | 7               | 12                   | 10
+| 4                    | 10             | 8               | 14                   | 12
+| 5                    | N/A            | 8               | N/A                  | 13
+| 6                    | N/A            | 8               | N/A                  | 14
+| 7                    | N/A            | 9               | N/A                  | 16
+| 8                    | N/A            | 9               | N/A                  | 17
+| 9                    | N/A            | 10              | N/A                  | 19
+| 10                   | N/A            | 10              | N/A                  | 20
+| 11                   | N/A            | 10              | N/A                  | 21
 {: #tbl-frame-counts title="Frame Counts"}
+
+Note that for `Manifest Frames` the calculations use an `Item Count` that is `2 + Authentication Frames`. This is to account for the two special hashes.
 
 The values in `Total Frames` is calculated by adding in the `Item Count` (to either the `Wrapper Frames` or `Manifest Frames` column) to account for the ASTM Messages being sent outside the Authentication Message.
 
-### US Examples
+## ASTM Maximum Schedule Example
 
-Each row represents a second and single cycle consisting of two sets of required messages (2x Basic ID, Location, System).
+For this example we will assume the following ASTM Messages are in play:
+
+- 1x Basic ID (0x0) set as ID Type for Serial Number (0x1)
+- 1x Basic ID (0x0) set as ID Type for CAA Assigned ID (0x2)
+- 1x Basic ID (0x0) set as ID Type for UTM Assigned ID (0x3)
+- 1x Basic ID (0x0) set as ID Type for Specific Session ID (0x4)
+- 2x Location (0x1)
+- 1x Self ID (0x3)
+- 2x System (0x4)
+- 2x Operator ID (0x5)
+
+This message set is uses all single frame ASTM Messages, sending a set of them (Location, System and Operator ID) at a rate of 2 per second. Two Basic ID's are sent in a single second and rotate between the 4 defined (1x per type). A single Self ID is sent every second. All messages in a given second if appear more than once are exact duplicates.
 
 ~~~~
 +-----------------------------------------------------------+
 |                        Frame Slots                        |
-| 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12 |
+| 00 | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 |
 +----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |            .....            | -1
+| A* | V* | S  | O  | B  | V  | S* | O  | I  |   L/W[0,2]   |
 +----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |            .....            | 0
+| C* | V  | S* | O  | D* | V* | S  | O  | I* |   L/W[3,5]   |
 +----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |          M(12)[0,5]         | 1
+| A  | V* | S  | O* | B* | V  | S  | O  | I  |L/W[6,7] | ## |
 +----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |     M(12)[6,9]    |  L[0,1] | 2
+| C  | V  | S  | O  | D  | V  | S  | O  | I  |    M[0,2]    |
 +----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |          M(12)[0,5]         | 3
+| A  | V  | S  | O  | B  | V  | S  | O  | I  |    M[3,5]    |
 +----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |     M(12)[6,9]    |  L[2,3] | 4
+| C  | V  | S  | O  | D  | V  | S  | O  | I  |    M[6,8]    |
 +----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |          M(12)[0,5]         | 5
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |     M(12)[6,9]    |  L[4,5] | 6
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |          M(12)[0,5]         | 7
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |     M(12)[6,9]    |  L[6,7] | 8
+| A  | V  | S  | O  | B  | V  | S  | O  | I  |M[9]| ## | ## |
 +----+----+----+----+----+----+----+----+----+----+----+----+
 
 # = Empty Frame Slot
-B = Basic ID Message (0x1)
-V = Location/Vector Message (0x2)
+A = Basic ID Message (0x0) ID Type 1
+B = Basic ID Message (0x0) ID Type 2
+C = Basic ID Message (0x0) ID Type 3
+D = Basic ID Message (0x0) ID Type 4
+V = Location/Vector Message (0x1)
+I = Self ID Message (0x3)
 S = System Message (0x4)
+O = Operator ID Message (0x5)
+
 L = DRIP Link Authentication Message (0x2)
 W[y,z] = DRIP Wrapper Authentication Message (0x2)
   Wrapping Location (0x1) and System (0x4)
@@ -1280,95 +1298,26 @@ M(x)[y,z] = DRIP Manifest Authentication Message (0x2)
 * = Message in DRIP Manifest Authentication Message
 ~~~~
 
-Each DRIP Manifest contains the previous 2 seconds worth of required messages. Every required message is manifested. Needs 2 prime seconds, could be filled with a link or a wrapper? 1x link every 8 seconds
+This scheme of repeated multiple times changing between Link and Wrapper messages (and their contents) in the following schedule order:
 
 ~~~~
-+-----------------------------------------------------------+
-|                        Frame Slots                        |
-| 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12 |
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |            .....            | -1
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |            .....            | 0
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B* | V* | S* | B* | V* | S* |            W[0,5]           | 1
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B* | V* | S* | B* | V* | S* |  W[6,7] |       L[0,3]      | 2
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |          M(12)[0,5]         | 3
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |     M(12)[6,9]    |  L[0,1] | 4
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B* | V* | S* | B* | V* | S* |            W[0,5]           | 5
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B* | V* | S* | B* | V* | S* |  W[6,7] |       L[4,7]      | 6
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |          M(12)[0,5]         | 7
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |     M(12)[6,9]    |  L[2,3] | 8
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B* | V* | S* | B* | V* | S* |            W[0,5]           | 9
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B* | V* | S* | B* | V* | S* |  W[6,7] |       L[0,3]      | 10
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |          M(12)[0,5]         | 11
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |     M(12)[6,9]    |  L[4,5] | 12
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B* | V* | S* | B* | V* | S* |            W[0,5]           | 13
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B* | V* | S* | B* | V* | S* |  W[6,7] |       L[4,7]      | 14
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |          M(12)[0,5]         | 15
-+----+----+----+----+----+----+----+----+----+----+----+----+ 
-| B  | V  | S  | B  | V  | S  |     M(12)[6,9]    |  L[6,7] | 16 
-+----+----+----+----+----+----+----+----+----+----+----+----+
-
-# = Empty Frame Slot
-B = Basic ID Message (0x1)
-V = Location/Vector Message (0x2)
-S = System Message (0x4)
-L = DRIP Link Authentication Message (0x2)
-W[y,z] = DRIP Wrapper Authentication Message (0x2)
-  Wrapping Location (0x1) and System (0x4)
-M(x)[y,z] = DRIP Manifest Authentication Message (0x2)
-  x = Number Hashes
-  y = Start Page
-  z = End Page
-* = Message in DRIP Manifest Authentication Message
+Link: HDA on UA
+Link: RAA on HDA
+Link: HDA on UA
+Link: Apex on RAA
+Link: HDA on UA
+Link: RAA on HDA
+Link: HDA on UA
+Wrapper: Location (0x1), System (0x4)
+Link: HDA on UA
+Link: RAA on HDA
+Link: HDA on UA
+Link: Apex on RAA
+Link: HDA on UA
+Link: RAA on HDA
+Link: HDA on UA
+Wrapper: Location (0x1), System (0x4)
+Link: ??? on Apex
 ~~~~
 
-Manifest every 2 seconds (half coverage of stream - can get full by only doing 1/2 of each second?), Wrapper every 2 seconds, 1x Link every 6 seconds, 1x Link every 16 seconds.
-
-This gives 1 long running link, 1 short running link, 1 wrapper every 2 seconds and 1 manifest every 2 seconds covering last 4 seconds (1/2 of each second)
-
-Either link could be chosen to be replaced by another link or not sent at all
-
-
-~~~~
-+-----------------------------------------------------------+
-|                        Frame Slots                        |
-| 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 | 12 |
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B* | V* | S* | B* | V* | S* |            L[0,5]           | 1
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B* | V* | S* | B* | V* | S* |  L[6,7] | ## | ## | ## | ## | 2
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |          M(12)[0,5]         | 3
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| B  | V  | S  | B  | V  | S  |     M(12)[6,9]    | ## | ## | 4
-+----+----+----+----+----+----+----+----+----+----+----+----+
-
-# = Empty Frame Slot
-B = Basic ID Message (0x1)
-V = Location/Vector Message (0x2)
-S = System Message (0x4)
-L = DRIP Link Authentication Message (0x2)
-M(x)[y,z] = DRIP Manifest Authentication Message (0x2)
-  x = Number Hashes
-  y = Start Page
-  z = End Page
-* = Message in DRIP Manifest Authentication Message
-~~~~
-
-Manifest every 2 seconds (full stream coverage), Link every 2 seconds, could send 3x more links (2 pages of one in second 4, 2 pages each of 2 in second 2).
+Any messages not required for a local jurisdiction can be removed from the schedule. It is RECOMMENDED this empty frame slot is left empty to help with timing due to RF constraints/concerns. For example in the US the Location (0x1), Self ID(0x3) and Operator ID (0x5) are not required and can be ignored in the above figures. In the US only one Basic ID (0x0) is selected at any given time, opening up 3 more slots.
