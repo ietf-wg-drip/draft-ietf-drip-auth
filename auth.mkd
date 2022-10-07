@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-22
+docname: draft-ietf-drip-auth-23
 category: info
 
 ipr: trust200902
@@ -407,8 +407,6 @@ UA DRIP Entity Tag:
 
 Evidence:
 
-<!-- TODO(atw): fix the terms here -->
-
 > The `evidence` section MUST be filled in with data in the form of an opaque object specified in the DRIP Wrapper, Manifest or Frame sections.
 
 UA Signature:
@@ -543,9 +541,7 @@ A receiver SHOULD use the manifest to verify each ASTM Message hashed therein th
 
 ### Hash Count
 
-The number of hashes in the Manifest can be variable (2-12). An easy way to determine the number of hashes is to take the length of the data between the end of the `UA DET` and `VNB Timestamp by UA` and divide it by the hash length (8). If this value is not an integer, the message is invalid.
-
-<!-- TODO(atw): replace with modulo? -->
+The number of hashes in the Manifest can be variable (2-11). An easy way to determine the number of hashes is to take the length of the data between the end of the `UA DET` and `VNB Timestamp by UA` and divide it by the hash length (8). If this value is not an integer, the message is invalid.
 
 ### Pseudo-Blockchain Hashes {#block-hashes}
 
@@ -740,8 +736,6 @@ It is REQUIRED that a UA send the following DRIP Authentication Formats to fulfi
 UAS operation may impact the frequency of sending DRIP Authentication messages. Where a UA is dwelling in one location, and the channel is heavily used by other devices, "occasional" message authentication may be sufficient for an Observer. Contrast this with a UA traversing an area, and then every message should be authenticated as soon as possible for greatest success as viewed by the receiver.
 
 Thus how/when these DRIP Authentication Messages are sent is up to each implementation. Further complication comes in contrasting Legacy and Extended Transports.  In Legacy, each message is a separate hash within the Manifest. So, again in dwelling, may lean toward occasional message authentication. In Extended Transports, the hash is over the Message Pack so only few hashes need to be in a Manifest. A single Manifest can handle a potential two Message Packs (for a full set of messages) and a DRIP Link Authentication Message for the `Broadcast Endorsement: DIME, UA`.
-
-<!-- TODO(atw): is this valid discussion? Do we specify the hashing of -->
 
 A separate issue is the frequency of transmitting the DRIP Link Authentication Message for the `Broadcast Endorsement: DIME, UA` when using a Manifest Message. This message content is static; its hash never changes radically. The only change is the 4-byte timestamp in the Authentication Message headers. Thus, potentially, in a dwelling operation it can be sent once per minute, where its hash is in every Manifest. A receiver can cache all DRIP Link Authentication Message for the `Broadcast Endorsement: DIME, UA` to mitigate potential packet loss.
 
@@ -1190,21 +1184,7 @@ When the missing DET is supposed to be of the UA the DET MAY be sourced from the
 
 # Operational Recommendation Analysis {#operational-proof}
 
-The recommendations found in ({{operational-recommendations}}) may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there. This section is solely based on operations using Bluetooth 4.x; as such all calculations of frame counts for DRIP included FEC using ({{fec-details}}).
-
-## Definitions {#proof-defs}
-
-Frame:
-
-> A single Bluetooth 4.x frame containing an ASTM Message or ASTM Authentication Page.
-
-Cycle:
-
-> A set of frames containing all required information elements within the maximum allowable time as per applicable regulation. In the us this a 1 second window with basic, location, system. in eu this is a 1 second window with basic, location, system and operator id as of the publication of this document (2022).
-
-Schedule:
-
-> Broadcast RID messages
+The recommendations found in ({{operational-recommendations}}) may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there. This section is solely based on operations using Bluetooth 4.x; as such all calculations of frame counts for DRIP included FEC using {{fec-details}}.
 
 ## Methodology
 
@@ -1212,7 +1192,7 @@ In the US, the required ASTM Messages to be transmitted every second are: Basic 
 
 <!-- do we regard the the set when sent twice a second as a retransmission or as an update? -->
 
-> Information Note: in Europe the Operator ID Message (0x5) is also included; pushing the frame count to 8 per cycle.
+> Informational Note: in Europe the Operator ID Message (0x5) is also included; pushing the frame count to 8 per cycle. For Japan two Basic ID (0x0), Location (0x1) and Authentication (0x2) are required.
 
 To calculate the frame count of a given DRIP Authentication Message the following formula is used:
 
@@ -1288,7 +1268,7 @@ I = Self ID Message (0x3)
 S = System Message (0x4)
 O = Operator ID Message (0x5)
 
-L = DRIP Link Authentication Message (0x2)
+L[y,z] = DRIP Link Authentication Message (0x2)
 W[y,z] = DRIP Wrapper Authentication Message (0x2)
   Wrapping Location (0x1) and System (0x4)
 M(x)[y,z] = DRIP Manifest Authentication Message (0x2)
@@ -1297,8 +1277,13 @@ M(x)[y,z] = DRIP Manifest Authentication Message (0x2)
   z = End Page
 * = Message in DRIP Manifest Authentication Message
 ~~~~
+{:fig #schedule-fig title="Example Transmit Schedule"}
 
-This scheme of repeated multiple times changing between Link and Wrapper messages (and their contents) in the following schedule order:
+Manifest messages in the schedule are filled with unique messages from previously transmitted messages before the new Manifest is sent. In {schedule-fig} this is denoted by the `*` symbol as being part of the Manifest. For the figure 24 messages are eligible for the Manifest in the very first cycle of transmission. In future iterations 56 messages are eligible across the 7 seconds it takes to send the previous Manifest and the next Link/Wrapper. Care should be given into the selection of messages for a Manifest as there is a limit of 11 hashes.
+
+> Informational Note: the term "unique message" above is used as in the example schedule the 2nd Location and System messages MAY be exact copies of the previous Location and System messages sent in the same second. Duplicates of this kind SHOULD NOT be included in a Manifest.
+
+In the schedule Wrapper and Link messages switch back and forth the contents of them are changing in the following order:
 
 ~~~~
 Link: HDA on UA
@@ -1320,4 +1305,4 @@ Wrapper: Location (0x1), System (0x4)
 Link: ??? on Apex
 ~~~~
 
-Any messages not required for a local jurisdiction can be removed from the schedule. It is RECOMMENDED this empty frame slot is left empty to help with timing due to RF constraints/concerns. For example in the US the Location (0x1), Self ID(0x3) and Operator ID (0x5) are not required and can be ignored in the above figures. In the US only one Basic ID (0x0) is selected at any given time, opening up 3 more slots.
+Any messages not required for a local jurisdiction can be removed from the schedule. It is RECOMMENDED this empty frame slot is left empty to help with timing due to RF constraints/concerns. For example in the US the Self ID(0x3) and Operator ID (0x5) are not required and can be ignored in the above figures. In the US only one Basic ID (0x0) is selected at any given time, opening up 3 more slots.
