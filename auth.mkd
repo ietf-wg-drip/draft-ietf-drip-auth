@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-23
+docname: draft-ietf-drip-auth-24
 category: info
 
 ipr: trust200902
@@ -343,14 +343,14 @@ SAM Authentication Data (0 to 200 bytes):
 
 #### SAM Type
 
-The SAM Type field is maintained by the International Civil Aviation Organization (ICAO) and for DRIP four are planned to be allocated:
+The SAM Type field is maintained by a TBD registrar and for DRIP four are planned to be allocated:
 
 | SAM Type | Description                       |
 | -------- | --------------------------------- |
-| 0x01     | DRIP Link ({{drip-link}})         |
-| 0x02     | DRIP Wrapper ({{drip-wrapper}})   |
-| 0x03     | DRIP Manifest ({{drip-manifest}}) |
-| 0x04     | DRIP Frame ({{drip-frame}})       |
+| To Be Assigned     | DRIP Link ({{drip-link}})         |
+| To Be Assigned     | DRIP Wrapper ({{drip-wrapper}})   |
+| To Be Assigned     | DRIP Manifest ({{drip-manifest}}) |
+| To Be Assigned     | DRIP Frame ({{drip-frame}})       |
 
 #### SAM Authentication Data
 
@@ -781,17 +781,6 @@ GEN-2: Provable Binding
 GEN-3: Provable Registration
 
 > Addressed using the DRIP Link ({{drip-link}}).
-
-# ICAO Considerations
-
-DRIP requests the following SAM Types to be allocated:
-
-1. DRIP Link
-2. DRIP Wrapper
-3. DRIP Manifest
-4. DRIP Frame
-
-<!-- TODO(atw): need help on this section; how should this be formatted? -->
 
 # IANA Considerations
 
