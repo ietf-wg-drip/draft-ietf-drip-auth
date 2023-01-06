@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-26
+docname: draft-ietf-drip-auth-27
 category: info
 
 ipr: trust200902
@@ -328,11 +328,11 @@ The SAM Type field is maintained by a TBD registrar and for DRIP four are planne
 
 #### SAM Authentication Data
 
-This field has a maximum size of 200-bytes, as defined by {{drip-restrictions}}. The Broadcast Attestation Structure ({{bas}}) MUST be used in this space.
+This field has a maximum size of 200-bytes, as defined by {{drip-restrictions}}.
 
 ### UA Signed Evidence {#bas}
 
-The DRIP Endorsement Structure (DES) {{drip-registries}} is used to created Signed Evidence by the UA during flight. It is encapsulated by the `SAM Authentication Data` field of {{sam-frame}}.
+The DRIP Endorsement Structure (DES) {{drip-registries}} is used to created Signed Evidence by the UA during flight. It is encapsulated by the `SAM Authentication Data` field.
 
 The DES MUST be used by the DRIP Wrapper ({{drip-wrapper}}), Manifest {{drip-manifest}} and Frame ({{drip-frame}}). DRIP Link ({{drip-link}}) MUST NOT use the DES as it will not fit in the ASTM Authentication Message.
 
