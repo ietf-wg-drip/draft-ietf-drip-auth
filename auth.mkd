@@ -48,6 +48,7 @@ author:
 normative:
     RFC9153: # drip-requirements
     drip-arch: I-D.ietf-drip-arch
+    drip-rid: I-D.ietf-drip-rid
     F3411:
         title: "F3411-22a: Standard Specification for Remote ID and Tracking"
         author:
@@ -56,7 +57,6 @@ normative:
 
 informative:
     RFC8126: # iana-considerations
-    drip-rid: I-D.ietf-drip-rid
     drip-registries: I-D.ietf-drip-registries
     FAA-14CFR:
         title: Remote Identification of Unmanned Aircraft
