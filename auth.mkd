@@ -1283,7 +1283,9 @@ Link: HDA on UA
 Link: RAA on HDA
 Link: HDA on UA
 Wrapper: Location (0x1), System (0x4)
-Link: ??? on Apex
+Link: Delegation Authority on Apex
+
+Note: Delegation Authority is the authority on a given Apex. For example possible authorities could IANA and/or ICAO.
 ~~~~
 
 Any messages not required for a local jurisdiction can be removed from the schedule. It is RECOMMENDED this empty frame slot is left empty to help with timing due to RF constraints/concerns. For example, in the US the Self ID (0x3) and Operator ID (0x5) are not required and can be ignored in the above figures. Only one Basic ID (0x0) is selected in the US at any given time, opening up three (3) more slots.
