@@ -819,9 +819,9 @@ The offset of the `VNA Timestamp by UA` is one that needs careful consideration 
 
 # Authentication State Diagrams & Color Scheme {#auth-state-diagrams}
 
-ASTM Authentication has only 3 states: None, Invalid or Valid. This is because under ASTM the idea is that Authentication is done by an external service hosted somewhere on the Internet so it is assumed you will always get some sort of answer back. With DRIP this classification becomes more complex with the support of "offline" scenarios where the receiver does not have Internet connectivity. With the use of asymmetric keys this means the public key (PK) must somehow be obtained - {{drip-registries}} gets more into detail how these keys are stored on DNS and one reason for DRIP Authentication is to send PK's over Broadcast RID.
+ASTM Authentication has only three states: None, Invalid, and Valid. This is because, under ASTM, the authentication is done by an external service hosted somewhere on the Internet so it is assumed you will always get some sort of answer back. This classification becomes more complex in DRIP with the support of "offline" scenarios where a receiver does not have Internet connectivity. With the use of asymmetric keys this means that the public key (PK) must somehow be obtained. {{drip-registries}} gets more into detail how these keys are stored on DNS and one reason for DRIP Authentication is to send PK's over Broadcast RID.
 
-There are two keys of interest: the PK of the UA and the PK of the DIME. This document gives a clear way to send the PK of the UA over the Broadcast RID messages. The key of the DIME can be sent over Broadcast RID using the same mechanisms (see {{drip-link}} and {{drip-recommendations}}) but is not required due to potential operational constraints of sending multiple DRIP Link messages. As such there are scenarios where you may have part of the key-chain but not all of it.
+There are two keys of interest: the PK of the UA and the PK of the DIME. This document describes how to send the PK of the UA over the Broadcast RID messages. The key of the DIME can be sent over Broadcast RID using the same mechanisms (see {{drip-link}} and {{drip-recommendations}}) but is not required due to potential operational constraints of sending multiple DRIP Link messages. As such, there are scenarios where part of the key-chain is available, but not all of it.
 
 The intent of this appendix is to give some kind of recommended way to classify these various states and convey it to the user through colors and state names/text.
 
@@ -843,7 +843,7 @@ The table below lays out the RECOMMENDED colors to associate with state.
 
 ## State Diagrams
 
-This section gives some RECOMMENDED state flows that DRIP should follow. Note that the state diagrams do not have all error conditions mapped.
+This section gives some RECOMMENDED state flows that DRIP implementations should follow. Note that the state diagrams do not have all error conditions mapped.
 
 ### Notations
 
@@ -1094,7 +1094,7 @@ DIME Signature (64-bytes):
 
 # Example TX/RX Flow {#appendix-c}
 
-In this example the UA is sending all DRIP Authentication Message formats (DRIP Link, DRIP Wrapper and DRIP Manifest) during flight, along with standard ASTM Messages. The objective is to show the combinations of messages that must be received to properly validate a DRIP equipped UA and examples of their various states (as described in {{auth-state-diagrams}}).
+In this example, the UA is sending all DRIP Authentication Message formats (DRIP Link, DRIP Wrapper, and DRIP Manifest) during flight, along with standard ASTM Messages. The objective is to show the combinations of messages that must be received to properly validate a DRIP-equipped UA and examples of their various states (as described in {{auth-state-diagrams}}).
 
 ~~~~
         +-------------------+
@@ -1165,15 +1165,15 @@ When the missing DET is supposed to be of the UA the DET MAY be sourced from the
 
 # Operational Recommendation Analysis {#operational-proof}
 
-The recommendations found in ({{operational-recommendations}}) may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there. This section is solely based on operations using Bluetooth 4.x; as such all calculations of frame counts for DRIP included FEC using {{fec-details}}.
+The recommendations found in ({{operational-recommendations}}) may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there. This section is solely based on operations using Bluetooth 4.x; as such, all calculations of frame counts for DRIP included FEC using {{fec-details}}.
 
 ## Methodology
 
-In the US, the required ASTM Messages to be transmitted every second are: Basic ID (0x1), Location (0x2) and System (0x4). Typical implementations will most likely send at a higher rate (2x sets per cycle) resulting in 6 frames sent per cycle.
+In the US, the required ASTM Messages to be transmitted every second are: Basic ID (0x1), Location (0x2), and System (0x4). Typical implementations will most likely send at a higher rate (2x sets per cycle) resulting in 6 frames sent per cycle.
 
 <!-- do we regard the the set when sent twice a second as a retransmission or as an update? -->
 
-> Informational Note: in Europe the Operator ID Message (0x5) is also included; pushing the frame count to 8 per cycle. For Japan two Basic ID (0x0), Location (0x1) and Authentication (0x2) are required.
+> Informational Note: In Europe, the Operator ID Message (0x5) is also included; pushing the frame count to 8 per cycle. In Japan, two Basic ID (0x0), Location (0x1),  and Authentication (0x2) are required.
 
 To calculate the frame count of a given DRIP Authentication Message the following formula is used:
 
@@ -1217,7 +1217,7 @@ For this example we will assume the following ASTM Messages are in play:
 - 2x System (0x4)
 - 2x Operator ID (0x5)
 
-This message set is uses all single frame ASTM Messages, sending a set of them (Location, System and Operator ID) at a rate of 2 per second. Two Basic ID's are sent in a single second and rotate between the 4 defined (1x per type). A single Self ID is sent every second. All messages in a given second if appear more than once are exact duplicates.
+This message set uses all single frame ASTM Messages, sending a set of them (Location, System and Operator ID) at a rate of 2 per second. Two Basic IDs are sent in a single second and rotate between the 4 defined (1x per type). A single Self ID is sent every second. All messages in a given second, if appear more than once, are exact duplicates.
 
 ~~~~
 +-----------------------------------------------------------+
@@ -1260,7 +1260,7 @@ M(x)[y,z] = DRIP Manifest Authentication Message (0x2)
 ~~~~
 {:fig #schedule-fig title="Example Transmit Schedule"}
 
-Manifest messages in the schedule are filled with unique messages from previously transmitted messages before the new Manifest is sent. In {{schedule-fig}} this is denoted by the `*` symbol as being part of the Manifest. For the figure 24 messages are eligible for the Manifest in the very first cycle of transmission. In future iterations, 56 messages are eligible across the 7 seconds it takes to send the previous Manifest and the next Link/Wrapper. Care should be given into the selection of messages for a Manifest as there is a limit of 11 hashes.
+Manifest messages in the schedule are filled with unique messages from previously transmitted messages before the new Manifest is sent. In {{schedule-fig}}, this is denoted by the `*` symbol as being part of the Manifest. In {{schedule-fig}}, messages are eligible for the Manifest in the very first cycle of transmission. In future iterations, 56 messages are eligible across the 7 seconds it takes to send the previous Manifest and the next Link/Wrapper. Care should be given into the selection of messages for a Manifest as there is a limit of 11 hashes.
 
 > Informational Note: the term "unique message" above is used as in the example schedule the 2nd Location and System messages MAY be exact copies of the previous Location and System messages sent in the same second. Duplicates of this kind SHOULD NOT be included in a Manifest.
 
@@ -1286,4 +1286,4 @@ Wrapper: Location (0x1), System (0x4)
 Link: ??? on Apex
 ~~~~
 
-Any messages not required for a local jurisdiction can be removed from the schedule. It is RECOMMENDED this empty frame slot is left empty to help with timing due to RF constraints/concerns. For example in the US the Self ID(0x3) and Operator ID (0x5) are not required and can be ignored in the above figures. In the US only one Basic ID (0x0) is selected at any given time, opening up 3 more slots.
+Any messages not required for a local jurisdiction can be removed from the schedule. It is RECOMMENDED this empty frame slot is left empty to help with timing due to RF constraints/concerns. For example, in the US the Self ID (0x3) and Operator ID (0x5) are not required and can be ignored in the above figures. Only one Basic ID (0x0) is selected in the US at any given time, opening up three (3) more slots.
