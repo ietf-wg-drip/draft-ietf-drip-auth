@@ -103,17 +103,29 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Definitions
 
-This document makes use of the terms (Observer, USS, UTM, etc.) defined in {{RFC9153}}. Other terms (such as DIME) are from {{drip-arch}}, while others (RAA, HDA, etc.) are from {{drip-rid}}.
+This document makes use of the terms (Observer, USS, UTM, etc.) defined in {{RFC9153}}. Other terms (such as DIME) are from {{drip-arch}}, while others (DET, RAA, HDA, etc.) are from {{drip-rid}}.
 
 In addition, the following terms are defined for this document:
 
-Legacy Transports:
+DRIP Entity Tag of DIME: (16-bytes)
 
-> use of broadcast frames (Bluetooth 4.x) as specified in {{F3411}}.
+> DET of DIME.
+
+DRIP Entity Tag of UA: (16-bytes)
+
+> DET of UA.
 
 Extended Transports:
 
 > use of extended advertisements (Bluetooth 5.x), service info (Wi-Fi NAN) or vendor specific element information (Wi-Fi BEACON) in broadcast frames as specified in {{F3411}}. Must use ASTM Message Pack (Message Type 0xF).
+
+Host Identity of UA: (32-bytes)
+
+> HI of UA.
+
+Legacy Transports:
+
+> use of broadcast frames (Bluetooth 4.x) as specified in {{F3411}}.
 
 # Background
 
