@@ -733,9 +733,9 @@ Without any fragmentation or loss of pages with transmission FEC ({{fec-details}
 
 It is REQUIRED that a UA send the following DRIP Authentication Formats to fulfill the requirements in {{RFC9153}}:
 
-1. SHOULD: send DRIP Link ({{drip-link}}) using the `Broadcast Endorsement: DIME:Apex, DIME:RAA` (satisfying GEN-3); at least once per 5 minutes
-2. MUST: send DRIP Link ({{drip-link}}) using the `Broadcast Endorsement: DIME:RAA, DIME:HDA` (satisfying GEN-3); at least once per 5 minutes
-3. MUST: send DRIP Link ({{drip-link}}) using the `Broadcast Endorsement: DIME:HDA, UA` (satisfying ID-5, GEN-1 and GEN-3); at least once per minute
+1. SHOULD: send DRIP Link ({{drip-link}}) using the `Broadcast Endorsement: Apex, RAA` (satisfying GEN-3); at least once per 5 minutes
+2. MUST: send DRIP Link ({{drip-link}}) using the `Broadcast Endorsement: RAA, HDA` (satisfying GEN-3); at least once per 5 minutes
+3. MUST: send DRIP Link ({{drip-link}}) using the `Broadcast Endorsement: HDA, UA` (satisfying ID-5, GEN-1 and GEN-3); at least once per minute
 4. MUST: send any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest ({{drip-manifest}}) or DRIP Wrapper ({{drip-wrapper}})) where the UA is dynamically signing data that is guaranteed to be unique, unpredictable and easily cross checked by the receiving device (satisfying ID-5, GEN-1 and GEN-2); at least once per 5 seconds
 
 ## Operational {#operational-recommendations}
@@ -751,7 +751,7 @@ The following operational configuration is RECOMMENDED (in alignment with {{drip
 1. Per CAA requirements, generate and transmit a set of ASTM Messages (example; Basic ID, Location and System).
 2. Under Extended Transports, generate and include in the same Message Pack as the CAA required ASTM Messages a DRIP Wrapper as specified in {{extended-wrapper}}.
 3. Under Legacy Transports, generate and transmit every 5 seconds a DRIP Manifest ({{drip-manifest}}) hashing as many sets of recent CAA required ASTM Messages. The system MAY periodically replace the DRIP Manifest with a DRIP Wrapper ({{drip-wrapper}}) containing at least a Location Message (Message Type 0x2).
-4. Under both Legacy or Extended Transports, generate and transmit a DRIP Link's ({{drip-link}}) containing; `Broadcast Endorsement: DIME:HDA, UA` every minute, `Broadcast Endorsement: DIME:RAA, DIME:HDA` every 5 minutes, `Broadcast Endorsement: DIME:Apex, DIME:RAA` every 5 minutes.
+4. Under both Legacy or Extended Transports, generate and transmit a DRIP Link's ({{drip-link}}) containing; `Broadcast Endorsement: HDA, UA` every minute, `Broadcast Endorsement: RAA, HDA` every 5 minutes, `Broadcast Endorsement: Apex, RAA` every 5 minutes.
 
 The reasoning and math behind this recommendation can be found in {{operational-proof}}.
 
