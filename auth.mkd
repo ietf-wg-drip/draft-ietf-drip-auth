@@ -550,9 +550,9 @@ hashCount = (manifestLength / hashLength) - 2;
 ~~~~
 {: #manifest-check title="Pseudo-code for Manifest sanity check and number of hashes calculation"}
 
-### Pseudo-Blockchain Hashes {#block-hashes}
+### Manifest Ledger Hashes {#block-hashes}
 
-Two special hashes are included in all Manifests; the `Previous Manifest Hash`, which links to the previous Manifest, as well as the `Current Manifest Hash`. This gives a pseudo-blockchain provenance to the Manifest that could be traced back if the Observer was present for extended periods of time.
+Two special hashes are included in all Manifests; the `Previous Manifest Hash`, which links to the previous Manifest, as well as the `Current Manifest Hash`. These hashes act as a ledger to provenance to the Manifest that could be traced back if the Observer was present for extended periods of time.
 
 ### Hash Algorithms and Operation {#hash-op}
 
