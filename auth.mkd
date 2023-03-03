@@ -564,11 +564,7 @@ DET's using cSHAKE128 {{!NIST.SP.800-185}} compute the hash as follows:
 cSHAKE128(ASTM Message, 8, "", "Remote ID Auth Hash")
 ~~~~
 
-<!-- Get a context ID for Remote ID auth hash or use HHIT ctx id? -->
-
 > Informative Note: {{drip-rid}} specifies cSHAKE128 but is open for the expansion of other OGAs.
-
-<!-- the previous hash could be; null, broadcast endorsement, self-endorsement, det lower 64 or random nonce -->
 
 When building the list of hashes the `Previous Manifest Hash` is known from the previous Manifest. For the first built Manifest this value is null filled. The `Current Manifest Hash` is null filled while ASTM Messages are hashed and fill the `ASTM Messages Hashes` section. When all messages are hashed the `Current Manifest Hash` is computed over the `Previous Manifest Hash`, `Current Manifest Hash` (null filled) and `ASTM Messages Hashes`. This hash value replaces the null filled `Current Manifest Hash` and becomes the `Previous Manifest Hash` for the next Manifest.
 
@@ -792,8 +788,6 @@ GEN-3: Provable Registration
 # IANA Considerations
 
 ## IANA DRIP Registry
-
-<!-- TODO(atw): Stu wonders if this can be deferred? -->
 
 This document requests a new subregistry for Frame Type under the [DRIP registry](https://datatracker.ietf.org/doc/html/draft-ietf-drip-rid-28#section-8.2).
 
@@ -1186,8 +1180,6 @@ The recommendations found in ({{operational-recommendations}}) may seem heavy ha
 ## Methodology
 
 In the US, the required ASTM Messages to be transmitted every second are: Basic ID (0x1), Location (0x2), and System (0x4). Typical implementations will most likely send at a higher rate (2x sets per cycle) resulting in 6 frames sent per cycle.
-
-<!-- do we regard the the set when sent twice a second as a retransmission or as an update? -->
 
 > Informational Note: In Europe, the Operator ID Message (0x5) is also included; pushing the frame count to 8 per cycle. In Japan, two Basic ID (0x0), Location (0x1),  and Authentication (0x2) are required.
 
