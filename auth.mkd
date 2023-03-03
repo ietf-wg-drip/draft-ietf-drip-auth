@@ -3,8 +3,8 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-29
-category: info
+docname: draft-ietf-drip-auth-30
+category: std
 
 ipr: trust200902
 area: Internet
