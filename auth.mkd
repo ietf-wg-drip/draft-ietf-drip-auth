@@ -333,14 +333,14 @@ SAM Authentication Data (0 to 200 bytes):
 
 #### SAM Type
 
-The SAM Type field is maintained by a TBD registrar and for DRIP four are planned to be allocated:
-
 | SAM Type | Description                       |
 | -------- | --------------------------------- |
-| To Be Assigned     | DRIP Link ({{drip-link}})         |
-| To Be Assigned     | DRIP Wrapper ({{drip-wrapper}})   |
-| To Be Assigned     | DRIP Manifest ({{drip-manifest}}) |
-| To Be Assigned     | DRIP Frame ({{drip-frame}})       |
+| 224     | DRIP Link ({{drip-link}})         |
+| 225     | DRIP Wrapper ({{drip-wrapper}})   |
+| 226     | DRIP Manifest ({{drip-manifest}}) |
+| 227     | DRIP Frame ({{drip-frame}})       |
+
+> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In {{F3411}}, ASTM is responsible for selecting a registrar to manage allocations of these code points. At the time of publication this registrar is still TBD. As such, this document borrows four code points out of the "Experimental/Private Use" range of SAM Type with the future action of properly obtaining allocations when the ASTM selected registrar is ready and updating this document via standard IETF process.
 
 #### SAM Authentication Data
 
