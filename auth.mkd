@@ -47,8 +47,8 @@ author:
 
 normative:
     RFC9153: # drip-requirements
+    RFC9374: # drip-rid
     drip-arch: I-D.ietf-drip-arch
-    drip-rid: I-D.ietf-drip-rid
     F3411:
         title: "F3411-22a: Standard Specification for Remote ID and Tracking"
         author:
@@ -103,7 +103,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Definitions
 
-This document makes use of the terms (Observer, USS, UTM, etc.) defined in {{RFC9153}}. Other terms (such as DIME) are from {{drip-arch}}, while others (DET, RAA, HDA, etc.) are from {{drip-rid}}.
+This document makes use of the terms (Observer, USS, UTM, etc.) defined in {{RFC9153}}. Other terms (such as DIME) are from {{drip-arch}}, while others (DET, RAA, HDA, etc.) are from {{RFC9374}}.
 
 In addition, the following terms are defined for this document:
 
@@ -192,7 +192,7 @@ Authentication Payload: (23 bytes per page)
 
 This document leverages Authentication Type 0x5, Specific Authentication Method (SAM), as the principal authentication container, defining a set of SAM Types in {{drip-authentication-formats}}. This is denoted in every Authentication Page in the `Page Header`. The SAM Type is denoted as a field in the `Authentication Payload` (see {{sam-data}}).
 
-The Authentication Message is structured as a set of pages. There is a technical maximum of 16 pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a maximum 23-byte `Authentication Payload`. See {{drip-restrictions}} for more details. Over Bluetooth 4.x, these messages are "fragmented", with each page sent in a separate Bluetooth 4.x broadcast frame.
+The Authentication Message is structured as a set of pages {{astm-auth-page}}. There is a technical maximum of 16 pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a maximum 23-byte `Authentication Payload`. See {{drip-restrictions}} for more details. Over Bluetooth 4.x, these messages are "fragmented", with each page sent in a separate Bluetooth 4.x broadcast frame.
 
 Either as a single Authentication Message or a set of fragmented Authentication Message Pages the structure is further wrapped by outer ASTM framing and the specific link framing (Bluetooth or Wi-Fi).
 
@@ -293,7 +293,7 @@ Previous Manifest Hash (8-bytes):
 
 UA DRIP Entity Tag (DET) (16-bytes):
 
-> The UA DET {{drip-rid}} in byte form (network byte order) and is part of {{drip-data}}.
+> The UA DET {{RFC9374}} in byte form (network byte order) and is part of {{drip-data}}.
 
 UA Signature (64-bytes):
 
@@ -340,7 +340,7 @@ SAM Authentication Data (0 to 200 bytes):
 | 227     | DRIP Manifest ({{drip-manifest}}) |
 | 228     | DRIP Frame ({{drip-frame}})       |
 
-> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In {{F3411}}, ASTM is responsible for selecting a registrar to manage allocations of these code points. At the time of publication this registrar is still TBD. As such, this document allocates four code points out of the "Experimental/Private Use" range of SAM Type with the future action of properly obtaining allocations when the ASTM selected registrar is ready and updating this document via standard IETF process.
+> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In {{F3411}}, ASTM is responsible for selecting a registrar to manage allocations of these code points. At the time of publication this registrar is still TBD. As such, this document allocates four code points out of the "Experimental/Private Use" range of SAM Type with the future action of properly obtaining allocations when the ASTM selected registrar is ready and updating this document via standard IETF process. For the preceding reason, this document is marked as Experimental until proper allocations are made, at which point the document is to become Proposed Standard.
 
 #### SAM Authentication Data
 
@@ -350,7 +350,7 @@ This field has a maximum size of 200-bytes, as defined by {{drip-restrictions}}.
 
 The DRIP Endorsement Structure (DES) {{drip-registries}} is used to create Signed Evidence by the UA during flight. It is encapsulated by the `SAM Authentication Data` field of {{sam-frame}}.
 
-The DES MUST be used by the DRIP Wrapper ({{drip-wrapper}}), Manifest {{drip-manifest}}, and Frame ({{drip-frame}}). DRIP Link ({{drip-link}}) MUST NOT use the DES as it will not fit in the ASTM Authentication Message.
+The DES MUST be used by the DRIP Wrapper ({{drip-wrapper}}), Manifest {{drip-manifest}}, and Frame ({{drip-frame}}). DRIP Link ({{drip-link}}) MUST NOT use the DES as it will not fit in the ASTM Authentication Message with its intended content (i.e. the Broadcast Endorsement).
 
 ~~~~
  0                   1                   2                   3
@@ -397,7 +397,7 @@ UA DRIP Entity Tag:
 
 Evidence:
 
-> The `evidence` section MUST be filled in with data in the form of an opaque object specified in the DRIP Wrapper, Manifest, or Frame sections.
+> The `evidence` section of the DES MUST be filled in with data in the form of an opaque object specified in the DRIP Wrapper, Manifest, or Frame sections.
 
 UA Signature:
 
@@ -556,7 +556,7 @@ Two special hashes are included in all Manifests; the `Previous Manifest Hash`, 
 
 ### Hash Algorithms and Operation {#hash-op}
 
-The hash algorithm used for the Manifest is the same hash algorithm used in creation of the DET {{drip-rid}} that is signing the Manifest.
+The hash algorithm used for the Manifest is the same hash algorithm used in creation of the DET {{RFC9374}} that is signing the Manifest.
 
 DET's using cSHAKE128 {{!NIST.SP.800-185}} compute the hash as follows:
 
@@ -564,7 +564,7 @@ DET's using cSHAKE128 {{!NIST.SP.800-185}} compute the hash as follows:
 cSHAKE128(ASTM Message, 8, "", "Remote ID Auth Hash")
 ~~~~
 
-> Informative Note: {{drip-rid}} specifies cSHAKE128 but is open for the expansion of other OGAs.
+> Informative Note: {{RFC9374}} specifies cSHAKE128 but is open for the expansion of other OGAs.
 
 When building the list of hashes the `Previous Manifest Hash` is known from the previous Manifest. For the first built Manifest this value is null filled. The `Current Manifest Hash` is null filled while ASTM Messages are hashed and fill the `ASTM Messages Hashes` section. When all messages are hashed the `Current Manifest Hash` is computed over the `Previous Manifest Hash`, `Current Manifest Hash` (null filled) and `ASTM Messages Hashes`. This hash value replaces the null filled `Current Manifest Hash` and becomes the `Previous Manifest Hash` for the next Manifest.
 
@@ -789,7 +789,7 @@ GEN-3: Provable Registration
 
 ## IANA DRIP Registry
 
-This document requests a new subregistry for Frame Type under the [DRIP registry](https://datatracker.ietf.org/doc/html/draft-ietf-drip-rid-28#section-8.2).
+This document requests a new subregistry for Frame Type under the [DRIP registry](https://www.iana.org/assignments/drip/drip.xhtml).
 
 DRIP Frame Type:
 
