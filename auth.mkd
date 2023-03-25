@@ -4,13 +4,13 @@ coding: utf-8
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
 docname: draft-ietf-drip-auth-30
-category: std
+category: exp
 
 ipr: trust200902
 area: Internet
 wg: DRIP Working Group
 kw: Internet-Draft
-cat: std
+cat: exp
 
 stand_alone: yes
 pi: [toc, sortrefs, symrefs, comments]
@@ -340,7 +340,7 @@ SAM Authentication Data (0 to 200 bytes):
 | 227     | DRIP Manifest ({{drip-manifest}}) |
 | 228     | DRIP Frame ({{drip-frame}})       |
 
-> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In {{F3411}}, ASTM is responsible for selecting a registrar to manage allocations of these code points. At the time of publication this registrar is still TBD. As such, this document borrows four code points out of the "Experimental/Private Use" range of SAM Type with the future action of properly obtaining allocations when the ASTM selected registrar is ready and updating this document via standard IETF process.
+> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In {{F3411}}, ASTM is responsible for selecting a registrar to manage allocations of these code points. At the time of publication this registrar is still TBD. As such, this document allocates four code points out of the "Experimental/Private Use" range of SAM Type with the future action of properly obtaining allocations when the ASTM selected registrar is ready and updating this document via standard IETF process.
 
 #### SAM Authentication Data
 
