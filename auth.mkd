@@ -346,10 +346,9 @@ This structure is used by the DRIP Wrapper ({{drip-wrapper}}), Manifest {{drip-m
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-|                                                               |
-|                              UA                               |
-|                        DRIP Entity Tag                        |
-|                                                               |
+|                      VNB Timestamp by UA                      |
++---------------+---------------+---------------+---------------+
+|                      VNA Timestamp by UA                      |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 .                                                               .
@@ -357,9 +356,10 @@ This structure is used by the DRIP Wrapper ({{drip-wrapper}}), Manifest {{drip-m
 .                                                               .
 |                                                               |
 +---------------+---------------+---------------+---------------+
-|                      VNA Timestamp by UA                      |
-+---------------+---------------+---------------+---------------+
-|                      VNB Timestamp by UA                      |
+|                                                               |
+|                              UA                               |
+|                        DRIP Entity Tag                        |
+|                                                               |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                                                               |
@@ -391,7 +391,7 @@ Evidence:
 
 UA Signature:
 
-> The UA private key MUST be used over all preceeding fields to generate the signature.
+> The UA private key MUST be used over all preceding fields to generate the signature.
 
 When using this structure, the UA is minimally self-endorsing its DET. The HI of the UA DET can be looked up by mechanisms described in {{drip-registries}} or by extracting it from a Broadcast Endorsement (see {{drip-link}} and {{drip-recommendations}}).
 
@@ -405,10 +405,9 @@ DRIP Link is important as its contents are used to provide trust in the DET/HI p
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
-|                                                               |
-|                              DET                              |
-|                           of Parent                           |
-|                                                               |
+|                    VNB Timestamp by Parent                    |
++---------------+---------------+---------------+---------------+
+|                    VNA Timestamp by Parent                    |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                              DET                              |
@@ -424,9 +423,10 @@ DRIP Link is important as its contents are used to provide trust in the DET/HI p
 |                                                               |
 |                                                               |
 +---------------+---------------+---------------+---------------+
-|                    VNB Timestamp by Parent                    |
-+---------------+---------------+---------------+---------------+
-|                    VNA Timestamp by Parent                    |
+|                                                               |
+|                              DET                              |
+|                           of Parent                           |
+|                                                               |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                                                               |
@@ -446,8 +446,11 @@ DRIP Link is important as its contents are used to provide trust in the DET/HI p
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
-DET of Parent: (16-bytes)
-    DRIP Entity Tag of Parent Entity.
+VNB Timestamp by Parent (4-bytes):
+    Current time at signing, set by Parent Entity.
+
+VNA Timestamp by Parent (4-bytes):
+    Timestamp denoting recommended time to trust Endorsement.
 
 DET of Child: (16-bytes)
     DRIP Entity Tag of Child Entity.
@@ -455,11 +458,8 @@ DET of Child: (16-bytes)
 HI of Child: (32-bytes)
     Host Identity of Child Entity.
 
-VNB Timestamp by Parent (4-bytes):
-    Current time at signing, set by Parent Entity.
-
-VNA Timestamp by Parent (4-bytes):
-    Timestamp denoting recommended time to trust Endorsement.
+DET of Parent: (16-bytes)
+    DRIP Entity Tag of Parent Entity.
 
 Signature by Parent(64-bytes):
     Signature over preceding fields using the keypair of
@@ -510,14 +510,14 @@ To send the DRIP Wrapper over Extended Transports the messages being wrapped are
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +---------------+---------------+---------------+---------------+
+|                      VNB Timestamp by UA                      |
++---------------+---------------+---------------+---------------+
+|                      VNA Timestamp by UA                      |
++---------------+---------------+---------------+---------------+
 |                                                               |
 |                              UA                               |
 |                        DRIP Entity Tag                        |
 |                                                               |
-+---------------+---------------+---------------+---------------+
-|                   Not Before Timestamp by UA                  |
-+---------------+---------------+---------------+---------------+
-|                    Not After Timestamp by UA                  |
 +---------------+---------------+---------------+---------------+
 |                                                               |
 |                                                               |
