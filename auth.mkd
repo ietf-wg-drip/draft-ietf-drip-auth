@@ -4,13 +4,13 @@ coding: utf-8
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
 docname: draft-ietf-drip-auth-30
-category: exp
+category: std
 
 ipr: trust200902
 area: Internet
 wg: DRIP Working Group
 kw: Internet-Draft
-cat: exp
+cat: std
 
 stand_alone: yes
 pi: [toc, sortrefs, symrefs, comments]
@@ -302,12 +302,12 @@ For DRIP the following SAM Types are allocated:
 
 | SAM Type | Description                       |
 | -------- | --------------------------------- |
-| 225     | DRIP Link ({{drip-link}})         |
-| 226     | DRIP Wrapper ({{drip-wrapper}})   |
-| 227     | DRIP Manifest ({{drip-manifest}}) |
-| 228     | DRIP Frame ({{drip-frame}})       |
+| TBD1     | DRIP Link ({{drip-link}})         |
+| TBD2     | DRIP Wrapper ({{drip-wrapper}})   |
+| TBD3     | DRIP Manifest ({{drip-manifest}}) |
+| TBD4     | DRIP Frame ({{drip-frame}})       |
 
-> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In {{F3411}}, ASTM is responsible for selecting a registrar to manage allocations of these code points. At the time of publication this registrar is still TBD. As such, this document allocates four code points out of the "Experimental/Private Use" range of SAM Type with the future action of properly obtaining allocations when the ASTM selected registrar is ready and updating this document via standard IETF process. For the preceding reason, this document is marked as Experimental until proper allocations are made, at which point the document is to become Proposed Standard.
+> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In {{F3411}}, ASTM is responsible for selecting a registrar to manage allocations of these code points. At the time of publication this registrar is still TBD.
 
 ##### SAM Authentication Data
 
