@@ -746,8 +746,6 @@ function decode_check(auth_pages[], decoded_lpi, decoded_length) {
 ~~~~
 {: #decode-pseudo title="Pseudo-code for Decode Checks"}
 
-Implementations MAY also implement an heuristic extension ({{decoding-optimization}}) to decode if both the first page (Page 0) and last page (`Last Page Index`) are missing.
-
 ## FEC Limitations
 
 The worst case scenario is when the `Authentication Data / Signature` ends perfectly on a page (Page N-1). This means the `Additional Data Length` would start the next page (Page N) and have 22-bytes worth of null padding to align the FEC to begin at the start of the next page (Page N+1). In this scenario an entire page (Page N) is being wasted just to carry the `Additional Data Length`. This should be avoided where possible in an effort to maintain efficiency.
@@ -1105,47 +1103,6 @@ C: Verified, Trusted, Unverified, Questionable, or Conflicting
 ~~~~
 
 As the above example shows to properly authenticate both a DRIP Link and a DRIP Wrapper or DRIP Manifest are required.
-
-# Additional FEC Decoding Heuristic {#decoding-optimization}
-
-With {{fec-details}}, if Page 0 and the FEC page are missing from the Authentication Message there is a heuristic that can be applied instead of FEC decoding to obtain the Authentication Data. This is based on the structure of the DRIP Authentication Messages and additional information sent over the broadcast or via lookup in DNS.
-
-Looking at Page 0 ({{fec-pg0}}) of any DRIP Authentication Format the payload data is always a DET. For DRIP Link ({{drip-link}}) this DET is of the DIME while for DRIP Wrapper ({{drip-wrapper}}), Manifest ({{drip-manifest}}) and Frame ({{drip-frame}}) it is the DET of the UA.
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|  Page Header  |                                               |
-+---------------+     Authentication Headers    +---------------+ 
-|                                               |   SAM Type    |
-+---------------+---------------+---------------+---------------+ 
-|                                                               |
-|                              DRIP                             |
-|                           Entity Tag                          |
-|                                                               |
-+---------------+---------------+---------------+---------------+
-
-Page Header: (1-byte)
-    Authentication Type (4-bits)
-    Page Number (4 bits)
-
-Authentication Headers: (6-bytes)
-    As defined in F3411
-
-SAM Type (1-byte):
-    Byte defined by F3411 to multiplex SAMs
-
-DRIP Entity Tag: (16-bytes)
-  DET of an entity in network byte order
-~~~~
-{:fig #fec-pg0 title="Example Page 0 from DRIP Authentication Message"}
-
-Under DRIP, the Basic ID Message (Message Type 0x1) SHOULD be using Specific Session ID (ID Type 4) subtype IETF DRIP Entity ID (Type 1). This DET of the UA can be used in place of the missing DET in a DRIP Wrapper, Manifest and Frame. For DRIP Link, which is missing the DET of the DIME, the lookup properties of the DET enables the discovery, via DNS, the DIME's DET.
-
-These DETs obtained via other means can replace the missing payload of Authentication Page 0 and enable the full decoding and verification of the DRIP Authentication Message.
-
-When the missing DET is supposed to be of the UA the DET MAY be sourced from the Basic ID Message (Message Type 0x1). Under DRIP, this SHOULD be set to the DET missing in the Authentication Data.
 
 # Operational Recommendation Analysis {#operational-proof}
 
