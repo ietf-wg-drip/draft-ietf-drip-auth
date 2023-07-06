@@ -307,7 +307,7 @@ For DRIP the following SAM Types are allocated:
 | TBD3     | DRIP Manifest ({{drip-manifest}}) |
 | TBD4     | DRIP Frame ({{drip-frame}})       |
 
-> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In accordance with {{F3411}} Annex 5, has selected International Civil Aviation Organization (ICAO) as the registrar to manage allocations of these code points.
+> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In accordance with {{F3411}} Annex 5, International Civil Aviation Organization (ICAO) has been selected by ASTM as the registrar to manage allocations of these code points.
 
 ##### SAM Authentication Data
 
