@@ -830,11 +830,11 @@ GEN-3: Provable Registration
 
 ## IANA DRIP Registry
 
-This document requests a new subregistry for Frame Type under the [DRIP registry](https://www.iana.org/assignments/drip/drip.xhtml).
+This document requests a new registry for Frame Type under the [DRIP registry group](https://www.iana.org/assignments/drip/drip.xhtml).
 
 DRIP Frame Type:
 
-: This 8-bit valued subregistry is for Frame Types in DRIP Frame Authentication Messages. Future additions to this subregistry are to be made through Expert Review (Section 4.5 of {{RFC8126}}). The following values are defined:
+: This 8-bit valued registry is for Frame Types in DRIP Frame Authentication Messages. Future additions to this registry are to be made through Expert Review (Section 4.5 of {{RFC8126}}). The following values are defined:
 
 ~~~~
 | Frame Type | Name         | Description      |
