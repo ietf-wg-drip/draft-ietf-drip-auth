@@ -129,7 +129,7 @@ Evidence (0 to 112 bytes):
 
 Extended Transports:
 
-> use of extended advertisements (Bluetooth 5.x), service info (Wi-Fi NAN) or vendor specific element information (Wi-Fi BEACON) in broadcast frames as specified in {{F3411}}. Must use ASTM Message Pack (Message Type 0xF).
+> use of extended advertisements (Bluetooth 5.x), service info (Wi-Fi NAN) or vendor specific element information (IEEE 802.11 Beacon) in broadcast frames as specified in {{F3411}}. Must use ASTM Message Pack (Message Type 0xF).
 
 Frame Type (1-byte):
 
@@ -317,7 +317,7 @@ This field has a maximum size of 200-bytes, as defined by {{drip-restrictions}}.
 
 #### Wireless Frame Constraints
 
-A UA has the option of broadcasting using Bluetooth (4.x and 5.x) or Wi-Fi (BEACON or NAN), see {{reqs}}.  With Bluetooth, FAA and other Civil Aviation Authorities (CAA) mandate transmitting simultaneously over both 4.x and 5.x. With Wi-Fi, use of BEACON is recommended. Wi-Fi NAN is another option, depending on the CAA. The same application layer information defined in {{F3411}} MUST be transmitted over all the physical layer interfaces performing the function of RID.
+A UA has the option of broadcasting using Bluetooth (4.x and 5.x), Wi-Fi NAN, or IEEE 802.11 Beacon, see {{reqs}}. With Bluetooth, FAA and other Civil Aviation Authorities (CAA) mandate transmitting simultaneously over both 4.x and 5.x. The same application layer information defined in {{F3411}} MUST be transmitted over all the physical layer interfaces performing the function of RID.
 
 Bluetooth 4.x presents a payload size challenge in that it can only transmit 25-bytes of payload per frame where the others all can support larger payloads per frame. However, the {{F3411}} messaging framing dictated by Bluetooth 4.x constraints is inherited by {{F3411}} over other media.
 
