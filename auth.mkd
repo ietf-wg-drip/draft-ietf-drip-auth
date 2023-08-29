@@ -1106,7 +1106,7 @@ As the above example shows to properly authenticate both a DRIP Link and a DRIP 
 
 # Operational Recommendation Analysis {#operational-proof}
 
-The recommendations found in ({{operational-recommendations}}) may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there. This section is solely based on operations using Bluetooth 4.x; as such, all calculations of frame counts for DRIP included FEC using {{fec-details}}.
+The recommendations found in ({{operational-recommendations}}) may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there. This section is solely based on operations using Legacy Transports; as such, all calculations of frame counts for DRIP included FEC using {{fec-details}}.
 
 ## Methodology
 
