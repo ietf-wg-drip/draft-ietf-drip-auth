@@ -46,9 +46,9 @@ author:
     email: rgm@labs.htt-consult.com
 
 normative:
-    RFC9153: # drip-requirements
-    RFC9374: # drip-rid
-    drip-arch: I-D.ietf-drip-arch
+    RFC9153:  # drip-requirements
+    RFC9374:  # drip-rid
+    RFC9434:  # drip-arch
     F3411:
         title: "F3411-22a: Standard Specification for Remote ID and Tracking"
         author:
@@ -56,7 +56,7 @@ normative:
         date: 2022-07
 
 informative:
-    RFC8126: # iana-considerations
+    RFC8126:  # iana-considerations
     drip-registries: I-D.ietf-drip-registries
     FAA-14CFR:
         title: Remote Identification of Unmanned Aircraft
@@ -103,7 +103,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Definitions
 
-This document makes use of the terms (Observer, USS, UTM, etc.) defined in {{RFC9153}}. Other terms (such as DIME) are from {{drip-arch}}, while others (DET, RAA, HDA, etc.) are from {{RFC9374}}.
+This document makes use of the terms (Observer, USS, UTM, etc.) defined in {{RFC9153}}. Other terms (such as DIME) are from {{RFC9434}}, while others (DET, RAA, HDA, etc.) are from {{RFC9374}}.
 
 In addition, the following terms are defined for this document:
 
@@ -165,7 +165,7 @@ Valid Not Before (VNB) Timestamp by UA (4-bytes):
 
 {{F3411}} defines Authentication Message framing only. It does not define authentication formats or methods. It explicitly anticipates several signature options, but does not fully define those. Annex A1 of {{F3411}} defines a Broadcast Authentication Verifier Service, which has a heavy reliance on Observer real-time connectivity to the Internet. Fortunately, {{F3411}} also allows third party standard Authentication Types, several of which DRIP defines herein.
 
-The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. Per Section 5 of {{drip-arch}}, there is a need to have Authentication formats to relay information for Observers to determine trust. No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
+The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. Per Section 5 of {{RFC9434}}, there is a need to have Authentication formats to relay information for Observers to determine trust. No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
 
 ### UA Signed Evidence {#ua-attestation}
 
