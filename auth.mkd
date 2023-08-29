@@ -786,8 +786,8 @@ A separate issue is the frequency of transmitting the DRIP Link Authentication M
 The following operational configuration is RECOMMENDED (in alignment with {{drip-recommendations}}):
 
 1. Per CAA requirements, generate and transmit a set of ASTM Messages (example; Basic ID, Location and System).
-2. Under Extended Transports, generate and include in the same Message Pack as the CAA required ASTM Messages a DRIP Wrapper as specified in {{extended-wrapper}}.
-3. Under Legacy Transports, generate and transmit every 5 seconds a DRIP Manifest ({{drip-manifest}}) hashing as many sets of recent CAA required ASTM Messages. The system MAY periodically replace the DRIP Manifest with a DRIP Wrapper ({{drip-wrapper}}) containing at least a Location Message (Message Type 0x2).
+2. Under Extended Transports, generate and include in the same Message Pack as the CAA required ASTM Messages a DRIP Wrapper as specified in {{extended-wrapper}} (implicitly wrapping and signing messages in the pack).
+3. Under Legacy Transports, generate and transmit every 5 seconds a DRIP Manifest ({{drip-manifest}}) hashing as many sets as desired of recent CAA required ASTM Messages. The system MAY periodically replace the DRIP Manifest with a DRIP Wrapper ({{drip-wrapper}}) containing at least a Location Message (Message Type 0x2).
 4. Under both Legacy or Extended Transports, generate and transmit a DRIP Link's ({{drip-link}}) containing; `Broadcast Endorsement: HDA, UA` every minute, `Broadcast Endorsement: RAA, HDA` every 5 minutes, `Broadcast Endorsement: Apex, RAA` every 5 minutes.
 
 The reasoning and math behind this recommendation can be found in {{operational-proof}}.
