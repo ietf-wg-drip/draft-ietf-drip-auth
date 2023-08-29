@@ -164,7 +164,7 @@ Valid Not Before (VNB) Timestamp by UA (4-bytes):
 
 ## Reasoning for IETF DRIP Authentication
 
-{{F3411}} defines Authentication Message framing only. It does not define authentication formats or methods. It explicitly anticipates several signature options, but does not fully define those. Annex A1 of {{F3411}} defines a Broadcast Authentication Verifier Service, which has a heavy reliance on Observer real-time connectivity to the Internet. Fortunately, {{F3411}} also allows third party standard Authentication Types, several of which DRIP defines herein.
+{{F3411}} defines Authentication Message framing only. It does not define authentication formats or methods. It explicitly anticipates several signature options, but does not fully define those. Annex A1 of {{F3411}} defines a Broadcast Authentication Verifier Service, which has a heavy reliance on Observer real-time connectivity to the Internet. Fortunately, {{F3411}} also allows third party standard Authentication Types using Type 5 Specific Authentication Method (SAM), several of which DRIP defines herein.
 
 The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. Per Section 5 of {{RFC9434}}, there is a need to have Authentication formats to relay information for Observers to determine trust. No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
 
