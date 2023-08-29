@@ -622,7 +622,7 @@ Under this transport DRIP hashes the full ASTM Message Pack (Message Type 0xF) -
 
 This SAM Type is for when the authentication data does not fit in other defined formats under DRIP and is reserved for future expansion under DRIP if required.
 
-The population of the `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is not defined in this document and MUST be openly specified by the specification using it.
+The contents of `Frame Evidence Data` is not defined in this document. Other specifications MUST define the contents and register for a `Frame Type`.
 
 ~~~~
  0                   1                   2                   3
