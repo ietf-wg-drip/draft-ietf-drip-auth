@@ -1108,7 +1108,7 @@ In this example, the UA is sending all DRIP Authentication Message formats (DRIP
 Broadcast Paths: Messages Received
 0: None
 1: DRIP Link or DRIP Wrapper or DRIP Manifest
-2: DRIP Link and DRIP Wrapper or DRIP Manifest
+2: DRIP Link and (DRIP Wrapper or DRIP Manifest)
 
 Observers: Authentication State
 A: None
