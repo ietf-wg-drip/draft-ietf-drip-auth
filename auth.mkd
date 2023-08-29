@@ -1112,7 +1112,7 @@ The recommendations found in ({{operational-recommendations}}) may seem heavy ha
 
 In the US, the required ASTM Messages to be transmitted every second are: Basic ID (0x1), Location (0x2), and System (0x4). Typical implementations will most likely send at a higher rate (2x sets per cycle) resulting in 6 frames sent per cycle.
 
-> Informational Note: In Europe, the Operator ID Message (0x5) is also included; pushing the frame count to 8 per cycle. In Japan, two Basic ID (0x0), Location (0x1),  and Authentication (0x2) are required.
+> Informational Note: In Europe, the Operator ID Message (0x5) is also included; pushing the frame count to 8 per cycle. In Japan, two Basic ID (0x0), Location (0x1), and Authentication (0x2) are required, likely pushing the frame count beyond 8.
 
 To calculate the frame count of a given DRIP Authentication Message the following formula is used:
 
