@@ -476,7 +476,7 @@ This SAM Type is used to wrap and sign over a list of other {{F3411}} Broadcast 
 
 The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with full (25-byte) {{F3411}} Broadcast RID messages. The ASTM Messages can be concatenated together to form a contiguous byte sequence as shown in {{wrapper-fig}}.
 
-The minimum number of messages support is 1 and the maximum supported is 4. The messages MUST be in Message Type order as defined by {{F3411}}. All message types except Authentication (Message Type 0x2) and Message Pack (Message Type 0xF) are allowed. Thus it may be preferred in some operation modes to use a DRIP Manifest {{drip-manifest}} instead.
+The maximum number of messages supported is 4. The messages MUST be in Message Type order as defined by {{F3411}}. All message types except Authentication (Message Type 0x2) and Message Pack (Message Type 0xF) are allowed.
 
 ~~~~
  0                   1                   2                   3
