@@ -195,7 +195,7 @@ It is necessary for the UA to prove possession by dynamically signing data that 
 
 ## ASTM Authentication Message {#auth-message}
 
-The ASTM Authentication Message (Message Type 0x2) is a unique message in the Broadcast {{F3411}} standard as it is the only one that is larger than the Bluetooth 4.x frame size. To address this, it is defined as a set of "pages" that each fits into a single Bluetooth 4.x broadcast frame. For other media these pages are still used but all in a single frame.
+The Authentication Message (Message Type 0x2) is a unique message in the {{F3411}} Broadcast standard as it is the only one that is larger than the Legacy Transport size. To address this, it is defined as a set of "pages", each of which fits into a single Legacy Transport frame. For Extended Transports these pages are still used but are all in a single frame.
 
 ### Authentication Page {#auth-page}
 
@@ -224,9 +224,9 @@ Authentication Payload: (23 bytes per page)
 
 This document leverages Authentication Type 0x5, Specific Authentication Method (SAM), as the principal authentication container, defining a set of SAM Types in {{drip-authentication-formats}}. This is denoted in every Authentication Page in the `Page Header`. The SAM Type is denoted as a field in the `Authentication Payload` (see {{sam-data}}).
 
-The Authentication Message is structured as a set of pages {{astm-auth-page}}. There is a technical maximum of 16 pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a maximum 23-byte `Authentication Payload`. See {{drip-restrictions}} for more details. Over Bluetooth 4.x, these messages are "fragmented", with each page sent in a separate Bluetooth 4.x broadcast frame.
+The Authentication Message is structured as a set of pages {{astm-auth-page}}. There is a technical maximum of 16 pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a maximum 23-byte `Authentication Payload`. See {{drip-restrictions}} for more details. Over Legacy Transports, these messages are "fragmented", with each page sent in a separate Legacy Transport frame.
 
-Either as a single Authentication Message or a set of fragmented Authentication Message Pages the structure is further wrapped by outer ASTM framing and the specific link framing (Bluetooth or Wi-Fi).
+Either as a single Authentication Message or a set of fragmented Authentication Message Pages the structure is further wrapped by outer ASTM framing and the specific link framing.
 
 ### Authentication Payload Field
 
@@ -334,7 +334,7 @@ As such DRIP transmitters are REQUIRED to adhere to the following when using the
 
 All formats defined in this section are the content for the `Authentication Data/Signature` field in {{astm-auth}} and use the Specific Authentication Method (SAM, Authentication Type 0x5). The first byte of the `Authentication Data / Signature` of {{astm-auth}}, is used to multiplex between these various formats.
 
-When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Bluetooth 4.x, then {{fec-details}} MUST be used. {{auth-state-diagrams}} gives a high-level overview of a state machine for decoding and determining a trustworthiness state. {{appendix-c}} shows an example of using the formats defined in this section.
+When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Legacy Transports, then {{fec-details}} MUST be used. {{auth-state-diagrams}} gives a high-level overview of a state machine for decoding and determining a trustworthiness state. {{appendix-c}} shows an example of using the formats defined in this section.
 
 ## Endorsement Structure for UA Signed Evidence {#bas}
 
@@ -647,7 +647,7 @@ Byte to sub-type for future different DRIP Frame formats. It takes the first byt
 
 # Forward Error Correction {#fec-details}
 
-For Broadcast RID, Forward Error Correction (FEC) is provided by the lower layers in Extended Transports (Bluetooth 5.x, Wi-Fi NAN, and Wi-Fi BEACON). The Bluetooth 4.x Legacy Transport does not have supporting FEC so with DRIP Authentication the following application level FEC scheme is used to add FEC. When sending data over a medium that does not have underlying FEC, for example Bluetooth 4.x, then this section MUST be used.
+For Broadcast RID, Forward Error Correction (FEC) is provided by the lower layers in Extended Transports. The Bluetooth 4.x Legacy Transport does not have supporting FEC so with DRIP Authentication the following application level FEC scheme is used to add FEC. When sending data over a medium that does not have underlying FEC, for example Bluetooth 4.x, then this section MUST be used.
 
 The Bluetooth 4.x lower layers have error detection but not correction. Any frame in which Bluetooth detects an error is dropped and not delivered to higher layers (in our case, DRIP). Thus it can be treated as an erasure.
 
@@ -760,7 +760,7 @@ Under ASTM Bluetooth 4.x rules, transmission of dynamic messages is at least eve
 
 ## Extended Transports
 
-Under the ASTM specification, Bluetooth 5.x, Wi-Fi NAN, and Wi-Fi BEACON transport of RID is to use the Message Pack (Message Type 0xF) format for all transmissions. Under Message Pack messages are sent together (in Message Type order) in a single Bluetooth 5.x extended frame (up to 9 single frame equivalent messages under Bluetooth 4.x). Message Packs are required by ASTM to be sent at a rate of 1 per second (like dynamic messages).
+Under the ASTM specification, Extended Transports of RID must use the Message Pack (Message Type 0xF) format for all transmissions. Under Message Pack messages are sent together (in Message Type order) in a single frame (up to 9 single frame equivalent messages under Legacy Transports). Message Packs are required by {{F3411}} to be sent at a rate of 1 per second (like dynamic messages).
 
 Without any fragmentation or loss of pages with transmission FEC ({{fec-details}}) MUST NOT be used as it is impractical.
 
