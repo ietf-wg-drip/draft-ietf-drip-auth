@@ -504,7 +504,7 @@ wrappedCount = wrapperLength / 25;
 
 ### Wrapper over Extended Transports {#extended-wrapper}
 
-To send the DRIP Wrapper over Extended Transports the messages being wrapped are co-located with the Authentication Message in a ATM Message Pack (Message Type 0xF). The `evidence` section of the `Endorsement Structure for UA Signed Evidence` is cleared after signing leaving the following binary structure that is placed into the `SAM Authentication Data` of {{sam-frame}} and sent in the same Message Pack.
+To send the DRIP Wrapper over Extended Transports the messages being wrapped are co-located with the Authentication Message in a ASTM Message Pack (Message Type 0xF). The `evidence` section of the `Endorsement Structure for UA Signed Evidence` is cleared after signing leaving the following binary structure that is placed into the `SAM Authentication Data` of {{sam-frame}} and sent in the same Message Pack.
 
 ~~~~
  0                   1                   2                   3
@@ -593,7 +593,7 @@ hashCount = (manifestLength / hashLength) - 2;
 
 ### Manifest Ledger Hashes {#block-hashes}
 
-Two special hashes are included in all Manifests; the `Previous Manifest Hash`, which links to the previous Manifest, as well as the `Current Manifest Hash`. These hashes act as a ledger to provenance to the Manifest that could be traced back if the Observer was present for extended periods of time.
+Two special hashes are included in all Manifests: the `Previous Manifest Hash`, which links to the previous Manifest; and the `Current Manifest Hash`. These hashes act as a ledger to provenance to the Manifest that could be traced back if the Observer was present for extended periods of time.
 
 ### Hash Algorithms and Operation {#hash-op}
 
@@ -849,7 +849,7 @@ DRIP Frame Type:
 
 The astute reader may note that the DRIP Link messages, which are recommended to be sent, are static in nature and contain various timestamps. These DRIP Link messages can easily be replayed by an attacker who has copied them from previous broadcasts.
 
-If an attacker (who is smart and spoofs more than just the UAS ID/data payloads) willing replays an DRIP Link message they have in principle actually helped by ensuring the DRIP Link is sent more frequently and be received by potential Observers.
+If an attacker (who is smart and spoofs more than just the UAS ID/data payloads) willingly replays an DRIP Link message they have in principle actually helped by ensuring the DRIP Link is sent more frequently and be received by potential Observers.
 
 The primary mitigation is the UA is REQUIRED to send more than DRIP Link messages, specifically the Manifest and/or Wrapper messages that sign over changing data ASTM Messages (e.g. Location/Vector Messages) using the DET private key. An UA sending these messages then actually signing these and other messages using the DET key provides the Observer with data that proves realtime signing.  An UA who does not either run DRIP themselves or does not have possession of the same private key, would be clearly exposed upon signature verification.
 
