@@ -153,11 +153,11 @@ UA Signature (64-bytes):
 
 Valid Not After (VNA) Timestamp by UA (4-bytes):
 
-> Timestamp denoting recommended time to stop trusting data in {{drip-data}}. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp but with an epoch of 01/01/2019 00:00:00 with an additional offset is then added to push a short time into the future (relative to `Not Before Timestamp`) to avoid replay attacks. The offset used against the Unix-style timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers. A reasonable time would be to set `Not After Timestamp` 2 minutes after `Not Before Timestamp`.
+> Timestamp denoting recommended time to stop trusting data in {{drip-data}}. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp (with an epoch of `01/01/2019 00:00:00`) with an additional offset to push a short time into the future (relative to `Not Before Timestamp`) to avoid replay attacks. The offset used against the Unix-style timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers. A reasonable time would be to set `Not After Timestamp` 2 minutes after `Not Before Timestamp`.
 
 Valid Not Before (VNB) Timestamp by UA (4-bytes):
 
-> Timestamp denoting recommended time to start trusting data in {{drip-data}}. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp but with an epoch of 01/01/2019 00:00:00.  MUST be set no earlier than the time the signature is generated.
+> Timestamp denoting recommended time to start trusting data in {{drip-data}}. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp with an epoch of `01/01/2019 00:00:00`. MUST be set no earlier than the time the signature is generated.
 
 # Background
 
@@ -621,7 +621,7 @@ Under this transport DRIP hashes the full ASTM Message Pack (Message Type 0xF) -
 
 This SAM Type is for when the authentication data does not fit in other defined formats under DRIP and is reserved for future expansion under DRIP if required.
 
-The population of the `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is not defined in this document and MUST be openly specified by the implementation (or specification) using it.
+The population of the `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is not defined in this document and MUST be openly specified by the specification using it.
 
 ~~~~
  0                   1                   2                   3
@@ -830,7 +830,20 @@ GEN-3: Provable Registration
 
 ## IANA DRIP Registry
 
-This document requests a new registry for Frame Type under the [DRIP registry group](https://www.iana.org/assignments/drip/drip.xhtml).
+This document requests two new registries, for SAM Type and Frame Type, under the [DRIP registry group](https://www.iana.org/assignments/drip/drip.xhtml).
+
+SAM Type:
+
+: This registry is a mirror for SAM Types containing the subset of allocations used by DRIP Authentication Messages. Future additions MUST be done through ICAO using their process. The following values have been allocated by ICAO and are defined here:
+
+~~~~
+| SAM Type   | Name          | Description      |
+| ---------- | ------------- | ---------------- |
+| 0x01       | DRIP Link     |  |
+| 0x02       | DRIP Wrapper  |  |
+| 0x03       | DRIP Manifest |  |
+| 0x04       | DRIP Frame    |  |
+~~~~
 
 DRIP Frame Type:
 
