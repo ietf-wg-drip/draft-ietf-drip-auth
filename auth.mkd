@@ -335,7 +335,7 @@ As such DRIP transmitters are REQUIRED to adhere to the following when using the
 
 All formats defined in this section are the content for the `Authentication Data/Signature` field in {{astm-auth}} and use the Specific Authentication Method (SAM, Authentication Type 0x5). The first byte of the `Authentication Data / Signature` of {{astm-auth}}, is used to multiplex between these various formats.
 
-When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Legacy Transports, then {{fec-details}} MUST be used. {{auth-state-diagrams}} gives a high-level overview of a state machine for decoding and determining a trustworthiness state. {{appendix-c}} shows an example of using the formats defined in this section.
+When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Legacy Transports, then {{fec-details}} MUST be used. {{auth-state-diagrams}} gives a high-level overview of the various states machine for determining a trustworthiness state and examples of each.
 
 ## Endorsement Structure for UA Signed Evidence {#bas}
 
@@ -887,241 +887,180 @@ A mitigation of this is that the UA public key SHOULD NOT be exposed any sooner 
 
 --- back
 
-# Authentication State Diagrams & Color Scheme {#auth-state-diagrams}
+# Authentication States {#auth-state-diagrams}
 
 ASTM Authentication has only three states: None, Invalid, and Valid. This is because, under ASTM, the authentication is done by an external service hosted somewhere on the Internet so it is assumed you will always get some sort of answer back. This classification becomes more complex in DRIP with the support of "offline" scenarios where a receiver does not have Internet connectivity. With the use of asymmetric keys this means that the public key (PK) must somehow be obtained. {{drip-registries}} gets more into detail how these keys are stored on DNS and one reason for DRIP Authentication is to send PK's over Broadcast RID.
 
 There are two keys of interest: the PK of the UA and the PK of the DIME. This document describes how to send the PK of the UA over the Broadcast RID messages. The key of the DIME can be sent over Broadcast RID using the same mechanisms (see {{drip-link}} and {{drip-recommendations}}) but is not required due to potential operational constraints of sending multiple DRIP Link messages. As such, there are scenarios where part of the key-chain is available, but not all of it.
 
-The intent of this appendix is to give some kind of recommended way to classify these various states and convey it to the user through colors and state names/text.
+The intent of this appendix is to give some kind of recommended way to classify these various states and convey it to the user through colors and state names/text. These states can apply to either a single authentication message, a DET (and its associated public key), and/or a transmitter.
 
-## State Colors
-
-The table below lays out the RECOMMENDED colors to associate with state.
+The table below lays out the RECOMMENDED colors to associate with state and a brief description of each.
 
 | State        | Color  | Details                                                         |
 | ------------ | ------ | --------------------------------------------------------------- |
-| None         | Black  | No Authentication being received                                |
+| None         | Black  | No Authentication being received (as yet)                       |
 | Partial      | Gray   | Authentication being received but missing pages                 |
 | Unsupported  | Brown  | Authentication Type/SAM Type of received message not supported  |
-| Unverifiable | Yellow | Data needed for verification missing                            |
+| Unverifiable | Yellow | Data needed for verification of full authentication message missing |
 | Verified     | Green  | Valid verification results                                      |
-| Trusted      | Blue   | Valid verification results and DIME is marked as trusted        |
+| Trusted      | Blue   | Valid verification results and DIME is marked as only registering trusted clients |
 | Questionable | Orange | Inconsistent verification results                               |
 | Unverified   | Red    | Invalid verification results                                    |
-| Conflicting  | Purple | Inconsistent verification results and DIME is marked as trusted |
+| Conflicting  | Purple | Inconsistent verification results and DIME is marked as only registering trusted clients |
 
-## State Diagrams
+## None: Black
 
-This section gives some RECOMMENDED state flows that DRIP implementations should follow. Note that the state diagrams do not have all error conditions mapped.
-
-### Notations
+The default state where no authentication information has yet to be received or trust is unknown.
 
 ~~~~
-o--------------o
-|   PROCESS    |
-o--------------o
-
-+--------------+
-|    STATE     |
-+--------------+
-
- ooooo
-o  N  o    Transition N
- ooooo
-
-+----->    Transition Option False/No
-
------>     Transition Option True/Yes
-
-~~~~
-{:fig #state-notations title="Diagram Notations"}
-
-### General
-
-~~~~
-o---------------------o      ooooo        +------+
-|        Start        |---->o  1  o+----->| None |
-o---------------------o      ooooo        +------+
-                               |
-                               v
-                             ooooo        +-------------+
-                            o  2  o+----->| Unsupported |
-                             ooooo        +-------------+
-                               |             ^
-                               v             |
-          +---------+        ooooo           |
-          | Partial |<-----+o  3  o          |
-          +---------+        ooooo           |
-                               |             |
-                               v             +
-                             ooooo         ooooo        o-------------o
-                            o  4  o------>o  5  o------>| SAM Decoder |
-                             ooooo         ooooo        o-------------o
-                               +
-                               |
-                               v
-                        o------------------o
-                        | AuthType Decoder |
-                        o------------------o
-~~~~
-{:fig #std-state-fig title="Standard Authentication Colors/State"}
-
-| Transition | Transition Query                              | Next State/Process/Transition (Yes, No) |
-| ---------- | --------------------------------------------- | --------------------------------------- |
-| 1          | Receiving Authentication Pages?               | 2, None                                 |
-| 2          | Authentication Type Supported?                | 3, Unsupported                          |
-| 3          | All Pages of Authentication Message Received? | 4, Partial                              |
-| 4          | Is Authentication Type received 5?            | 5, AuthType Decoder                     |
-| 5          | Is SAM Type Supported?                        | SAM Decoder, Unsupported                |
-
-### DRIP SAM
-
-~~~~
-o-------------o      ooooo        o-----------------------------o
-| SAM Decoder |---->o  6  o------>| DRIP Wrapper/Manifest/Frame |
-o-------------o      ooooo        o-----------------------------o
-                       +                 |              ^
-                       |                 |              |
-                       v                 v              |
-                o-----------o    o--------------------o |
-                | DRIP Link |--->| Update State Cache | |
-                o-----------o    o--------------------o |
-                                   |                    |
-                                   v                    |
-        o--------------o         ooooo       o----------------------o
-        | NOP / Return |<------+o  7  o----->| Extract Message from |
-        o--------------o         ooooo       | Verification Queue   |
-                                             o----------------------o
-~~~~
-{:fig #sam-state-fig title="DRIP SAM Decoder"}
-
-| Transition | Transition Query                | Next State/Process/Transition (Yes, No)               |
-| ---------- | ------------------------------- | ----------------------------------------------------- |
-| 6          | Is SAM Type DRIP Link?          | DRIP Link, DRIP Wrapper/Manifest/Frame                |
-| 7          | Messages in Verification Queue? | Extract Message from Verification Queue, NOP / Return |
-
-### DRIP Link {#link-diagram}
-
-~~~~
-o-----------o       ooooo         ooooo        +--------------+
-| DRIP Link |----->o  8  o+----->o  9  o+----->| Unverifiable |
-o-----------o       ooooo         ooooo        +--------------+
-                      |             |
-                      |-------------'
-                      v
-                    ooooo        +------------+
-                   o  10 o+----->| Unverified |
-                    ooooo        +------------+
-                      |
-                      v
-                o---------------------o
-                | Add UA DET/PK       |
-                | to Key Cache        |
-                o---------------------o
-                      |
-                      v
-                    ooooo         +----------+
-                   o  11 o+------>| Verified |
-                    ooooo         +----------+
-                      |              ^
-                      v              |
-                o-------------------------o
-                | Mark UA DET/PK          |
-                | as Trusted in Key Cache |
-                o-------------------------o
-~~~~ 
-{:fig #drip-link-state-fig title="DRIP Link State Decoder"}
-
-| Transition | Transition Query                            | Next State/Process/Transition (Yes, No)                |
-| ---------- | --------------------------------------------| ------------------------------------------------------ |
-| 8          | DIME DET/PK in Key Cache?                   | 10, 9                                                  |
-| 9          | DIME PK found Online?                       | 10, Unverifiable                                       |
-| 10         | DIME Signature Verified?                    | Add UA DET/PK to Key Cache, Unverified                 |
-| 11         | DIME DET/PK marked as Trusted in Key Cache? | Mark UA DET/PK as Trusted in Key Cache, Verified       |
-
-### DRIP Wrapper/Manifest/Frame
-
-~~~~
-o-----------------------------o         +--------------+
-| DRIP Wrapper/Manifest/Frame |         | Unverifiable |
-o-----------------------------o         +--------------+
-           |                                   ^
-           v                                   |
-         ooooo         ooooo        o--------------------o
-        o  12 o+----->o  13 o+----->| Add Message to     |
-         ooooo         ooooo        | Verification Queue |
-           |             |          o--------------------o
-           |             |                    
-           |-------------'             
-           v                           
-         ooooo         ooooo         ooooo        +------------+
-        o  14 o+----->o  15 o+----->o  16 o+----->| Unverified |
-         ooooo         ooooo         ooooo        +------------+
-           |             |             |
-           v             v             |
-         ooooo        +-------------+  |
-        o  17 o+----->| Conflicting |  |
-         ooooo        +-------------+  |
-           |                           |
-           v                           v
-         ooooo                  +--------------+
-        o  18 o---------------->| Questionable |
-         ooooo                  +--------------+
-           +
-           |
-           v
-         ooooo        +----------+
-        o  19 o+----->| Verified |
-         ooooo        +----------+
-           |
-           v
-        +---------+
-        | Trusted |
-        +---------+
-~~~~
-{:fig #drip-state-fig title="DRIP Wrapper/Manifest/Frame State Decoder"}
-
-| Transition | Transition Query                                                          | Next State/Process/Transition (Yes, No) |
-| ---------- | ------------------------------------------------------------------------- | --------------------------------------- |
-| 12         | UA DET/PK in Key Cache?                                                   | 14, 13                                  |
-| 13         | UA PK found Online?                                                       | 14, Add Message to Verification Queue   |
-| 14         | UA Signature Verified?                                                    | 17, 15                                  |
-| 15         | Has past Messages of this type been marked as Trusted?                    | Conflicting, 16                         |
-| 16         | Has past Messages of this type been marked as Questionable or Verified?   | Questionable, Unverified                |
-| 17         | Has past Messages of this type been marked as Conflicting?                | Conflicting, 18                         |
-| 18         | Has past Messages of this type been marked as Questionable or Unverified? | Questionable, 19                        |
-| 19         | Is UA DET/PK marked as Trusted in Key Cache?                              | Trusted, Verified                       |
-
-# Example TX/RX Flow {#appendix-c}
-
-In this example, the UA is sending all DRIP Authentication Message formats (DRIP Link, DRIP Wrapper, and DRIP Manifest) during flight, along with standard ASTM Messages. The objective is to show the combinations of messages that must be received to properly validate a DRIP-equipped UA and examples of their various states (as described in {{auth-state-diagrams}}).
-
-~~~~
-        +-------------------+
-  .-----| Unmanned Aircraft |-----.
-  |     +-------------------+     |
-  | 0             | 1             | 2
-  |               |               |
-
-  O               O               O
---|--           --|--           --|--
- / \             / \             / \
-  A               B               C
-
-
-Broadcast Paths: Messages Received
-0: None
-1: DRIP Link or DRIP Wrapper or DRIP Manifest
-2: DRIP Link and (DRIP Wrapper or DRIP Manifest)
-
-Observers: Authentication State
-A: None
-B: Unverifiable
-C: Verified, Trusted, Unverified, Questionable, or Conflicting
++-------------------+
+| Unmanned Aircraft |
++-------------------+
+          |
+          | No authentication message(s)
+          |
+          
+          O
+        --|--
+         / \
 ~~~~
 
-As the above example shows to properly authenticate both a DRIP Link and a DRIP Wrapper or DRIP Manifest are required.
+## Partial: Gray
+
+A pending state where authentication pages are being received but a full authentication message has yet to be compiled. This state is scoped to handling frames, not full messages.
+
+~~~~
++-------------------+
+| Unmanned Aircraft |
++-------------------+
+          |
+          | No full authentication message received
+          |
+          
+          O
+        --|--
+         / \
+~~~~
+
+## Unsupported: Brown
+
+A state representing The only authentication data being received, at this point, is not supported. This can be either due to not supporting the decoding of Authentication Type or SAM Type. This state is scoped to handling frames, not full messages.
+
+~~~~
++-------------------+
+| Unmanned Aircraft |
++-------------------+
+          |
+          | Not supported (Authentication Type || SAM Type)
+          |
+          
+          O
+        --|--
+         / \
+~~~~
+
+## Unverifiable: Yellow
+
+A pending state where a full authentication message has been received but other information, such as public keys to verify signatures, is missing. This state is scoped to handling an authentication message or list of them.
+
+~~~~
++-------------------+
+| Unmanned Aircraft |
++-------------------+
+          |
+          | (DRIP Link || DRIP Wrapper || DRIP Manifest) && PK == (None || Unsupported || Unverifiable)
+          |
+          
+          O
+        --|--
+         / \
+~~~~
+
+## Verified: Green
+
+A state where all authentication messages that have been received, up to that point, pass signature verification. This state is scoped to handling a full authentication message or list of them that have been validated.
+
+~~~~
++-------------------+
+| Unmanned Aircraft |
++-------------------+
+          |
+          | DRIP Link == Verified && (DRIP Wrapper || DRIP Manifest) == Verified && PK == Verified
+          |
+          
+          O
+        --|--
+         / \
+~~~~
+
+## Trusted: Blue
+
+A state where all authentication messages that has been received, up to that point, pass signature verification and the public key of the aircraft is marked as trusted. In DRIP the trust of the aircraft key typically is done when a DIME, via its policy, only registers "verified" users and that the receiver, also via policy (either independently or their organization), marks that DIME as trusted. Any key under that DIME transitively becomes trusted as well. This state is scoped to handling a list of authentication messages that have been validated.
+
+~~~~
++-------------------+
+| Unmanned Aircraft |
++-------------------+
+          |
+          | DRIP Link == Verified && (DRIP Wrapper || DRIP Manifest == Verified) && PK == Trusted
+          |
+          
+          O
+        --|--
+         / \
+~~~~
+
+## Questionable: Orange
+
+A state where there is a mix of authentication messages received that are verified and unverified. This state is scoped to handling a list of authentication messages that have been validated.
+
+~~~~
++-------------------+
+| Unmanned Aircraft |
++-------------------+
+          |
+          | DRIP Link == (Verified || Unverified) && (DRIP Wrapper || DRIP Manifest) == (Verified || Unverified) || PK == (Questionable || Verified)
+          |
+          
+          O
+        --|--
+         / \
+~~~~
+
+## Unverified: Red
+
+A state where all authentication messages that have been received, up to that point, failed signature verification. This state is scoped to handling a full authentication message or list of them.
+
+~~~~
++-------------------+
+| Unmanned Aircraft |
++-------------------+
+          |
+          | All signatures fail || PK == Unverified
+          |
+          
+          O
+        --|--
+         / \
+~~~~
+
+## Conflicting: Purple
+
+A state where there is a mix of authentication messages received that are verified and unverified and the public key of the aircraft is marked as trusted. This state is scoped to handling a list of authentication messages that have been validated.
+
+~~~~
++-------------------+
+| Unmanned Aircraft |
++-------------------+
+          |
+          | DRIP Link == (Verified || Unverified) && (DRIP Wrapper || DRIP Manifest) == (Verified || Unverified) && PK == (Trusted || Conflicting)
+          |
+          
+          O
+        --|--
+         / \
+~~~~
 
 # Operational Recommendation Analysis {#operational-proof}
 
