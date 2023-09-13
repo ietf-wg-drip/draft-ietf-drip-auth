@@ -778,8 +778,6 @@ It is REQUIRED that a UA send the following DRIP Authentication Formats to fulfi
 
 UAS operation may impact the frequency of sending DRIP Authentication messages. Where a UA is dwelling in one location, and the channel is heavily used by other devices, "occasional" message authentication may be sufficient for an Observer. Contrast this with a UA traversing an area, and then every message should be authenticated as soon as possible for greatest success as viewed by the receiver.
 
-<!-- TODO: reread section and confirm class name vs member name and sanity of text -->
-
 Thus how/when these DRIP Authentication Messages are sent is up to each implementation. Further complication comes in contrasting Legacy and Extended Transports.  In Legacy, each message is a separate hash within the Manifest. So, again in dwelling, may lean toward occasional message authentication. In Extended Transports, the hash is over the Message Pack so only few hashes need to be in a Manifest. A single Manifest can handle a potential two Message Packs (for a full set of messages) and a DRIP Link Authentication Message for the `Broadcast Endorsement: HDA, UA`.
 
 A separate issue is the frequency of transmitting the DRIP Link Authentication Message for the `Broadcast Endorsement: HDA, UA` when using the Manifest. This message content is static; its hash never changes radically. The only change is the 4-byte timestamp in the Authentication Message headers. Thus, potentially, in a dwelling operation it can be sent once per minute, where its hash is in every Manifest. A receiver can cache all DRIP Link Authentication Message for the `Broadcast Endorsement: HDA, UA` to mitigate potential packet loss.
@@ -883,8 +881,9 @@ A mitigation of this is that the UA public key SHOULD NOT be exposed any sooner 
 
 - Ryan Quigley and James Mussi of AX Enterprize, LLC for early prototyping to find holes in the draft specifications.
 - Soren Friis for pointing out that Wi-Fi implementations would not always give access to the MAC Address, originally used in calculation of the hashes for DRIP Manifest. Also, for confirming that Message Packs (0xF) can only carry up to 9 ASTM frames worth of data (9 Authentication pages).
-- Many thanks to Rick Salz for the secdir review.
-- Thanks to Matt Joras for a genart review.
+- Thanks to the following reviewers:
+  - Rick Salz (secdir)
+  - Matt Joras (genart)
 
 --- back
 
