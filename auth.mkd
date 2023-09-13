@@ -1177,6 +1177,8 @@ For this example we will assume the following ASTM Messages are in play:
 
 This message set uses all single frame ASTM Messages, sending a set of them (Location, System and Operator ID) at a rate of 2 per second. Two Basic IDs are sent in a single second and rotate between the 4 defined (1x per type). A single Self ID is sent every second. All messages in a given second, if appear more than once, are exact duplicates.
 
+This example, as exactly presented here, would never make sense in practice, as a Single Use Session ID is pointless in conjunction with any other Basic ID. This is just to show that you _could_ send everything, that doing so would have an overhead not much over 100%, and that you _could_ create a reasonable practical schedule by simply "puncturing" this one (omitting those messages you don't need or want).
+
 ~~~~
 +-----------------------------------------------------------+
 |                        Frame Slots                        |
@@ -1210,13 +1212,12 @@ O = Operator ID Message (0x5)
 L[y,z] = DRIP Link Authentication Message (0x2)
 W[y,z] = DRIP Wrapper Authentication Message (0x2)
   Wrapping Location (0x1) and System (0x4)
-M(x)[y,z] = DRIP Manifest Authentication Message (0x2)
-  x = Number Hashes
+M[y,z] = DRIP Manifest Authentication Message (0x2)
   y = Start Page
   z = End Page
 * = Message in DRIP Manifest Authentication Message
 ~~~~
-{:fig #schedule-fig title="Example Transmit Schedule"}
+{:fig #schedule-fig title="Example Legacy Transport Transmit Schedule"}
 
 Manifest messages in the schedule are filled with unique messages from previously transmitted messages before the new Manifest is sent. In {{schedule-fig}}, this is denoted by the `*` symbol as being part of the Manifest. In {{schedule-fig}}, messages are eligible for the Manifest in the very first cycle of transmission. In future iterations, 56 messages are eligible across the 7 seconds it takes to send the previous Manifest and the next Link/Wrapper. Care should be given into the selection of messages for a Manifest as there is a limit of 11 hashes.
 
