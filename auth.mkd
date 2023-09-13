@@ -114,7 +114,7 @@ ASTM Message (25-bytes):
 
 ASTM Message Hash (8-bytes):
 
-> Hash of a single full ASTM Message using hash operations described in ({{hash-op}}). Multiple hashes MUST be in Message Type order.
+> Hash of a single full ASTM Message using hash operations described in ({{hash-op}}). ASTM Message includes Message Type and Protocol Version and does not include the Message Counter.
 
 Broadcast Endorsement (136-bytes):
 
