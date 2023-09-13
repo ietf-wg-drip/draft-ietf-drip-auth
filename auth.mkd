@@ -873,6 +873,12 @@ Note the discussion of VNA Timestamp offsets here is in context of the DRIP Wrap
 
 The offset of the `VNA Timestamp by UA` is one that needs careful consideration for any implementation. The offset should be shorter than any given flight duration (typically less than an hour) but be long enough to be received and processed by Observers (larger than a few seconds). It recommended that 3-5 minutes should be sufficient to serve this purpose in any scenario, but is not limited by design.
 
+## Brute Force Attacks
+
+The authentication methods presented in this document work well for usages where "shadowing" is determined a high threat that needs to be mitigated. This specification does not perform well in scenarios where a UA is spoofing either in a different area or time.
+
+A mitigation of this is that the UA public key SHOULD NOT be exposed any sooner than necessary by {{drip-registries}}
+
 # Acknowledgments
 
 - Ryan Quigley and James Mussi of AX Enterprize, LLC for early prototyping to find holes in the draft specifications.
