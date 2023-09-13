@@ -1156,6 +1156,7 @@ Comparing DRIP Wrapper and Manifest Authentication Message frame counts we have 
 | 9                    | N/A            | 10              | N/A                  | 19
 | 10                   | N/A            | 10              | N/A                  | 20
 | 11                   | N/A            | 10              | N/A                  | 21
+| 12                   | N/A            | 12              | N/A                  | 24
 {: #tbl-frame-counts title="Frame Counts"}
 
 Note that for `Manifest Frames` the calculations use an `Item Count` that is `2 + Authentication Frames`. This is to account for the two special hashes.
