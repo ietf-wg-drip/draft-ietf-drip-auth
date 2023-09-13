@@ -1245,3 +1245,153 @@ Link: IANA on UAS RID Apex
 ~~~~
 
 Any messages not required for a local jurisdiction can be removed from the schedule. It is RECOMMENDED this empty frame slot is left empty to help with timing due to RF constraints/concerns. For example, in the US the Self ID (0x3) and Operator ID (0x5) are not required and can be ignored in the above figures. Only one Basic ID (0x0) is selected in the US at any given time, opening up three (3) more slots.
+
+## US Example
+
+~~~~
+{A|C|D}, V, I, S, M[0,3]
+{A|C|D}, V, I, S, M[4,7]
+
+{A|C|D}, V, I, S, M[8,9], L[0], M[0]
+{A|C|D}, V, I, S, M[1,4]
+
+{A|C|D}, V, I, S, M[5,8]
+{A|C|D}, V, I, S, M[9], L[1], M[0,1]
+
+{A|C|D}, V, I, S, M[2,5]
+{A|C|D}, V, I, S, M[6,9]
+
+{A|C|D}, V, I, S, L[2], M[0,2]
+{A|C|D}, V, I, S, M[3,6]
+
+{A|C|D}, V, I, S, M[7,9], L[3]
+{A|C|D}, V, I, S, M[0,3]
+
+{A|C|D}, V, I, S, M[4,7]
+{A|C|D}, V, I, S, M[8,9], L4, M[0]
+
+{A|C|D}, V, I, S, M[1,4]
+{A|C|D}, V, I, S, M[5,8]
+
+{A|C|D}, V, I, S, M[9], L[5], M[0,1]
+{A|C|D}, V, I, S, M[2,5]
+
+{A|C|D}, V, I, S, M[6,9]
+{A|C|D}, V, I, S, L[6], M[0,2]
+
+{A|C|D}, V, I, S, M[3,6]
+{A|C|D}, V, I, S, M[7,9], L[7]
+
+A = Basic ID Message (0x0) ID Type 1
+C = Basic ID Message (0x0) ID Type 3
+D = Basic ID Message (0x0) ID Type 4
+V = Location/Vector Message (0x1)
+I = Self ID Message (0x3)
+S = System Message (0x4)
+
+L[y,z] = DRIP Link Authentication Message (0x2)
+M[y,z] = DRIP Manifest Authentication Message (0x2)
+  y = Start Page
+  z = End Page
+~~~~
+{:fig #us-schedule-fig title="US Example Legacy Transport Transmit Schedule"}
+
+## EU Example
+
+~~~~
+{A|C|D}, V, I, S, O, M[0,4]
+{A|C|D}, V, I, S, O, M[5,9]
+
+{A|C|D}, V, I, S, O, L[0], M[0,3]
+{A|C|D}, V, I, S, O, M[4,8]
+
+{A|C|D}, V, I, S, O, M[9], L[1], M[0,2]
+{A|C|D}, V, I, S, O, M[3,7]
+
+{A|C|D}, V, I, S, O, M[8,9], L[2], M[0,1]
+{A|C|D}, V, I, S, O, M[2,6]
+
+{A|C|D}, V, I, S, O, M[7,9], L[3], M[0]
+{A|C|D}, V, I, S, O, M[1,5]
+
+{A|C|D}, V, I, S, O, M[6,9], L[4]
+{A|C|D}, V, I, S, O, M[0,4]
+
+{A|C|D}, V, I, S, O, M[5,9]
+{A|C|D}, V, I, S, O, L[5], M[0,3]
+
+{A|C|D}, V, I, S, O, M[4,8]
+{A|C|D}, V, I, S, O, M[9], L[6], M[0,2]
+
+{A|C|D}, V, I, S, O, M[3,7]
+{A|C|D}, V, I, S, O, M[8,9], L[7], M[0,1]
+
+{A|C|D}, V, I, S, O, M[2,6]
+{A|C|D}, V, I, S, O, M[7,9], L[0], M[0]
+
+{A|C|D}, V, I, S, O, M[1,5]
+{A|C|D}, V, I, S, O, M[6,9], L[1]
+
+A = Basic ID Message (0x0) ID Type 1
+C = Basic ID Message (0x0) ID Type 3
+D = Basic ID Message (0x0) ID Type 4
+V = Location/Vector Message (0x1)
+I = Self ID Message (0x3)
+S = System Message (0x4)
+O = Operator ID Message (0x5)
+
+L[y,z] = DRIP Link Authentication Message (0x2)
+M[y,z] = DRIP Manifest Authentication Message (0x2)
+  y = Start Page
+  z = End Page
+~~~~
+{:fig #eu-schedule-fig title="EU Example Legacy Transport Transmit Schedule"}
+
+## JP Example
+
+~~~~
+A, B, V, I, S, M[0,4]
+A, B, V, I, S, M[5,9]
+
+A, B, V, I, S, L[0], M[0,3]
+A, B, V, I, S, M[4,8]
+
+A, B, V, I, S, M[9], L[1], M[0,2]
+A, B, V, I, S, M[3,7]
+
+A, B, V, I, S, M[8,9], L[2], M[0,1]
+A, B, V, I, S, M[2,6]
+
+A, B, V, I, S, M[7,9], L[3], M[0]
+A, B, V, I, S, M[1,5]
+
+A, B, V, I, S, M[6,9], L[4]
+A, B, V, I, S, M[0,4]
+
+A, B, V, I, S, M[5,9]
+A, B, V, I, S, L[5], M[0,3]
+
+A, B, V, I, S, M[4,8]
+A, B, V, I, S, M[9], L[6], M[0,2]
+
+A, B, V, I, S, M[3,7]
+A, B, V, I, S, M[8,9], L[7], M[0,1]
+
+A, B, V, I, S, M[2,6]
+A, B, V, I, S, M[7,9], L[0], M[0]
+
+A, B, V, I, S, M[1,5]
+A, B, V, I, S, M[6,9], L[1]
+
+A = Basic ID Message (0x0) ID Type 1
+B = Basic ID Message (0x0) ID Type 2
+V = Location/Vector Message (0x1)
+I = Self ID Message (0x3)
+S = System Message (0x4)
+
+L[y,z] = DRIP Link Authentication Message (0x2)
+M[y,z] = DRIP Manifest Authentication Message (0x2)
+  y = Start Page
+  z = End Page
+~~~~
+{:fig #jp-schedule-fig title="JP Example Legacy Transport Transmit Schedule"}
