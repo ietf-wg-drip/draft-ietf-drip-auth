@@ -303,10 +303,10 @@ For DRIP the following SAM Types are allocated:
 
 | SAM Type | Description                       |
 | -------- | --------------------------------- |
-| TBD1     | DRIP Link ({{drip-link}})         |
-| TBD2     | DRIP Wrapper ({{drip-wrapper}})   |
-| TBD3     | DRIP Manifest ({{drip-manifest}}) |
-| TBD4     | DRIP Frame ({{drip-frame}})       |
+| 0x01     | DRIP Link ({{drip-link}})         |
+| 0x02     | DRIP Wrapper ({{drip-wrapper}})   |
+| 0x03     | DRIP Manifest ({{drip-manifest}}) |
+| 0x04     | DRIP Frame ({{drip-frame}})       |
 
 > Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In accordance with {{F3411}} Annex 5, International Civil Aviation Organization (ICAO) has been selected by ASTM as the registrar to manage allocations of these code points.
 
@@ -829,19 +829,19 @@ GEN-3: Provable Registration
 
 ## IANA DRIP Registry
 
-This document requests two new registries, for SAM Type and Frame Type, under the [DRIP registry group](https://www.iana.org/assignments/drip/drip.xhtml).
+This document requests two new registries, for DRIP SAM Type and DRIP Frame Type, under the [DRIP registry group](https://www.iana.org/assignments/drip/drip.xhtml).
 
-SAM Type:
+DRIP SAM Type:
 
-: This registry is a mirror for SAM Types containing the subset of allocations used by DRIP Authentication Messages. Future additions MUST be done through ICAO using their process. The following values have been allocated by ICAO and are defined here:
+: This registry is a mirror for SAM Types containing the subset of allocations used by DRIP Authentication Messages. Future additions MUST be done through ICAO using their process. The following values have been allocated by ICAO to the IETF and are defined here:
 
 ~~~~
 | SAM Type   | Name          | Description      |
 | ---------- | ------------- | ---------------- |
-| 0x01       | DRIP Link     |  |
-| 0x02       | DRIP Wrapper  |  |
-| 0x03       | DRIP Manifest |  |
-| 0x04       | DRIP Frame    |  |
+| 0x01       | DRIP Link     | - |
+| 0x02       | DRIP Wrapper  | - |
+| 0x03       | DRIP Manifest | - |
+| 0x04       | DRIP Frame    | - |
 ~~~~
 
 DRIP Frame Type:
