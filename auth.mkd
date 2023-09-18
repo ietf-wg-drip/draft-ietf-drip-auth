@@ -154,11 +154,11 @@ UA Signature (64-bytes):
 
 Valid Not After (VNA) Timestamp by UA (4-bytes):
 
-> Timestamp denoting recommended time to stop trusting data in {{drip-data}}. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp (with an epoch of `01/01/2019 00:00:00`) with an additional offset to push a short time into the future (relative to `Not Before Timestamp`) to avoid replay attacks. The offset used against the Unix-style timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers. A reasonable time would be to set `Not After Timestamp` 2 minutes after `Not Before Timestamp`.
+> Timestamp denoting recommended time to stop trusting data in {{drip-data}}. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp (with an epoch of `2019-01-01 00:00:00 UTC`) with an additional offset to push a short time into the future (relative to `Not Before Timestamp`) to avoid replay attacks. The offset used against the Unix-style timestamp is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent and clock differences between the UA and Observers. A reasonable time would be to set `Not After Timestamp` 2 minutes after `Not Before Timestamp`.
 
 Valid Not Before (VNB) Timestamp by UA (4-bytes):
 
-> Timestamp denoting recommended time to start trusting data in {{drip-data}}. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp with an epoch of `01/01/2019 00:00:00`. MUST be set no earlier than the time the signature is generated.
+> Timestamp denoting recommended time to start trusting data in {{drip-data}}. MUST follow the format defined in {{F3411}}. That is a Unix-style timestamp with an epoch of `2019-01-01 00:00:00 UTC`. MUST be set no earlier than the time the signature is generated.
 
 # Background
 
@@ -757,7 +757,7 @@ The worst case scenario is when the `Authentication Data / Signature` ends perfe
 
 With Legacy Advertisements the goal is to attempt to bring reliable receipt of the paged Authentication Message. FEC ({{fec-details}}) MUST be used, per mandated RID rules (for example the US FAA RID Rule {{FAA-14CFR}}), when using Legacy Advertising methods (such as Bluetooth 4.x).
 
-Under {{F3411}}, transmission of dynamic messages is at least every 1 second. Any DRIP Authentication Messages typically containing dynamic data (such as the DRIP Wrapper) SHOULD be sent at the dynamic rate of 1 per second. All other DRIP Authentication Messages SHOULD be sent at the static rate.
+Under {{F3411}}, transmission of Authentication Messages are sent at the static rate (at least every 3 seconds). Any DRIP Authentication Messages containing dynamic data (such as the DRIP Wrapper) MAY be sent at the dynamic rate (at least every 1 second).
 
 ## Extended Transports
 
