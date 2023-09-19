@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-32
+docname: draft-ietf-drip-auth-33
 category: std
 
 ipr: trust200902
@@ -170,7 +170,7 @@ The standardization of specific formats to support the DRIP requirements in UAS 
 
 ### UA Signed Evidence {#ua-attestation}
 
-When an Observer receives a DRIP-based Authentication Message ({{drip-wrapper}}, {{drip-manifest}}, or {{drip-frame}}) containing UA-signed Evidence (in an Endorsement structure {{bas}}) it SHOULD validate the signature using the Host Identity (HI) corresponding to the UA's DRIP Entity Tag (DET).
+When an Observer receives a DRIP-based Authentication Message ({{drip-wrapper}}, {{drip-manifest}}, or {{drip-frame}}) containing UA-signed Evidence (in an Endorsement structure {{bas}}) it SHOULD validate the signature using the HI corresponding to the UA's DRIP Entity Tag (DET).
 
 The UA's HI SHOULD be retrieved from DNS. If not available it may have been revoked. Note that accurate revocation status is a DIME inquiry; DNS non-response is a hint to the DET being expired or revoked. It MAY be retrieved from a local cache, if present. The local cache is typically populated by DNS lookups and/or by received Broadcast Endorsements ({{dime-attestation}}).
 
@@ -700,7 +700,7 @@ Page N:
 
 ## Decoding {#dec-single-page}
 
-To determine if FEC has been used a simple check of the `Last Page Index` can be used. In general if the `Last Page Index` field is one greater than that necessary to hold `Length` bytes of Authentication Data then FEC has been used. Note however that if `Length` bytes was exhausted exactly at the end of an Authentication Page then the `Additional Data Length` field will occupy the first byte of the following page the remainder of which under DRIP will be null padded. In this case the `Last Page Index` will have been once for initializing the`Additional Data Length` field and once for FEC page, for a total of two additional pages.
+To determine if FEC has been used a simple check of the `Last Page Index` can be used. In general if the `Last Page Index` field is one greater than that necessary to hold `Length` bytes of Authentication Data then FEC has been used. Note however that if `Length` bytes was exhausted exactly at the end of an Authentication Page then the `Additional Data Length` field will occupy the first byte of the following page the remainder of which under DRIP will be null padded. In this case the `Last Page Index` will have been once for initializing the `Additional Data Length` field and once for FEC page, for a total of two additional pages.
 
 To decode FEC in DRIP a rolling XOR is used on each `Authentication Page` received in the current `Authentication Message`. A Message Counter, outside of the ASTM Message but specified in {{F3411}} is used to signal a different `Authentication Message` and to correlate pages to messages. This Message Counter is only 1-byte in length, so it will roll over (to 0x00) after reaching its maximum value (0xFF). If only 1-page is missing in the `Authentication Message` the resulting parity bytes should be the data of the erased page.
 
