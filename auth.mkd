@@ -959,7 +959,7 @@ A state representing The only authentication data being received, at this point,
 | Unmanned Aircraft |
 +-------------------+
           |
-          | Not supported (Authentication Type || SAM Type)
+          | Not supported (Authentication Type OR SAM Type)
           |
           
           O
@@ -976,7 +976,9 @@ A pending state where a full authentication message has been received but other 
 | Unmanned Aircraft |
 +-------------------+
           |
-          | (DRIP Link || DRIP Wrapper || DRIP Manifest) && PK == (None || Unsupported || Unverifiable)
+          | (DRIP Link OR DRIP Wrapper OR DRIP Manifest)
+          | AND
+          | PK == (None OR Unsupported OR Unverifiable)
           |
           
           O
@@ -993,7 +995,11 @@ A state where all authentication messages that have been received, up to that po
 | Unmanned Aircraft |
 +-------------------+
           |
-          | DRIP Link == Verified && (DRIP Wrapper || DRIP Manifest) == Verified && PK == Verified
+          | DRIP Link == Verified 
+          | AND 
+          | (DRIP Wrapper OR DRIP Manifest) == Verified 
+          | AND 
+          | PK == Verified
           |
           
           O
@@ -1010,7 +1016,11 @@ A state where all authentication messages that has been received, up to that poi
 | Unmanned Aircraft |
 +-------------------+
           |
-          | DRIP Link == Verified && (DRIP Wrapper || DRIP Manifest == Verified) && PK == Trusted
+          | DRIP Link == Verified 
+          | AND 
+          | (DRIP Wrapper OR DRIP Manifest == Verified)
+          | AND 
+          | PK == Trusted
           |
           
           O
@@ -1027,7 +1037,11 @@ A state where there is a mix of authentication messages received that are verifi
 | Unmanned Aircraft |
 +-------------------+
           |
-          | DRIP Link == (Verified || Unverified) && (DRIP Wrapper || DRIP Manifest) == (Verified || Unverified) || PK == (Questionable || Verified)
+          | DRIP Link == (Verified OR Unverified) 
+          | AND 
+          | (DRIP Wrapper OR DRIP Manifest) == (Verified OR Unverified) 
+          | OR 
+          | PK == (Questionable OR Verified)
           |
           
           O
@@ -1044,7 +1058,9 @@ A state where all authentication messages that have been received, up to that po
 | Unmanned Aircraft |
 +-------------------+
           |
-          | All signatures fail || PK == Unverified
+          | All signatures fail
+          | OR 
+          | PK == Unverified
           |
           
           O
@@ -1061,7 +1077,11 @@ A state where there is a mix of authentication messages received that are verifi
 | Unmanned Aircraft |
 +-------------------+
           |
-          | DRIP Link == (Verified || Unverified) && (DRIP Wrapper || DRIP Manifest) == (Verified || Unverified) && PK == (Trusted || Conflicting)
+          | DRIP Link == (Verified OR Unverified) 
+          | AND
+          | (DRIP Wrapper OR DRIP Manifest) == (Verified OR Unverified)
+          | AND 
+          | PK == (Trusted OR Conflicting)
           |
           
           O
