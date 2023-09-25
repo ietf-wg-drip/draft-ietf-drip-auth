@@ -205,6 +205,8 @@ The Authentication Message (Message Type 0x2) is a unique message in the {{F3411
 
 ### Authentication Page {#auth-page}
 
+This document leverages Authentication Type 0x5, Specific Authentication Method (SAM), as the principal authentication container, defining a set of SAM Types in {{drip-authentication-formats}}. This is denoted in every Authentication Page in the `Page Header`. The SAM Type is denoted as a field in the `Authentication Payload` (see {{sam-data}}).
+
 {:fig: artwork-align="center"}
 ~~~~
  0                   1                   2                   3
@@ -227,8 +229,6 @@ Authentication Payload: (23 bytes per page)
     Authentication Payload, including headers. Null padded.
 ~~~~
 {:fig #astm-auth-page title="Standard ASTM Authentication Message Page"}
-
-This document leverages Authentication Type 0x5, Specific Authentication Method (SAM), as the principal authentication container, defining a set of SAM Types in {{drip-authentication-formats}}. This is denoted in every Authentication Page in the `Page Header`. The SAM Type is denoted as a field in the `Authentication Payload` (see {{sam-data}}).
 
 The Authentication Message is structured as a set of pages {{astm-auth-page}}. There is a technical maximum of 16 pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a maximum 23-byte `Authentication Payload`. See {{drip-restrictions}} for more details. Over Legacy Transports, these messages are "fragmented", with each page sent in a separate Legacy Transport frame.
 
@@ -304,7 +304,7 @@ Authentication data (opaque to baseline F3411 but parsed by DRIP).
 
 ##### SAM Type
 
-For DRIP the following SAM Types are allocated:
+The following SAM Types are allocated to DRIP:
 
 | SAM Type | Description                       |
 | -------- | --------------------------------- |
@@ -312,8 +312,9 @@ For DRIP the following SAM Types are allocated:
 | 0x02     | DRIP Wrapper ({{drip-wrapper}})   |
 | 0x03     | DRIP Manifest ({{drip-manifest}}) |
 | 0x04     | DRIP Frame ({{drip-frame}})       |
+{: title="DRIP SAM Types"}
 
-> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In accordance with {{F3411}} Annex 5, International Civil Aviation Organization (ICAO) has been selected by ASTM as the registrar to manage allocations of these code points.
+> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In accordance with {{F3411}} Annex 5, the International Civil Aviation Organization (ICAO) has been selected by ASTM as the registrar to manage allocations of these code points.
 
 ##### SAM Authentication Data
 
@@ -500,7 +501,7 @@ The maximum number of messages supported is 4. The messages MUST be in Message T
 
 ### Wrapped Count & Sanity Check
 
-When decoding a DRIP Wrapper on a receiver, a calculation of the number of messages wrapped and a sanity check can be performed by using the number of bytes (defined as `wrapperLength`) between the `UA DET` and the `VNB Timestamp by UA` such as in {{wrapper-check}}.
+When decoding a DRIP Wrapper on a receiver, a calculation of the number of messages wrapped and a sanity check can be performed by using the number of bytes (defined as `wrapperLength`) between the `UA DET` and the `VNB Timestamp by UA` such as the example shown in {{wrapper-check}}.
 
 ~~~~
 if (wrapperLength MOD 25) != 0 {
@@ -588,7 +589,7 @@ A receiver SHOULD use the Manifest to verify each ASTM Message hashed therein th
 
 ### Hash Count & Sanity Check
 
-When decoding a DRIP Manifest on a receiver, a calculation of the number of hashes and a sanity check can be performed by using the number of bytes (defined as `manifestLength`) between the `UA DET` and the `VNB Timestamp by UA` such as in {{manifest-check}}.
+When decoding a DRIP Manifest on a receiver, a calculation of the number of hashes and a sanity check can be performed by using the number of bytes (defined as `manifestLength`) between the `UA DET` and the `VNB Timestamp by UA` such as in the example shown in {{manifest-check}}.
 
 ~~~~
 hashLength = 8
@@ -597,7 +598,7 @@ if (manifestLength MOD hashLength) != 0 {
 }
 hashCount = (manifestLength / hashLength) - 2;
 ~~~~
-{: #manifest-check title="Pseudo-code for Manifest sanity check and number of hashes calculation"}
+{: #manifest-check title="Pseudo-code for Manifest Sanity Check and Number of Hashes Calculation"}
 
 ### Manifest Ledger Hashes {#block-hashes}
 
@@ -652,6 +653,7 @@ Byte to sub-type for future different DRIP Frame formats. It takes the first byt
 | ---------- | ---- | ----------- |
 | 0x00       | Reserved | Reserved |
 | 0xC0-0xFF  | Experimental | Experimental Use |
+{: title="DRIP Frame Types"}
 
 # Forward Error Correction {#fec-details}
 
@@ -850,6 +852,7 @@ DRIP SAM Type:
 | 0x03       | DRIP Manifest | - |
 | 0x04       | DRIP Frame    | - |
 ~~~~
+{: title="DRIP SAM Types"}
 
 DRIP Frame Type:
 
@@ -861,6 +864,7 @@ DRIP Frame Type:
 | 0x00       | Reserved     | Reserved         |
 | 0xC0-0xFF  | Experimental | Experimental Use |
 ~~~~
+{: title="DRIP Frame Types"}
 
 # Security Considerations
 
@@ -915,6 +919,7 @@ The table below lays out the RECOMMENDED colors to associate with state and a br
 | Questionable | Orange | Inconsistent verification results                               |
 | Unverified   | Red    | Invalid verification results                                    |
 | Conflicting  | Purple | Inconsistent verification results and DIME is marked as only registering trusted clients |
+{: title="Authentication State Names, Colors & Descriptions"}
 
 ## None: Black
 
