@@ -57,8 +57,13 @@ normative:
         date: 2022-07
 
 informative:
-    RFC8126:  # iana-considerations
+    # IETF Drafts
     drip-registries: I-D.ietf-drip-registries
+
+    # RFCs
+    RFC8126:  # iana-considerations
+    
+    # External Sources
     FAA-14CFR:
         title: Remote Identification of Unmanned Aircraft
         author:
