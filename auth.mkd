@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-35
+docname: draft-ietf-drip-auth-36
 category: std
 
 ipr: trust200902
@@ -196,7 +196,7 @@ It is necessary for the UA to prove possession by dynamically signing data that 
 
 ## ASTM Authentication Message {#auth-message}
 
-The Authentication Message (Message Type 0x2) is a unique message in the {{F3411}} Broadcast standard as it is the only one that is larger than the Legacy Transport size. To address this, it is defined as a set of "pages", each of which fits into a single Legacy Transport frame. For Extended Transports these pages are still used but are all in a single frame.
+The Authentication Message (Message Type 0x2) is a unique message in the {{F3411}} Broadcast standard as it is the only one that can be larger than the Legacy Transport size. To address this, it is defined as a set of "pages", each of which fits into a single Legacy Transport frame. For Extended Transports these pages are still used but are all in a single frame.
 
 ### Authentication Page {#auth-page}
 
@@ -333,9 +333,11 @@ As such DRIP transmitters are REQUIRED to adhere to the following when using the
 
 # DRIP Authentication Formats
 
-All formats defined in this section are the content for the `Authentication Data/Signature` field in {{astm-auth}} and use the Specific Authentication Method (SAM, Authentication Type 0x5). The first byte of the `Authentication Data / Signature` of {{astm-auth}}, is used to multiplex between these various formats.
+All formats defined in this section are the content for the `Authentication Data/Signature` field in {{astm-auth}} and use the Specific Authentication Method (SAM, Authentication Type 0x5). The first byte of the `Authentication Data / Signature` of {{astm-auth}}, is used to multiplex among these various formats.
 
-When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Legacy Transports, then {{fec-details}} MUST be used. {{auth-state-diagrams}} gives a high-level overview of the various states machine for determining a trustworthiness state and examples of each.
+When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Legacy Transports, then {{fec-details}} MUST be used.
+
+{{auth-state-diagrams}} gives a high-level overview of the various states of trustworthiness along with examples of each.
 
 ## Endorsement Structure for UA Signed Evidence {#bas}
 
@@ -505,7 +507,7 @@ wrappedCount = wrapperLength / 25;
 
 ### Wrapper over Extended Transports {#extended-wrapper}
 
-To send the DRIP Wrapper over Extended Transports the messages being wrapped are co-located with the Authentication Message in a ASTM Message Pack (Message Type 0xF). The `evidence` section of the `Endorsement Structure for UA Signed Evidence` is cleared after signing leaving the following binary structure that is placed into the `SAM Authentication Data` of {{sam-frame}} and sent in the same Message Pack.
+To send the DRIP Wrapper over Extended Transports the messages being wrapped are co-located with the Authentication Message in an ASTM Message Pack (Message Type 0xF). The `evidence` section of the `Endorsement Structure for UA Signed Evidence` is cleared after signing leaving the following binary structure that is placed into the `SAM Authentication Data` of {{sam-frame}} and sent in the same Message Pack.
 
 ~~~~
  0                   1                   2                   3
@@ -603,7 +605,7 @@ The hash algorithm used for the Manifest is the same hash algorithm used in crea
 DET's using cSHAKE128 {{!NIST.SP.800-185}} compute the hash as follows:
 
 ~~~~
-cSHAKE128(ASTM Message, 8, "", "Remote ID Auth Hash")
+cSHAKE128(ASTM Message, 64, "", "Remote ID Auth Hash")
 ~~~~
 
 > Informative Note: for OGAs other than "5" {{RFC9374}}, use the construct appropriate for the associated hash. e.g. for "2" which is ECDSA/SHA-384: `Ltrunc( SHA-384( ASTM Message | "Remote ID Auth Hash" ), 8 )`
@@ -700,7 +702,7 @@ Page N:
 
 ## Decoding {#dec-single-page}
 
-To determine if FEC has been used a simple check of the `Last Page Index` can be used. In general if the `Last Page Index` field is one greater than that necessary to hold `Length` bytes of Authentication Data then FEC has been used. Note however that if `Length` bytes was exhausted exactly at the end of an Authentication Page then the `Additional Data Length` field will occupy the first byte of the following page the remainder of which under DRIP will be null padded. In this case the `Last Page Index` will have been once for initializing the `Additional Data Length` field and once for FEC page, for a total of two additional pages.
+To determine if FEC has been used a simple check of the `Last Page Index` can be used. In general if the `Last Page Index` field is one greater than that necessary to hold `Length` bytes of Authentication Data then FEC has been used. Note however that if `Length` bytes was exhausted exactly at the end of an Authentication Page then the `Additional Data Length` field will occupy the first byte of the following page the remainder of which under DRIP will be null padded. In this case the `Last Page Index` will have been incremented once for initializing the `Additional Data Length` field and once for FEC page, for a total of two additional pages.
 
 To decode FEC in DRIP a rolling XOR is used on each `Authentication Page` received in the current `Authentication Message`. A Message Counter, outside of the ASTM Message but specified in {{F3411}} is used to signal a different `Authentication Message` and to correlate pages to messages. This Message Counter is only 1-byte in length, so it will roll over (to 0x00) after reaching its maximum value (0xFF). If only 1-page is missing in the `Authentication Message` the resulting parity bytes should be the data of the erased page.
 
