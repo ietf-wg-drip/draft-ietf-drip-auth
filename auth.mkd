@@ -47,9 +47,7 @@ author:
     email: rgm@labs.htt-consult.com
 
 normative:
-    RFC9153:  # drip-requirements
     RFC9374:  # drip-rid
-    RFC9434:  # drip-arch
     F3411:
         title: "F3411-22a: Standard Specification for Remote ID and Tracking"
         author:
@@ -62,6 +60,8 @@ informative:
 
     # RFCs
     RFC8126:  # iana-considerations
+    RFC9153:  # drip-requirements
+    RFC9434:  # drip-arch
     
     # External Sources
     FAA-14CFR:
