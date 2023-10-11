@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-37
+docname: draft-ietf-drip-auth-38
 category: std
 
 ipr: trust200902
@@ -900,11 +900,11 @@ A mitigation of this is that the UA public key SHOULD NOT be exposed any sooner 
 
 # Authentication States {#auth-state-diagrams}
 
-ASTM Authentication has only three states: None, Invalid, and Valid. This is because, under ASTM, the authentication is done by an external service hosted somewhere on the Internet so it is assumed you will always get some sort of answer back. This classification becomes more complex in DRIP with the support of "offline" scenarios where a receiver does not have Internet connectivity. With the use of asymmetric keys this means that the public key (PK) must somehow be obtained. {{drip-registries}} gets more into detail how these keys are stored on DNS and one reason for DRIP Authentication is to send PK's over Broadcast RID.
+ASTM Authentication has only three states: None, Invalid, and Valid. This is because, under ASTM, the authentication is done by an external service hosted somewhere on the Internet so it is assumed an authoritative response will always be returned. This classification becomes more complex in DRIP with the support of "offline" scenarios where a receiver does not have Internet connectivity. With the use of asymmetric cryptography this means that the public key (PK) must somehow be obtained. {{drip-registries}} gets more into detail how these keys are stored on DNS and one use of DRIP Authentication messages is to send PK's over Broadcast RID.
 
-There are two keys of interest: the PK of the UA and the PK of the DIME. This document describes how to send the PK of the UA over the Broadcast RID messages. The key of the DIME can be sent over Broadcast RID using the same mechanisms (see {{drip-link}} and {{drip-recommendations}}) but is not required due to potential operational constraints of sending multiple DRIP Link messages. As such, there are scenarios where part of the key-chain is available, but not all of it.
+There are a few keys of interest: the PK of the UA and the PK's of relevant DIMEs. This document describes how to send the PK of the UA over the Broadcast RID messages. The key of DIMEs are sent over Broadcast RID using the same mechanisms (see {{drip-link}} and {{drip-recommendations}}) but MAY be sent at a far lower rate due to potential operational constraints (such as saturation of limited bandwidth). As such, there are scenarios where part of the key-chain may be unavailable at the moment a full Authentication Message is received and processed.
 
-The intent of this appendix is to give some kind of recommended way to classify these various states and convey it to the user through colors and state names/text. These states can apply to either a single authentication message, a DET (and its associated public key), and/or a transmitter.
+The intent of this appendix is to give a recommended way to classify these various states and convey it to the user through colors and state names/text. These states can apply to either a single authentication message, a DET (and its associated public key), and/or a sender.
 
 The table below lays out the RECOMMENDED colors to associate with state and a brief description of each.
 
@@ -913,186 +913,55 @@ The table below lays out the RECOMMENDED colors to associate with state and a br
 | None         | Black  | No Authentication being received (as yet)                       |
 | Partial      | Gray   | Authentication being received but missing pages                 |
 | Unsupported  | Brown  | Authentication Type/SAM Type of received message not supported  |
-| Unverifiable | Yellow | Data needed for verification of full authentication message missing |
+| Unverifiable | Yellow | Data needed for signature verification is missing               |
 | Verified     | Green  | Valid verification results                                      |
-| Trusted      | Blue   | Valid verification results and DIME is marked as only registering trusted clients |
-| Questionable | Orange | Inconsistent verification results                               |
+| Trusted      | Blue   | Valid verification results and DIME is marked as only registering trusted clients using DETs |
 | Unverified   | Red    | Invalid verification results                                    |
-| Conflicting  | Purple | Inconsistent verification results and DIME is marked as only registering trusted clients |
+| Questionable | Orange | evidence of both Verified & Unverified for the same claimed sender |
+| Conflicting  | Purple | evidence of both Trusted & Unverified for the same claimed sender |
 {: title="Authentication State Names, Colors & Descriptions"}
 
-## None: Black
+## None: Black {#black}
 
-The default state where no authentication information has yet to be received or trust is unknown.
+The default state where no authentication information has yet to be received.
 
-~~~~
-+-------------------+
-| Unmanned Aircraft |
-+-------------------+
-          |
-          | No authentication message(s)
-          |
-          
-          O
-        --|--
-         / \
-~~~~
+## Partial: Gray {#gray}
 
-## Partial: Gray
+A pending state where authentication pages are being received but a full authentication message has yet to be compiled.
 
-A pending state where authentication pages are being received but a full authentication message has yet to be compiled. This state is scoped to handling frames, not full messages.
+## Unsupported: Brown {#brown}
 
-~~~~
-+-------------------+
-| Unmanned Aircraft |
-+-------------------+
-          |
-          | No full authentication message received
-          |
-          
-          O
-        --|--
-         / \
-~~~~
+A state wherein authentication data is being or has been received, but cannot be used, as the Authentication Type or SAM Type is not supported by the receiver.
 
-## Unsupported: Brown
+## Unverifiable: Yellow {#yellow}
 
-A state representing The only authentication data being received, at this point, is not supported. This can be either due to not supporting the decoding of Authentication Type or SAM Type. This state is scoped to handling frames, not full messages.
+A pending state where a full authentication message has been received but other information, such as public keys to verify signatures, is missing.
 
-~~~~
-+-------------------+
-| Unmanned Aircraft |
-+-------------------+
-          |
-          | Not supported (Authentication Type OR SAM Type)
-          |
-          
-          O
-        --|--
-         / \
-~~~~
+## Verified: Green {#green}
 
-## Unverifiable: Yellow
+A state where all authentication messages that have been received, up to that point from that claimed sender, pass signature verification and the requirement of {{trust-assessment}} has been met.
 
-A pending state where a full authentication message has been received but other information, such as public keys to verify signatures, is missing. This state is scoped to handling an authentication message or list of them.
+## Trusted: Blue {#blue}
 
-~~~~
-+-------------------+
-| Unmanned Aircraft |
-+-------------------+
-          |
-          | (DRIP Link OR DRIP Wrapper OR DRIP Manifest)
-          | AND
-          | PK == (None OR Unsupported OR Unverifiable)
-          |
-          
-          O
-        --|--
-         / \
-~~~~
+A state where all authentication messages that have been received, up to that point, from that claimed sender, have passed signature verification, the requirement of {{trust-assessment}} has been met, and the public key of the sending UA is marked as trusted. 
 
-## Verified: Green
+The sending UA key will have been marked as trusted if the relevant DIMEs only register DETs (of subordinate DIMEs, UAS operators, and UA) that have been vetted as per their published registration policies, and those DIMEs have been marked, by the owner (individual or organizational) of the receiver, as per that owner's policy, as trusted to register DETs only for trusted parties.
 
-A state where all authentication messages that have been received, up to that point, pass signature verification. This state is scoped to handling a full authentication message or list of them that have been validated.
+## Questionable: Orange {#orange}
 
-~~~~
-+-------------------+
-| Unmanned Aircraft |
-+-------------------+
-          |
-          | DRIP Link == Verified 
-          | AND 
-          | (DRIP Wrapper OR DRIP Manifest) == Verified 
-          | AND 
-          | PK == Verified
-          |
-          
-          O
-        --|--
-         / \
-~~~~
+A state where there is a mix of authentication messages received that are Verified ({{green}}) and Unverified ({{red}}).
 
-## Trusted: Blue
+Transition to this state is from Verified if a subsequent message fails verification so would have otherwise been marked Unverified, or from Unverified if a subsequent message passes verification so would otherwise have been marked Verified, or from either of those state upon mixed results on the requirement of {{trust-assessment}}.
 
-A state where all authentication messages that has been received, up to that point, pass signature verification and the public key of the aircraft is marked as trusted. In DRIP the trust of the aircraft key typically is done when a DIME, via its policy, only registers "verified" users and that the receiver, also via policy (either independently or their organization), marks that DIME as trusted. Any key under that DIME transitively becomes trusted as well. This state is scoped to handling a list of authentication messages that have been validated.
+## Unverified: Red {#red}
 
-~~~~
-+-------------------+
-| Unmanned Aircraft |
-+-------------------+
-          |
-          | DRIP Link == Verified 
-          | AND 
-          | (DRIP Wrapper OR DRIP Manifest == Verified)
-          | AND 
-          | PK == Trusted
-          |
-          
-          O
-        --|--
-         / \
-~~~~
+A state where all authentication messages that have been received, up to that point, from that claimed sender, failed signature verification or the requirement of {{trust-assessment}}.
 
-## Questionable: Orange
+## Conflicting: Purple {#purple}
 
-A state where there is a mix of authentication messages received that are verified and unverified. This state is scoped to handling a list of authentication messages that have been validated.
+A state where there is a mix of authentication messages received that are Trusted ({{blue}}) and Unverified ({{red}}) and the public key of the aircraft is marked as trusted.
 
-~~~~
-+-------------------+
-| Unmanned Aircraft |
-+-------------------+
-          |
-          | DRIP Link == (Verified OR Unverified) 
-          | AND 
-          | (DRIP Wrapper OR DRIP Manifest) == (Verified OR Unverified) 
-          | OR 
-          | PK == (Questionable OR Verified)
-          |
-          
-          O
-        --|--
-         / \
-~~~~
-
-## Unverified: Red
-
-A state where all authentication messages that have been received, up to that point, failed signature verification. This state is scoped to handling a full authentication message or list of them.
-
-~~~~
-+-------------------+
-| Unmanned Aircraft |
-+-------------------+
-          |
-          | All signatures fail
-          | OR 
-          | PK == Unverified
-          |
-          
-          O
-        --|--
-         / \
-~~~~
-
-## Conflicting: Purple
-
-A state where there is a mix of authentication messages received that are verified and unverified and the public key of the aircraft is marked as trusted. This state is scoped to handling a list of authentication messages that have been validated.
-
-~~~~
-+-------------------+
-| Unmanned Aircraft |
-+-------------------+
-          |
-          | DRIP Link == (Verified OR Unverified) 
-          | AND
-          | (DRIP Wrapper OR DRIP Manifest) == (Verified OR Unverified)
-          | AND 
-          | PK == (Trusted OR Conflicting)
-          |
-          
-          O
-        --|--
-         / \
-~~~~
+Transition to this state is from Trusted if a subsequent message fails verification so would have otherwise been marked Unverified, or from Unverified if a subsequent message passes verification and policy checks so would otherwise have been marked Trusted, or from either of those state upon mixed results on the requirement of {{trust-assessment}}.
 
 # Operational Recommendation Analysis {#operational-proof}
 
