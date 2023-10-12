@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-38
+docname: draft-ietf-drip-auth-39
 category: std
 
 ipr: trust200902
@@ -47,7 +47,12 @@ author:
     email: rgm@labs.htt-consult.com
 
 normative:
+    # RFCs
+    RFC9153:  # drip-requirements
     RFC9374:  # drip-rid
+    RFC9434:  # drip-arch
+
+    # External
     F3411:
         title: "F3411-22a: Standard Specification for Remote ID and Tracking"
         author:
@@ -60,8 +65,6 @@ informative:
 
     # RFCs
     RFC8126:  # iana-considerations
-    RFC9153:  # drip-requirements
-    RFC9434:  # drip-arch
     
     # External Sources
     FAA-14CFR:
@@ -476,7 +479,9 @@ Signature by Parent(64-bytes):
 ~~~~
 {:fig #link-fig title="Broadcast Endorsement / DRIP Link"}
 
-This DRIP Authentication Message is used in conjunction with other DRIP SAM Types (such as the Manifest or the Wrapper) that contain data (e.g., the ASTM Location/Vector Message, Message Type 0x2) that is guaranteed to be unique, unpredictable and easily cross checked by the receiving device. The hash of such a message SHOULD merely be included in a DRIP Manifest, but an entire such message MAY be encapsulated in a DRIP Wrapper periodically for stronger security.
+This DRIP Authentication Message is used in conjunction with other DRIP SAM Types (such as the Manifest or the Wrapper) that contain data (e.g., the ASTM Location/Vector Message, Message Type 0x2) that is guaranteed to be unique, unpredictable and easily cross checked by the receiving device.
+
+A hash of the final link (`Broadcast Endorsement: HDA on UA`) in the Broadcast Endorsement chain SHOULD be included in each DRIP Manifest {{drip-manifest}}.
 
 ## DRIP Wrapper
 
@@ -915,7 +920,7 @@ The table below lays out the RECOMMENDED colors to associate with state and a br
 | Unsupported  | Brown  | Authentication Type/SAM Type of received message not supported  |
 | Unverifiable | Yellow | Data needed for signature verification is missing               |
 | Verified     | Green  | Valid verification results                                      |
-| Trusted      | Blue   | Valid verification results and DIME is marked as only registering trusted clients using DETs |
+| Trusted      | Blue   | Valid verification results and DIME is marked as only registering DETs for trusted entities |
 | Unverified   | Red    | Invalid verification results                                    |
 | Questionable | Orange | evidence of both Verified & Unverified for the same claimed sender |
 | Conflicting  | Purple | evidence of both Trusted & Unverified for the same claimed sender |
@@ -1093,7 +1098,7 @@ Any messages not required for a local jurisdiction can be removed from the sched
 ~~~~
 +-------------------------------------------------------------------+
 |                          Frame Slots                              |
-| 00      | 01 | 02 | 03 | 04-07  | 05      | 06 | 07 | 08 | 09-13  |
+| 00      | 01 | 02 | 03 | 04-07  | 08      | 09 | 10 | 11 | 12-15  |
 +---------+----+----+----+--------+---------+----+----+----+--------+
 | {A|C|D} | V  | I  | S  | M[0,3] | {A|C|D} | V  | I  | S  | M[4,7] |
 +---------+----+----+----+--------+---------+----+----+----+--------+
