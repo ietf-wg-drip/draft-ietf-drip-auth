@@ -327,7 +327,7 @@ This field has a maximum size of 200-bytes, as defined by {{drip-restrictions}}.
 
 A UA has the option of broadcasting using Bluetooth (4.x and 5.x), Wi-Fi NAN, or IEEE 802.11 Beacon, see {{reqs}}. With Bluetooth, FAA and other Civil Aviation Authorities (CAA) mandate transmitting simultaneously over both 4.x and 5.x. The same application layer information defined in {{F3411}} MUST be transmitted over all the physical layer interfaces performing the function of RID.
 
-Bluetooth 4.x presents a payload size challenge in that it can only transmit 25-bytes of payload per frame while the others can all support larger payloads per frame. However, the {{F3411}} messaging framing dictated by Bluetooth 4.x constraints is inherited by {{F3411}} over other media.
+Bluetooth 4.x presents a payload size challenge in that it can only transmit 25 bytes of payload per frame while the others can all support larger payloads per frame. However, the {{F3411}} messaging framing dictated by Bluetooth 4.x constraints is inherited by {{F3411}} over other media.
 
 #### Paged Authentication Message Constraints
 
