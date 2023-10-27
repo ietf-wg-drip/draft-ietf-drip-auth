@@ -206,7 +206,7 @@ The Authentication Message (Message Type 0x2) is  unique in the {{F3411}} Broadc
 
 ### Authentication Page {#auth-page}
 
-This document leverages Authentication Type 0x5, Specific Authentication Method (SAM), as the principal authentication container, defining a set of SAM Types in {{drip-authentication-formats}}. This is encoded in every Authentication Page in the `Page Header`. The SAM Type is defined as a field in the `Authentication Payload` (see {{sam-data}}).
+This document leverages Authentication Type 0x5, Specific Authentication Method (SAM), as the principal authentication container, defining a set of SAM Types in {{drip-authentication-formats}}. Authentication Type is encoded in every Authentication Page in the `Page Header`. The SAM Type is defined as a field in the `Authentication Payload` (see {{sam-data}}).
 
 {:fig: artwork-align="center"}
 ~~~~
