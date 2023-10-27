@@ -851,9 +851,9 @@ DRIP SAM Type:
 | SAM Type   | Name          | Description      |
 | ---------- | ------------- | ---------------- |
 | 0x01       | DRIP Link     | Format to hold Broadcast Endorsements |
-| 0x02       | DRIP Wrapper  | Format to authenticate ASTM Messages |
-| 0x03       | DRIP Manifest | Format to authentication hashes of ASTM Messages |
-| 0x04       | DRIP Frame    | Format for future authentication formats |
+| 0x02       | DRIP Wrapper  | Authenticate full ASTM Messages |
+| 0x03       | DRIP Manifest | Authenticate hashes of ASTM Messages |
+| 0x04       | DRIP Frame    | Format for future DRIP authentication |
 ~~~~
 {: title="DRIP SAM Types"}
 
