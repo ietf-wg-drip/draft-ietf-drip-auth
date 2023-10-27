@@ -879,7 +879,7 @@ DRIP Link messages are static in nature. These DRIP Link messages can easily be 
 
 If an attacker (who is smart and spoofs more than just the UAS ID/data payloads) willingly replays a DRIP Link message, they have in principle actually helped by ensuring the DRIP Link is sent more frequently and be received by potential Observers.
 
-The primary mitigation is that the UA is REQUIRED to send more than DRIP Link messages, specifically the Manifest and/or Wrapper messages that sign over changing data ASTM Messages (e.g., Location/Vector Messages) using the DET private key. An UA sending these messages then actually signing these and other messages using the DET key provides the Observer with data that proves real-time signing. An UA that does not either run DRIP themselves or does not have possession of the same private key, would be clearly exposed upon signature verification.
+The primary mitigation is that the UA is REQUIRED to send more than DRIP Link messages, specifically the Manifest and/or Wrapper messages that sign over changing data ASTM Messages (e.g., Location/Vector Messages) using the DET private key. A UA sending these messages then actually signing these and other messages using the DET key provides the Observer with data that proves real-time signing. A UA that does not either run DRIP themselves or does not have possession of the same private key, would be clearly exposed upon signature verification.
 
 ## VNA Timestamp Offsets for DRIP Authentication Formats
 
