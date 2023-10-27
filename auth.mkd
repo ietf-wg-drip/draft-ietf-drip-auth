@@ -204,7 +204,7 @@ It is necessary for the UA to prove possession by dynamically signing data that 
 
 ## ASTM Authentication Message {#auth-message}
 
-The Authentication Message (Message Type 0x2) is  unique in the {{F3411}} Broadcast standard as it is the only message that can be larger than the Legacy Transport size. To address this, it is defined as a set of "pages," each of which fits into a single Legacy Transport frame. For Extended Transports these pages are still used but are all in a single frame.
+The Authentication Message (Message Type 0x2) is  unique in the {{F3411}} Broadcast standard as it is the only message that can be larger than the Legacy Transport size. To address this, it is defined as a set of "pages", each of which fits into a single Legacy Transport frame. For Extended Transports these pages are still used but are all in a single frame.
 
 ### Authentication Page {#auth-page}
 
