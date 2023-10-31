@@ -650,13 +650,7 @@ The contents of `Frame Evidence Data` are not defined in this document. Other sp
 
 ### Frame Type
 
-Byte to sub-type for future different DRIP Frame formats. It takes the first byte in {{frame-fig}}, leaving 111 bytes available for `Frame Evidence Data`.
-
-| Frame Type | Name | Description |
-| ---------- | ---- | ----------- |
-| 0x00       | Reserved | Reserved |
-| 0xC0-0xFF  | Experimental | Experimental Use |
-{: title="DRIP Frame Types"}
+Byte to sub-type for future different DRIP Frame formats. It takes the first byte in {{frame-fig}}, leaving 111 bytes available for `Frame Evidence Data`. See {{iana-drip-registry}} for Frame Type allocations.
 
 # Forward Error Correction {#fec-details}
 
