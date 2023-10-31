@@ -862,6 +862,7 @@ DRIP Frame Type:
 | 0xC0-0xFF  | Experimental | Experimental Use |
 ~~~~
 {: title="DRIP Frame Types"}
+Criteria that should be applied by the designated experts includes determining whether the proposed registration duplicates existing functionality and whether the registration description is clear and fits the purpose of this registry.
 
 # Security Considerations
 
