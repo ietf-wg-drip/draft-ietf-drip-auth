@@ -862,7 +862,12 @@ DRIP Frame Type:
 | 0xC0-0xFF  | Experimental | Experimental Use |
 ~~~~
 {: title="DRIP Frame Types"}
+
 Criteria that should be applied by the designated experts includes determining whether the proposed registration duplicates existing functionality and whether the registration description is clear and fits the purpose of this registry.
+
+Registration requests MUST be sent to <drip-reg-review@ietf.org> and be evaluated within a three-week review period on the advice of one or more designated experts. Within that review period, the designated experts will either approve or deny the registration request, and communicate their decision to the review list and IANA. Denials should include an explanation and, if applicable, suggestions to successfully register the prefix.
+
+Registration requests that are undetermined for a period longer than 28 days can be brought to the IESG's attention for resolution.
 
 # Security Considerations
 
