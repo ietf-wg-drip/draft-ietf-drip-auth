@@ -176,7 +176,7 @@ The standardization of specific formats to support the DRIP requirements in UAS 
 
 ### UA Signed Evidence {#ua-attestation}
 
-When an Observer receives a DRIP-based Authentication Message ({{drip-wrapper}}, {{drip-manifest}}, or {{drip-frame}}) containing UA-signed Evidence (in an Endorsement structure {{bas}}) it SHOULD validate the signature using the HI corresponding to the UA's DRIP Entity Tag (DET).
+When an Observer receives a DRIP-based Authentication Message ({{drip-wrapper}}, {{drip-manifest}}, or {{drip-frame}}) containing UA-signed Evidence (in an Endorsement structure {{bas}}) it MUST validate the signature using the HI corresponding to the UA's DRIP Entity Tag (DET).
 
 The UA's HI SHOULD be retrieved from DNS. If not available it may have been revoked. Note that accurate revocation status is a DIME inquiry; DNS non-response is a hint that a DET is expired or revoked. It MAY be retrieved from a local cache, if present. The local cache is typically populated by DNS lookups and/or by received Broadcast Endorsements ({{dime-attestation}}).
 
