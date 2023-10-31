@@ -186,7 +186,7 @@ Whether the content is true is a separate question which DRIP cannot address, bu
 
 ### DIME Endorsements of Subordinate DET {#dime-attestation}
 
-When an Observer receives a DRIP Link Authentication Message ({{drip-link}}) containing an Endorsement by the DIME of a child DET registration, it SHOULD validate the signature using the HI corresponding to the DIME's DET.
+When an Observer receives a DRIP Link Authentication Message ({{drip-link}}) containing an Endorsement by the DIME of a child DET registration, it MUST validate the signature using the HI corresponding to the DIME's DET.
 
 The DIME's HI, SHOULD be retrieved from DNS (e.g., Section 5 of {{drip-registries}}), when available. It MAY be cached from a prior DNS lookup or be stored in a distinct local store.
 
