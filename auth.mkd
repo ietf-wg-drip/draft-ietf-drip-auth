@@ -260,16 +260,16 @@ Either as a single Authentication Message or a set of fragmented Authentication 
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
-Authentication Headers: (6-bytes)
+Authentication Headers: (6 bytes)
     As defined in F3411.
 
-Authentication Data / Signature: (255-bytes max)
+Authentication Data / Signature: (255 bytes at maximum)
     Opaque authentication data.
 
-Additional Data Length (ADL): (1-byte - unsigned)
+Additional Data Length (ADL): (1 byte - unsigned)
     Length in bytes of Additional Data.
 
-Additional Data: (255-bytes max):
+Additional Data: (255 bytes max):
     Data that follows the Authentication Data / Signature but
     is not considered part of the Authentication Data.
 ~~~~
@@ -319,7 +319,7 @@ The following SAM Types are allocated to DRIP:
 
 ##### SAM Authentication Data
 
-This field has a maximum size of 200-bytes, as defined by {{drip-restrictions}}.
+This field has a maximum size of 200 bytes, as defined by {{drip-restrictions}}.
 
 ### ASTM Broadcast RID Constraints {#drip-restrictions}
 
@@ -456,22 +456,22 @@ DRIP Link is important as its contents are used to provide trust in the DET/HI p
 |                                                               |
 +---------------+---------------+---------------+---------------+
 
-VNB Timestamp by Parent (4-bytes):
+VNB Timestamp by Parent (4 bytes):
     Current time at signing, set by Parent Entity.
 
-VNA Timestamp by Parent (4-bytes):
+VNA Timestamp by Parent (4 bytes):
     Timestamp denoting recommended time to trust Endorsement.
 
-DET of Child: (16-bytes)
+DET of Child: (16 bytes)
     DRIP Entity Tag of Child Entity.
 
-HI of Child: (32-bytes)
+HI of Child: (32 bytes)
     Host Identity of Child Entity.
 
-DET of Parent: (16-bytes)
+DET of Parent: (16 bytes)
     DRIP Entity Tag of Parent Entity.
 
-Signature by Parent(64-bytes):
+Signature by Parent(64 bytes):
     Signature over preceding fields using the keypair of
     the Parent DET.
 ~~~~
@@ -671,7 +671,7 @@ When encoding two things are REQUIRED:
 
 To generate the parity, a simple XOR operation using the previous parity page and current page is used. Only the 23-byte `Authentication Payload` field of {{astm-auth-page}} is used in the XOR operations. For Page 0, a 23-byte null pad is used for the previous parity page.
 
-{{fig-single-fec}} shows an example of the last two pages (out of N) of an Authentication Message using DRIP Single Page FEC. The `Additional Data Length` is set to 33 as there are always 23-bytes of FEC data and in this example 10-bytes of padding to line it up into Page N.
+{{fig-single-fec}} shows an example of the last two pages (out of N) of an Authentication Message using DRIP Single Page FEC. The `Additional Data Length` is set to 33 as there are always 23 bytes of FEC data and in this example 10 bytes of padding to line it up into Page N.
 
 ~~~~
 Page N-1:
@@ -755,7 +755,7 @@ function decode_check(auth_pages[], decoded_lpi, decoded_length) {
 
 ## FEC Limitations
 
-The worst-case scenario is when the `Authentication Data / Signature` ends perfectly on a page (Page N-1). This means the `Additional Data Length` would start the next page (Page N) and have 22-bytes worth of null padding to align the FEC to begin at the start of the next page (Page N+1). In this scenario, an entire page (Page N) is being wasted just to carry the `Additional Data Length`. This should be avoided where possible to maintain efficiency.
+The worst-case scenario is when the `Authentication Data / Signature` ends perfectly on a page (Page N-1). This means the `Additional Data Length` would start the next page (Page N) and have 22 bytes worth of null padding to align the FEC to begin at the start of the next page (Page N+1). In this scenario, an entire page (Page N) is being wasted just to carry the `Additional Data Length`. This should be avoided where possible to maintain efficiency.
 
 # Requirements & Recommendations {#reqs}
 
@@ -974,7 +974,7 @@ To calculate the frame count of a given DRIP Authentication Message the followin
 
 > 1 + ceiling((((16 + 8 + 64) + (Item Size * Item Count) + 2) - 16) / 23) + 1
 
-The leading 1 is counting for the Page 0 which is always present. The DET (16-bytes), timestamps (8-bytes) and signature (64-bytes) all make up the required fields for DRIP. Item Size (in bytes) is size of each item in a given format; for a Wrapper it is 25 (a full ASTM Message), while for a Manifest it is 8 (a single hash). 2 more is added to account for the SAM Type and the ADL byte. The value 16 is the number of bytes not counted (as they are part of Page 0 which is already counted for). 23 is the number of bytes per Authentication Page (pages 1 - 15). After dividing by 23 the value is raised to the nearest whole value as we can only send full frames, not partial. The final 1 is counting for a single page of FEC applied in DRIP under Bluetooth 4.x.
+The leading 1 is counting for the Page 0 which is always present. The DET (16 bytes), timestamps (8 bytes) and signature (64 bytes) all make up the required fields for DRIP. Item Size (in bytes) is size of each item in a given format; for a Wrapper it is 25 (a full ASTM Message), while for a Manifest it is 8 (a single hash). 2 more is added to account for the SAM Type and the ADL byte. The value 16 is the number of bytes not counted (as they are part of Page 0 which is already counted for). 23 is the number of bytes per Authentication Page (pages 1 - 15). After dividing by 23 the value is raised to the nearest whole value as we can only send full frames, not partial. The final 1 is counting for a single page of FEC applied in DRIP under Bluetooth 4.x.
 
 > Informational Note: for DRIP Link the Item Size is 48 and Item Count is 1; resulting in a frame count of 8
 
