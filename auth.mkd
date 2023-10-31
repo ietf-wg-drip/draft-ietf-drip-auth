@@ -196,7 +196,7 @@ An Observer can receive a series of DRIP Link Authentication Messages ({{drip-li
 
 ### UAS RID Trust {#rid-trust}
 
-{{ua-attestation}}, {{dime-attestation}}, and {{dime-hierarchy}} complete the trust chain, but the chain cannot yet be trusted as having any relevance to the observed UA because replay attacks are trivial. At this point, the key nominally possessed by the UA is trusted but the UA has not yet been proven to possess that private key.
+{{ua-attestation}}, {{dime-attestation}}, and {{dime-hierarchy}} complete the trust chain for the claimed DET and associated HI (public key), but the chain cannot yet be trusted as having any relevance to the observed UA because replay attacks are trivial. At this point, the key nominally possessed by the UA is trusted but the UA has not yet been proven to possess that private key.
 
 It is necessary for the UA to prove possession by dynamically signing data that is unique and unpredictable but easily verified by the Observer. This can be a DRIP Wrapper or Manifest ({{drip-wrapper}}, {{drip-manifest}}) containing an ASTM Message that fulfills the requirements. Verification of this signed data MUST be performed by the Observer as part of the received UAS RID information trust assessment ({{trust-assessment}}).
 
