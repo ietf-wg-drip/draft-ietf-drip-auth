@@ -192,7 +192,7 @@ The DIME's HI, SHOULD be retrieved from DNS (e.g., Section 5 of {{drip-registrie
 
 ### DIME Hierarchy Endorsements {#dime-hierarchy}
 
-An Observer can receive a series of DRIP Link Authentication Messages ({{drip-link}}), each one pertaining to a DIME's registration in the DIME above it in the hierarchy. Similar to {{dime-attestation}}, each link in this chain SHOULD be validated.
+An Observer can receive a series of DRIP Link Authentication Messages ({{drip-link}}), each one pertaining to a DIME's registration in the DIME above it in the hierarchy. Similar to {{dime-attestation}}, each link in this chain MUST be validated.
 
 ### UAS RID Trust {#rid-trust}
 
