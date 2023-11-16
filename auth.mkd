@@ -950,7 +950,7 @@ The sending UA key will have been marked as trusted if the relevant DIMEs only r
 
 A state where there is a mix of authentication messages received that are Verified ({{green}}) and Unverified ({{red}}).
 
-Transition to this state is from Verified if a subsequent message fails verification so would have otherwise been marked Unverified, or from Unverified if a subsequent message passes validation so would otherwise have been marked Verified, or from either of those state upon mixed results on the requirement of {{trust-assessment}}.
+Transition to this state is from Verified if a subsequent message fails verification so would have otherwise been marked Unverified, or from Unverified if a subsequent message passes verification or validation so would otherwise have been marked Verified, or from either of those state upon mixed results on the requirement of {{trust-assessment}}.
 
 ## Unverified: Red {#red}
 
@@ -960,7 +960,7 @@ A state where all authentication messages that have been received, up to that po
 
 A state where there is a mix of authentication messages received that are Trusted ({{blue}}) and Unverified ({{red}}) and the public key of the aircraft is marked as trusted.
 
-Transition to this state is from Trusted if a subsequent message fails verification so would have otherwise been marked Unverified, or from Unverified if a subsequent message passes validation and policy checks so would otherwise have been marked Trusted, or from either of those state upon mixed results on the requirement of {{trust-assessment}}.
+Transition to this state is from Trusted if a subsequent message fails verification so would have otherwise been marked Unverified, or from Unverified if a subsequent message passes verification or validation and policy checks so would otherwise have been marked Trusted, or from either of those state upon mixed results on the requirement of {{trust-assessment}}.
 
 # Operational Recommendation Analysis {#operational-proof}
 
