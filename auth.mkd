@@ -807,7 +807,9 @@ The DRIP Wrapper has a specific use case for DRIP aware receivers. For receiver 
 
 ### UAS RID Trust Assessment {#trust-assessment}
 
-As described in {{rid-trust}}, the receiver MUST perform validation of the data being received in Broadcast RID. This is because trust in a key is different from trust that an observed UA possesses that key. A chain of DRIP Links provides trust in a key. A message containing rapidly changing, unpredictable but sanity-checkable data, signed by that key, provides trust that some agent with access to that data also possesses that key. If the sanity check involves correlating physical world observations of the UA with claims in that data, then the probability is high that the observed UA is (or is collaborating with or observed in real time by) the agent with the key.
+As described in {{rid-trust}}, the receiver MUST perform validation of the data being received in Broadcast RID. This is because trust in a key is different from trust that an observed UA possesses that key.
+
+A chain of DRIP Links provides trust in a key. A message containing rapidly changing, not predictable far in advance (relative to typical operational flight times) but sanity-checkable data, signed by that key, provides trust that some agent with access to that data also possesses that key. If the sanity check involves correlating physical world observations of the UA with claims in that data, then the probability is high that the observed UA is (or is collaborating with or observed in real time by) the agent with the key.
 
 After signature verification of any DRIP Authentication Message containing UAS RID information elements (e.g., DRIP Wrapper {{drip-wrapper}}) the Observer MUST use other sources of information to correlate against and perform validation. An example of another source of information is a visual confirmation of the UA position.
 
