@@ -383,7 +383,9 @@ When using this structure, the UA is minimally self-endorsing its DET. The HI of
 
 This SAM Type is used to transmit Broadcast Endorsements. For example, the `Broadcast Endorsement: HDA, UA` is sent (see {{drip-recommendations}}) as a DRIP Link message.
 
-DRIP Link is important as its contents are used to provide trust in the DET/HI pair that the UA is currently broadcasting. This message does not require Internet connectivity to perform signature verification of the contents when the DIME DET/HI is in the receiver's cache. It also provides the UA HI, when it is a `Broadcast Endorsement: HDA, UA`, so that connectivity is not required when performing signature verification of other DRIP Authentication Messages.
+> Note: For the remainder of this document `Broadcast Endorsement: Parent, Child` will be abbreviated to `BE: Parent, Child`.
+
+DRIP Link is important as its contents are used to provide trust in the DET/HI pair that the UA is currently broadcasting. This message does not require Internet connectivity to perform signature verification of the contents when the DIME DET/HI is in the receiver's cache. It also provides the UA HI, when it is a `BE: HDA, UA`, so that connectivity is not required when performing signature verification of other DRIP Authentication Messages.
 
 ~~~~
  0                   1                   2                   3
@@ -458,7 +460,7 @@ Signature by Parent(64 octets):
 
 This DRIP Authentication Message is used in conjunction with other DRIP SAM Types (such as the Manifest or the Wrapper) that contain data (e.g., the ASTM Location/Vector Message, Message Type 0x2) that is guaranteed to be unique, unpredictable, and easily cross-checked by the receiving device.
 
-A hash of the final link (`Broadcast Endorsement: HDA on UA`) in the Broadcast Endorsement chain SHOULD be included in each DRIP Manifest {{drip-manifest}}.
+A hash of the final link (`BE: HDA on UA`) in the Broadcast Endorsement chain SHOULD be included in each DRIP Manifest {{drip-manifest}}.
 
 ## DRIP Wrapper
 
@@ -783,25 +785,25 @@ Without any fragmentation or loss of pages with transmission FEC ({{fec-details}
 
 It is REQUIRED that a UA send the following DRIP Authentication Formats to fulfill the requirements in {{RFC9153}}:
 
-1. SHOULD: send DRIP Link ({{drip-link}}) using the `Broadcast Endorsement: Apex, RAA` (satisfying GEN-3); at least once per 5 minutes. Apex in this context is the administrative apex for Broadcast Endorsements.
-2. MUST: send DRIP Link ({{drip-link}}) using the `Broadcast Endorsement: RAA, HDA` (satisfying GEN-3); at least once per 5 minutes
-3. MUST: send DRIP Link ({{drip-link}}) using the `Broadcast Endorsement: HDA, UA` (satisfying ID-5, GEN-1 and GEN-3); at least once per minute
+1. SHOULD: send DRIP Link ({{drip-link}}) using the `BE: Apex, RAA` (satisfying GEN-3); at least once per 5 minutes. Apex in this context is the administrative apex for Broadcast Endorsements.
+2. MUST: send DRIP Link ({{drip-link}}) using the `BE: RAA, HDA` (satisfying GEN-3); at least once per 5 minutes
+3. MUST: send DRIP Link ({{drip-link}}) using the `BE: HDA, UA` (satisfying ID-5, GEN-1 and GEN-3); at least once per minute
 4. MUST: send any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest ({{drip-manifest}}) or DRIP Wrapper ({{drip-wrapper}})) where the UA is dynamically signing data that is guaranteed to be unique, unpredictable and easily cross checked by the receiving device (satisfying ID-5, GEN-1 and GEN-2); at least once per 5 seconds
 
 ## Operational {#operational-recommendations}
 
 UAS operation may impact the frequency of sending DRIP Authentication messages. When a UA dwells at an approximate location, and the channel is heavily used by other devices, less frequent message authentication may be sufficient for an Observer. Contrast this with a UA traversing an area, where every message should be authenticated as soon as possible for greatest success as viewed by the receiver.
 
-Thus how/when these DRIP Authentication Messages are sent is up to each implementation. Further complication comes in comparing Legacy and Extended Transports.  In Legacy, each message is a separate hash within the Manifest. So, when the UA remains within a small volume of airspace, it may lean toward occasional message authentication. In Extended Transports, the hash is over the Message Pack so only few hashes need to be in a Manifest. A single Manifest can handle a potential two Message Packs (for a full set of messages) and a DRIP Link Authentication Message for the `Broadcast Endorsement: HDA, UA`.
+Thus how/when these DRIP Authentication Messages are sent is up to each implementation. Further complication comes in comparing Legacy and Extended Transports.  In Legacy, each message is a separate hash within the Manifest. So, when the UA remains within a small volume of airspace, it may lean toward occasional message authentication. In Extended Transports, the hash is over the Message Pack so only few hashes need to be in a Manifest. A single Manifest can handle a potential two Message Packs (for a full set of messages) and a DRIP Link Authentication Message for the `BE: HDA, UA`.
 
-A separate issue is the frequency of transmitting the DRIP Link Authentication Message for the `Broadcast Endorsement: HDA, UA` when using the Manifest. This message content is static; its hash never changes radically. The only change is the 4 octet timestamp in the Authentication Message headers. Thus, potentially, in a dwell style operation it can be sent once per minute, where its hash is in every Manifest. A receiver can cache all DRIP Link Authentication Message for the `Broadcast Endorsement: HDA, UA` to mitigate potential packet loss.
+A separate issue is the frequency of transmitting the DRIP Link Authentication Message for the `BE: HDA, UA` when using the Manifest. This message content is static; its hash never changes radically. The only change is the 4 octet timestamp in the Authentication Message headers. Thus, potentially, in a dwell style operation it can be sent once per minute, where its hash is in every Manifest. A receiver can cache all DRIP Link Authentication Message for the `BE: HDA, UA` to mitigate potential packet loss.
 
 The following operational configuration is RECOMMENDED (in alignment with {{drip-recommendations}}):
 
 1. Per CAA requirements, generate and transmit a set of ASTM Messages (example; Basic ID, Location and System).
 2. Under Extended Transports, generate and include in the same Message Pack as the CAA required ASTM Messages a DRIP Wrapper as specified in {{extended-wrapper}} (implicitly wrapping and signing messages in the pack).
 3. Under Legacy Transports, generate and transmit every 5 seconds a DRIP Manifest ({{drip-manifest}}) hashing as many sets as desired of recent CAA required ASTM Messages. The system MAY periodically replace the DRIP Manifest with a DRIP Wrapper ({{drip-wrapper}}) containing at least a Location Message (Message Type 0x2).
-4. Under both Legacy or Extended Transports, generate and transmit a DRIP Link's ({{drip-link}}) containing; `Broadcast Endorsement: HDA, UA` every minute, `Broadcast Endorsement: RAA, HDA` every 5 minutes, `Broadcast Endorsement: Apex, RAA` every 5 minutes.
+4. Under both Legacy or Extended Transports, generate and transmit a DRIP Link's ({{drip-link}}) containing; `BE: HDA, UA` every minute, `BE: RAA, HDA` every 5 minutes, `BE: Apex, RAA` every 5 minutes.
 
 The reasoning and math behind these recommendations can be found in {{operational-proof}}.
 
