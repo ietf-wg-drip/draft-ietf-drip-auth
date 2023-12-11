@@ -464,7 +464,7 @@ A hash of the final link (`Broadcast Endorsement: HDA on UA`) in the Broadcast E
 
 This SAM Type is used to wrap and sign over a list of other {{F3411}} Broadcast RID messages.
 
-The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with full (25 octet) {{F3411}} Broadcast RID messages. The ASTM Messages can be concatenated together to form a contiguous octet sequence, as shown in {{wrapper-fig}}.
+The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with full (25 octet, fixed length) {{F3411}} Broadcast RID messages. The ASTM Messages can be concatenated together to form a contiguous octet sequence, as shown in {{wrapper-fig}}.
 
 The maximum number of messages supported is 4. The messages MUST be in Message Type order as defined by {{F3411}}. All message types except Authentication (Message Type 0x2) and Message Pack (Message Type 0xF) are allowed.
 
@@ -487,13 +487,21 @@ ASTM Message (25 octets each):
 
 ### Wrapped Count & Sanity Check
 
-When decoding a DRIP Wrapper on a receiver, a calculation of the number of messages wrapped and a sanity check can be performed by using the number of octets (defined as `wrapperLength`) between the `UA DET` and the `VNB Timestamp by UA` as shown in {{wrapper-check}}.
+When decoding a DRIP Wrapper on a receiver, a calculation of the number of messages wrapped and a sanity check SHOULD be performed by using the number of octets (defined as `wrapperLength`) between the `VNA Timestamp by UA` and the `UA DET` as shown in {{wrapper-check}}.
 
 ~~~~
 if (wrapperLength MOD 25) != 0 {
-  return DECODE_FAILURE
+  return DECODE_FAILURE;
 }
 wrappedCount = wrapperLength / 25;
+if (wrappedCount == 0) {
+  // handle wrapper over extended transport
+}
+else if (wrappedCount > 4) {
+  return DECODE_FAILURE;
+} else {
+  // unwrap messages
+}
 ~~~~
 {: #wrapper-check title="Pseudo-code for Wrapper sanity check and number of messages calculation"}
 
