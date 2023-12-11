@@ -466,26 +466,7 @@ A hash of the final link (`BE: HDA on UA`) in the Broadcast Endorsement chain SH
 
 This SAM Type is used to wrap and sign over a list of other {{F3411}} Broadcast RID messages.
 
-The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with full (25 octet, fixed length) {{F3411}} Broadcast RID messages. The ASTM Messages can be concatenated together to form a contiguous octet sequence, as shown in {{wrapper-fig}}.
-
-The maximum number of messages supported is 4. The messages MUST be in Message Type order as defined by {{F3411}}. All message types except Authentication (Message Type 0x2) and Message Pack (Message Type 0xF) are allowed.
-
-~~~~
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+---------------+---------------+---------------+---------------+
-|                                                               |
-.                                                               .
-.                         ASTM Message(s)                       .
-.                                                               .
-|                                                               |
-+---------------+---------------+---------------+---------------+
-~~~~
-{:fig #wrapper-fig title="DRIP Wrapper Evidence"}
-
-ASTM Message (25 octets each):
-
-> Full ASTM Message as defined in {{F3411}}; specifically Message Types 0x0, 0x1, 0x3, 0x4, and 0x5. Includes Message Type and Protocol Version and does not include the Message Counter.
+The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with up to four ASTM {{F3411}} Messages in a contiguous octet sequence. Only ASTM Message Types 0x0, 0x1, 0x3, 0x4, and 0x5 are allowed and must be in Message Type order as defined by {{F3411}}. These messages MUST include the Message Type and Protocol Version octet and MUST NOT include the Message Counter octet (thus are fixed at 25 octets in length).
 
 ### Wrapped Count & Sanity Check
 
