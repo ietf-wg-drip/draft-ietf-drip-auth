@@ -182,15 +182,15 @@ This document leverages Authentication Type 0x5, Specific Authentication Method 
 ~~~~
 {:fig #astm-auth-page title="Standard ASTM Authentication Message Page"}
 
-Page Header: (1 byte)
+Page Header: (1 octet)
 
 > Authentication Type (4 bits) and Page Number (4 bits)
   
-Authentication Payload: (23 bytes per page)
+Authentication Payload: (23 octets per page)
 
 > Authentication Payload, including headers. Null padded. See {{auth-payload}}.
 
-The Authentication Message is structured as a set of pages per {{astm-auth-page}}. There is a technical maximum of 16 pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a maximum 23 byte `Authentication Payload`. See {{drip-restrictions}} for more details. Over Legacy Transports, these messages are "fragmented", with each page sent in a separate Legacy Transport frame.
+The Authentication Message is structured as a set of pages per {{astm-auth-page}}. There is a technical maximum of 16 pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a maximum 23 octet `Authentication Payload`. See {{drip-restrictions}} for more details. Over Legacy Transports, these messages are "fragmented", with each page sent in a separate Legacy Transport frame.
 
 Either as a single Authentication Message or a set of fragmented Authentication Message Pages, the structure is further wrapped by outer ASTM framing and the specific link framing.
 
@@ -221,23 +221,23 @@ Either as a single Authentication Message or a set of fragmented Authentication 
 ~~~~
 {:fig #astm-auth title="ASTM Authentication Message Fields"}
 
-Authentication Headers: (6 bytes)
+Authentication Headers: (6 octets)
 
 > As defined in {{F3411}}.
 
-Authentication Data / Signature: (0 to 255 bytes)
+Authentication Data / Signature: (0 to 255 octets)
 
 > Opaque authentication data.
 
-Additional Data Length (ADL): (1 byte - unsigned)
+Additional Data Length (ADL): (1 octet - unsigned)
 
-> Length in bytes of `Additional Data`.
+> Length in octets of `Additional Data`.
 
-Additional Data: (255 bytes max):
+Additional Data: (255 octets max):
 
 > Data that follows the `Authentication Data / Signature` but is not considered part of the `Authentication Data`.
 
-When `Additional Data` is being sent, a single unsigned byte (`Additional Data Length`) directly follows the `Authentication Data / Signature` and has the length, in bytes, of the following `Additional Data`. For DRIP, this field is used to carry Forward Error Correction (FEC) data as defined in {{fec-details}}.
+When `Additional Data` is being sent, a single unsigned octet (`Additional Data Length`) directly follows the `Authentication Data / Signature` and has the length, in octets, of the following `Additional Data`. For DRIP, this field is used to carry Forward Error Correction (FEC) data as defined in {{fec-details}}.
 
 ### Specific Authentication Method (SAM)
 
@@ -275,7 +275,7 @@ The following SAM Types are allocated to DRIP:
 
 ##### SAM Authentication Data
 
-This field has a maximum size of 200 bytes, as defined by {{drip-restrictions}}.
+This field has a maximum size of 200 octets, as defined by {{drip-restrictions}}.
 
 ### ASTM Broadcast RID Constraints {#drip-restrictions}
 
@@ -283,7 +283,7 @@ This field has a maximum size of 200 bytes, as defined by {{drip-restrictions}}.
 
 A UA has the option of broadcasting using Bluetooth (4.x and 5.x), Wi-Fi NAN, or IEEE 802.11 Beacon, see {{reqs}}. With Bluetooth, FAA and other Civil Aviation Authorities (CAA) mandate transmitting simultaneously over both 4.x and 5.x. The same application layer information defined in {{F3411}} MUST be transmitted over all the physical layer interfaces performing the function of RID.
 
-Bluetooth 4.x presents a payload size challenge in that it can only transmit 25 bytes of payload per frame while the others can all support larger payloads per frame. However, the {{F3411}} messaging framing dictated by Bluetooth 4.x constraints is inherited by {{F3411}} over other media.
+Bluetooth 4.x presents a payload size challenge in that it can only transmit 25 octets of payload per frame while the others can all support larger payloads per frame. However, the {{F3411}} messaging framing dictated by Bluetooth 4.x constraints is inherited by {{F3411}} over other media.
 
 #### Paged Authentication Message Constraints
 
@@ -292,7 +292,7 @@ To keep consistent formatting across the different transports (Legacy and Extend
 As such DRIP transmitters are REQUIRED to adhere to the following when using the Authentication Message:
 
 1. `Authentication Data / Signature` data MUST fit in the first 9 pages (Page Numbers 0 through 8).
-2. The `Length` field in the `Authentication Headers` (which encodes the length in bytes of `Authentication Data / Signature` only) MUST NOT exceed the value of 201. This includes the SAM Type but excludes `Additional Data` such as FEC.
+2. The `Length` field in the `Authentication Headers` (which encodes the length in octets of `Authentication Data / Signature` only) MUST NOT exceed the value of 201. This includes the SAM Type but excludes `Additional Data` such as FEC.
 
 #### Timestamps {#astm-timestamps}
 
@@ -300,17 +300,17 @@ In ASTM {{F3411}} timestamps are a Unix-style timestamp with an epoch of `2019-0
 
 Under DRIP there are two timestamps defined `Valid Not Before (VNB)` and `Valid Not After (VNA)`.
 
-Valid Not Before (VNB) Timestamp (4 bytes):
+Valid Not Before (VNB) Timestamp (4 octets):
 
 > Timestamp denoting recommended time to start trusting data in. MUST follow the format defined in {{F3411}} as described above. MUST be set no earlier than the time the signature (across a given structure) is generated.
 
-Valid Not After (VNA) Timestamp (4 bytes):
+Valid Not After (VNA) Timestamp (4 octets):
 
 > Timestamp denoting recommended time to stop trusting data. MUST follow the format defined in {{F3411}} as described above. Has an additional offset to push a short time into the future (relative to `VNB`) to avoid replay attacks. The exact offset is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent, and clock differences between the UA and Observers. A reasonable time would be to set `VNA` 2 minutes after `VNB`.
 
 # DRIP Authentication Formats
 
-All formats defined in this section are the content of the `Authentication Data/Signature` field in {{astm-auth}} and use the Specific Authentication Method (SAM, Authentication Type 0x5). The first byte of the `Authentication Data / Signature` of {{astm-auth}} is used to multiplex among these various formats.
+All formats defined in this section are the content of the `Authentication Data/Signature` field in {{astm-auth}} and use the Specific Authentication Method (SAM, Authentication Type 0x5). The first octet of the `Authentication Data / Signature` of {{astm-auth}} is used to multiplex among these various formats.
 
 When sending data over a medium that does not have underlying Forward Error Correction (FEC), for example Legacy Transports, then {{fec-details}} MUST be used.
 
@@ -361,23 +361,23 @@ This structure is used by the DRIP Wrapper ({{drip-wrapper}}), Manifest {{drip-m
 ~~~~
 {:fig #drip-data title="Endorsement Structure for UA Signed Evidence"}
 
-Valid Not Before (VNB) Timestamp by UA (4 bytes):
+Valid Not Before (VNB) Timestamp by UA (4 octets):
 
 > See {{astm-timestamps}}. Set by the UA.
 
-Valid Not After (VNA) Timestamp by UA (4 bytes):
+Valid Not After (VNA) Timestamp by UA (4 octets):
 
 > See {{astm-timestamps}}. Set by the UA.
 
-Evidence (0 to 112 bytes):
+Evidence (0 to 112 octets):
 
 > The `evidence` section MUST be filled in with data in the form of an opaque object specified in the DRIP Wrapper ({{drip-wrapper}}), Manifest ({{drip-manifest}}), or Frame ({{drip-frame}}).
 
-UA DRIP Entity Tag (16 bytes):
+UA DRIP Entity Tag (16 octets):
 
 > This is the current DET {{RFC9374}} being used by the UA assumed to be a Specific Session ID (a type of UAS ID).
 
-UA Signature (64 bytes):
+UA Signature (64 octets):
 
 > Signature over concatenation of preceding fields (`VNB`, `VNA`, `Evidence`, and `UA DET`) using the keypair of the UA DET.
 
@@ -436,27 +436,27 @@ DRIP Link is important as its contents are used to provide trust in the DET/HI p
 ~~~~
 {:fig #link-fig title="Broadcast Endorsement / DRIP Link"}
 
-VNB Timestamp by Parent (4 bytes):
+VNB Timestamp by Parent (4 octets):
 
 > See {{astm-timestamps}}. Set by Parent Entity.
 
-VNA Timestamp by Parent (4 bytes):
+VNA Timestamp by Parent (4 octets):
 
 > See {{astm-timestamps}}. Set by Parent Entity.
 
-DET of Child: (16 bytes)
+DET of Child: (16 octets)
 
 > DRIP Entity Tag of Child Entity.
 
-HI of Child: (32 bytes)
+HI of Child: (32 octets)
 
 > Host Identity of Child Entity.
 
-DET of Parent: (16 bytes)
+DET of Parent: (16 octets)
 
 > DRIP Entity Tag of Parent Entity in DIME Hierarchy.
 
-Signature by Parent(64 bytes):
+Signature by Parent(64 octets):
 
 > Signature over concatenation of preceding fields (`VNB`, `VNA`, `DET of Child`, `HI of Child`, and `DET of Parent`) using the keypair of the Parent DET.
 
@@ -468,7 +468,7 @@ A hash of the final link (`Broadcast Endorsement: HDA on UA`) in the Broadcast E
 
 This SAM Type is used to wrap and sign over a list of other {{F3411}} Broadcast RID messages.
 
-The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with full (25 byte) {{F3411}} Broadcast RID messages. The ASTM Messages can be concatenated together to form a contiguous byte sequence, as shown in {{wrapper-fig}}.
+The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with full (25 octet) {{F3411}} Broadcast RID messages. The ASTM Messages can be concatenated together to form a contiguous octet sequence, as shown in {{wrapper-fig}}.
 
 The maximum number of messages supported is 4. The messages MUST be in Message Type order as defined by {{F3411}}. All message types except Authentication (Message Type 0x2) and Message Pack (Message Type 0xF) are allowed.
 
@@ -485,13 +485,13 @@ The maximum number of messages supported is 4. The messages MUST be in Message T
 ~~~~
 {:fig #wrapper-fig title="DRIP Wrapper Evidence"}
 
-ASTM Message (25 bytes each):
+ASTM Message (25 octets each):
 
 > Full ASTM Message as defined in {{F3411}}; specifically Message Types 0x0, 0x1, 0x3, 0x4, and 0x5. Includes Message Type and Protocol Version and does not include the Message Counter.
 
 ### Wrapped Count & Sanity Check
 
-When decoding a DRIP Wrapper on a receiver, a calculation of the number of messages wrapped and a sanity check can be performed by using the number of bytes (defined as `wrapperLength`) between the `UA DET` and the `VNB Timestamp by UA` as shown in {{wrapper-check}}.
+When decoding a DRIP Wrapper on a receiver, a calculation of the number of messages wrapped and a sanity check can be performed by using the number of octets (defined as `wrapperLength`) between the `UA DET` and the `VNB Timestamp by UA` as shown in {{wrapper-check}}.
 
 ~~~~
 if (wrapperLength MOD 25) != 0 {
@@ -556,7 +556,7 @@ An Observer who has been listening for any length of time MUST hash received mes
 
 Judicious use of a Manifest enables an entire Broadcast RID message stream to be strongly authenticated with less than 100% overhead relative to a completely unauthenticated message stream (see {{operational-proof}}).
 
-The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with 8-byte hashes of {{F3411}} Broadcast RID messages (from 2 to 11) and two special hashes ({{block-hashes}}). All these hashes MUST be concatenated to form a contiguous byte sequence in the `evidence` section. The `Previous Manifest Hash` and `Current Manifest Hash` MUST always come before the `ASTM Message Hashes` as seen in {{manifest-fig}}.
+The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with 8 octet hashes of {{F3411}} Broadcast RID messages (from 2 to 11) and two special hashes ({{block-hashes}}). All these hashes MUST be concatenated to form a contiguous octet sequence in the `evidence` section. The `Previous Manifest Hash` and `Current Manifest Hash` MUST always come before the `ASTM Message Hashes` as seen in {{manifest-fig}}.
 
 A receiver SHOULD use the Manifest to verify each ASTM Message hashed therein that it has previously received. It can do this without having received them all. A Manifest SHOULD typically encompass a single transmission cycle of messages being sent, see {{operational-recommendations}} and {{operational-proof}}.
 
@@ -579,21 +579,21 @@ A receiver SHOULD use the Manifest to verify each ASTM Message hashed therein th
 ~~~~
 {:fig #manifest-fig title="DRIP Manifest Evidence Structure"}
 
-Previous Manifest Hash (8 bytes):
+Previous Manifest Hash (8 octets):
 
 > Hash of the previously sent Manifest Message.
 
-Current Manifest Hash (8 bytes):
+Current Manifest Hash (8 octets):
 
 > Hash of the current Manifest Message.
 
-ASTM Message Hash (8 bytes):
+ASTM Message Hash (8 octets):
 
 > Hash of a single full ASTM Message using hash operations described in {{hash-op}}.
 
 ### Hash Count & Sanity Check
 
-When decoding a DRIP Manifest on a receiver, a calculation of the number of hashes and a sanity check can be performed by using the number of bytes (defined as `manifestLength`) between the `UA DET` and the `VNB Timestamp by UA` such as shown in {{manifest-check}}.
+When decoding a DRIP Manifest on a receiver, a calculation of the number of hashes and a sanity check can be performed by using the number of octets (defined as `manifestLength`) between the `UA DET` and the `VNB Timestamp by UA` such as shown in {{manifest-check}}.
 
 ~~~~
 hashLength = 8
@@ -624,7 +624,7 @@ When building the list of hashes, the `Previous Manifest Hash` is known from the
 
 #### Legacy Transport Hashing
 
-Under this transport DRIP hashes the full ASTM Message being sent over the Bluetooth Advertising frame. For paged ASTM Messages (currently only Authentication Messages) all the pages are concatenated together and hashed as one object. For all other Message Types each individual 25-byte message is hashed.
+Under this transport DRIP hashes the full ASTM Message being sent over the Bluetooth Advertising frame. For paged ASTM Messages (currently only Authentication Messages) all the pages are concatenated together and hashed as one object. For all other Message Types each individual 25 octet message is hashed.
 
 #### Extended Transport Hashing
 
@@ -651,7 +651,7 @@ The contents of `Frame Evidence Data` are not defined in this document. Other sp
 
 ### Frame Type
 
-Byte to sub-type for future different DRIP Frame formats. It takes the first byte in {{frame-fig}}, leaving 111 bytes available for `Frame Evidence Data`. See {{iana-drip-registry}} for Frame Type allocations.
+Byte to sub-type for future different DRIP Frame formats. It takes the first octet in {{frame-fig}}, leaving 111 octets available for `Frame Evidence Data`. See {{iana-drip-registry}} for Frame Type allocations.
 
 # Forward Error Correction {#fec-details}
 
@@ -667,12 +667,12 @@ The data added during FEC is not included in the `Authentication Data / Signatur
 
 When encoding two things are REQUIRED:
 
-1. The FEC data MUST start on a new Authentication Page. To do this, the results of parity encoding MUST be placed in the `Additional Data` field of {{astm-auth}} with null padding before it to line up with the next page. The `Additional Data Length` field MUST be set to `number of padding bytes + number of parity bytes`.
+1. The FEC data MUST start on a new Authentication Page. To do this, the results of parity encoding MUST be placed in the `Additional Data` field of {{astm-auth}} with null padding before it to line up with the next page. The `Additional Data Length` field MUST be set to `number of padding octets + number of parity octets`.
 2. The `Last Page Index` field (in Page 0) MUST be incremented from what it would have been without FEC by the number of pages required for the `Additional Data Length` field, null padding and FEC.
 
-To generate the parity, a simple XOR operation using the previous parity page and current page is used. Only the 23-byte `Authentication Payload` field of {{astm-auth-page}} is used in the XOR operations. For Page 0, a 23-byte null pad is used for the previous parity page.
+To generate the parity, a simple XOR operation using the previous parity page and current page is used. Only the 23 octet `Authentication Payload` field of {{astm-auth-page}} is used in the XOR operations. For Page 0, a 23 octet null pad is used for the previous parity page.
 
-{{fig-single-fec}} shows an example of the last two pages (out of N) of an Authentication Message using DRIP Single Page FEC. The `Additional Data Length` is set to 33 as there are always 23 bytes of FEC data and in this example 10 bytes of padding to line it up into Page N.
+{{fig-single-fec}} shows an example of the last two pages (out of N) of an Authentication Message using DRIP Single Page FEC. The `Additional Data Length` is set to 33 as there are always 23 octets of FEC data and in this example 10 octets of padding to line it up into Page N.
 
 ~~~~
 Page N-1:
@@ -707,9 +707,9 @@ Page N:
 
 ## Decoding {#dec-single-page}
 
-To determine if FEC has been used, a simple check of the `Last Page Index` can be used. In general if the `Last Page Index` field is one greater than that necessary to hold `Length` bytes of Authentication Data then FEC has been used. Note however that if `Length` bytes was exhausted exactly at the end of an Authentication Page then the `Additional Data Length` field will occupy the first byte of the following page the remainder of which under DRIP will be null padded. In this case the `Last Page Index` will have been incremented once for initializing the `Additional Data Length` field and once for FEC page, for a total of two additional pages.
+To determine if FEC has been used, a simple check of the `Last Page Index` can be used. In general if the `Last Page Index` field is one greater than that necessary to hold `Length` octets of Authentication Data then FEC has been used. Note however that if `Length` octets was exhausted exactly at the end of an Authentication Page then the `Additional Data Length` field will occupy the first octet of the following page the remainder of which under DRIP will be null padded. In this case the `Last Page Index` will have been incremented once for initializing the `Additional Data Length` field and once for FEC page, for a total of two additional pages.
 
-To decode FEC in DRIP, a rolling XOR is used on each `Authentication Page` received in the current `Authentication Message`. A Message Counter, outside of the ASTM Message but specified in {{F3411}}, is used to signal a different `Authentication Message` and to correlate pages to messages. This Message Counter is only 1-byte in length, so it will roll over (to 0x00) after reaching its maximum value (0xFF). If only 1-page is missing in the `Authentication Message` the resulting parity bytes should be the data of the erased page.
+To decode FEC in DRIP, a rolling XOR is used on each `Authentication Page` received in the current `Authentication Message`. A Message Counter, outside of the ASTM Message but specified in {{F3411}}, is used to signal a different `Authentication Message` and to correlate pages to messages. This Message Counter is only single octet in length, so it will roll over (to 0x00) after reaching its maximum value (0xFF). If only 1-page is missing in the `Authentication Message` the resulting parity octets should be the data of the erased page.
 
 Authentication Page 0 contains various important fields, only located on that page, that help decode the full ASTM Authentication Message. If Page 0 has been reconstructed the `Last Page Index` and `Length` fields are REQUIRED to be sanity checked by DRIP. The pseudo-code in {{decode-pseudo}} can be used for both checks.
 
@@ -756,7 +756,7 @@ function decode_check(auth_pages[], decoded_lpi, decoded_length) {
 
 ## FEC Limitations
 
-The worst-case scenario is when the `Authentication Data / Signature` ends perfectly on a page (Page N-1). This means the `Additional Data Length` would start the next page (Page N) and have 22 bytes worth of null padding to align the FEC to begin at the start of the next page (Page N+1). In this scenario, an entire page (Page N) is being wasted just to carry the `Additional Data Length`. This should be avoided where possible to maintain efficiency.
+The worst-case scenario is when the `Authentication Data / Signature` ends perfectly on a page (Page N-1). This means the `Additional Data Length` would start the next page (Page N) and have 22 octets worth of null padding to align the FEC to begin at the start of the next page (Page N+1). In this scenario, an entire page (Page N) is being wasted just to carry the `Additional Data Length`. This should be avoided where possible to maintain efficiency.
 
 # Requirements & Recommendations {#reqs}
 
@@ -787,7 +787,7 @@ UAS operation may impact the frequency of sending DRIP Authentication messages. 
 
 Thus how/when these DRIP Authentication Messages are sent is up to each implementation. Further complication comes in comparing Legacy and Extended Transports.  In Legacy, each message is a separate hash within the Manifest. So, when the UA remains within a small volume of airspace, it may lean toward occasional message authentication. In Extended Transports, the hash is over the Message Pack so only few hashes need to be in a Manifest. A single Manifest can handle a potential two Message Packs (for a full set of messages) and a DRIP Link Authentication Message for the `Broadcast Endorsement: HDA, UA`.
 
-A separate issue is the frequency of transmitting the DRIP Link Authentication Message for the `Broadcast Endorsement: HDA, UA` when using the Manifest. This message content is static; its hash never changes radically. The only change is the 4-byte timestamp in the Authentication Message headers. Thus, potentially, in a dwell style operation it can be sent once per minute, where its hash is in every Manifest. A receiver can cache all DRIP Link Authentication Message for the `Broadcast Endorsement: HDA, UA` to mitigate potential packet loss.
+A separate issue is the frequency of transmitting the DRIP Link Authentication Message for the `Broadcast Endorsement: HDA, UA` when using the Manifest. This message content is static; its hash never changes radically. The only change is the 4 octet timestamp in the Authentication Message headers. Thus, potentially, in a dwell style operation it can be sent once per minute, where its hash is in every Manifest. A receiver can cache all DRIP Link Authentication Message for the `Broadcast Endorsement: HDA, UA` to mitigate potential packet loss.
 
 The following operational configuration is RECOMMENDED (in alignment with {{drip-recommendations}}):
 
@@ -977,7 +977,7 @@ To calculate the frame count of a given DRIP Authentication Message the followin
 
 > 1 + ceiling((((16 + 8 + 64) + (Item Size * Item Count) + 2) - 16) / 23) + 1
 
-The leading 1 is counting for the Page 0 which is always present. The DET (16 bytes), timestamps (8 bytes) and signature (64 bytes) all make up the required fields for DRIP. Item Size (in bytes) is size of each item in a given format; for a Wrapper it is 25 (a full ASTM Message), while for a Manifest it is 8 (a single hash). 2 more is added to account for the SAM Type and the ADL byte. The value 16 is the number of bytes not counted (as they are part of Page 0 which is already counted for). 23 is the number of bytes per Authentication Page (pages 1 - 15). After dividing by 23 the value is raised to the nearest whole value as we can only send full frames, not partial. The final 1 is counting for a single page of FEC applied in DRIP under Bluetooth 4.x.
+The leading 1 is counting for the Page 0 which is always present. The DET (16 octets), timestamps (8 octets) and signature (64 octets) all make up the required fields for DRIP. Item Size (in octets) is size of each item in a given format; for a Wrapper it is 25 (a full ASTM Message), while for a Manifest it is 8 (a single hash). 2 more is added to account for the SAM Type and the ADL octet. The value 16 is the number of octets not counted (as they are part of Page 0 which is already counted for). 23 is the number of octets per Authentication Page (pages 1 - 15). After dividing by 23 the value is raised to the nearest whole value as we can only send full frames, not partial. The final 1 is counting for a single page of FEC applied in DRIP under Bluetooth 4.x.
 
 > Informational Note: for DRIP Link the Item Size is 48 and Item Count is 1; resulting in a frame count of 8
 
