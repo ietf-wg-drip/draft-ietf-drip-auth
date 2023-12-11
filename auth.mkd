@@ -290,7 +290,7 @@ To keep consistent formatting across the different transports (Legacy and Extend
 As such DRIP transmitters are REQUIRED to adhere to the following when using the Authentication Message:
 
 1. `Authentication Data / Signature` data MUST fit in the first 9 pages (Page Numbers 0 through 8).
-2. The `Length` field in the `Authentication Headers` (which encodes the length in octets of `Authentication Data / Signature` only) MUST NOT exceed the value of 201. This includes the SAM Type but excludes `Additional Data` such as FEC.
+2. The `Length` field in the `Authentication Headers` (which encodes the length in octets of `Authentication Data / Signature` only) MUST NOT exceed the value of 201. This includes the SAM Type but excludes `Additional Data`.
 
 #### Timestamps {#astm-timestamps}
 
