@@ -775,7 +775,7 @@ Under {{F3411}}, Authentication Messages are transmitted at the static rate (at 
 
 ## Extended Transports
 
-Under the ASTM specification, Extended Transports of RID must use the Message Pack (Message Type 0xF) format for all transmissions. Under Message Pack messages are sent together (in Message Type order) in a single frame (up to 9 single frame equivalent messages under Legacy Transports). Message Packs are required by {{F3411}} to be sent at a rate of 1 per second (like dynamic messages).
+Under the ASTM specification, Extended Transports of RID must use the Message Pack (Message Type 0xF) format for all transmissions. Under Message Pack, ASTM Messages are sent together (in Message Type order) in a single frame (up to 9 single frame equivalent messages under Legacy Transports). Message Packs are required by {{F3411}} to be sent at a rate of 1 per second (like dynamic messages).
 
 Without any fragmentation or loss of pages with transmission FEC ({{fec-details}}) MUST NOT be used as it is impractical.
 
