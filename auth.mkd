@@ -623,7 +623,7 @@ DET's using cSHAKE128 {{!NIST.SP.800-185}} compute the hash as follows:
 cSHAKE128(ASTM Message, 64, "", "Remote ID Auth Hash")
 ~~~~
 
-> Informative Note: for OGAs other than "5" {{RFC9374}}, use the construct appropriate for the associated hash. e.g. for "2" which is ECDSA/SHA-384: `Ltrunc( SHA-384( ASTM Message | "Remote ID Auth Hash" ), 8 )`
+For OGAs other than "5" {{RFC9374}}, use the construct appropriate for the associated hash. e.g. for "2" which is ECDSA/SHA-384: `Ltrunc( SHA-384( ASTM Message | "Remote ID Auth Hash" ), 8 )`
 
 When building the list of hashes, the `Previous Manifest Hash` is known from the previous Manifest. For the first built Manifest this value is filled with a random nonce. The `Current Manifest Hash` is null filled while ASTM Messages are hashed and fill the `ASTM Messages Hashes` section. When all messages are hashed, the `Current Manifest Hash` is computed over the `Previous Manifest Hash`, `Current Manifest Hash` (null filled) and `ASTM Messages Hashes`. This hash value replaces the null filled `Current Manifest Hash` and becomes the `Previous Manifest Hash` for the next Manifest.
 
