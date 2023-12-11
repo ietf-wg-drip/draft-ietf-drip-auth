@@ -602,11 +602,10 @@ ASTM Message Hash (8 octets):
 When decoding a DRIP Manifest on a receiver, a calculation of the number of hashes and a sanity check can be performed by using the number of octets (defined as `manifestLength`) between the `UA DET` and the `VNB Timestamp by UA` such as shown in {{manifest-check}}.
 
 ~~~~
-hashLength = 8
-if (manifestLength MOD hashLength) != 0 {
+if (manifestLength MOD 8) != 0 {
   return DECODE_FAILURE
 }
-hashCount = (manifestLength / hashLength) - 2;
+hashCount = (manifestLength / 8) - 2;
 ~~~~
 {: #manifest-check title="Pseudo-code for Manifest Sanity Check and Number of Hashes Calculation"}
 
