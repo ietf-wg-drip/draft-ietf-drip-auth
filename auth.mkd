@@ -664,7 +664,9 @@ For Broadcast RID, FEC is provided by the lower layers in Extended Transports. T
 
 The Bluetooth 4.x lower layers have error detection but not correction. Any frame in which Bluetooth detects an error is dropped and not delivered to higher layers (in our case, DRIP). Thus it can be treated as an erasure.
 
-DRIP standardizes a single page FEC scheme using XOR parity across all page data of an Authentication Message. This allows the correction of single erased page in an Authentication Message. Other FEC schemes, to protect more than a single page of an Authentication Message or multiple {{F3411}} Messages, is left for future standardization if operational experience proves it necessary and/or practical.
+DRIP standardizes a single page FEC scheme using XOR parity across all page data of an Authentication Message. This allows the correction of single erased page in an Authentication Message. If more than a single page is missing then handling of an incomplete Authentication Message is determined by higher layers.
+
+Other FEC schemes, to protect more than a single page of an Authentication Message or multiple {{F3411}} Messages, is left for future standardization if operational experience proves it necessary and/or practical.
 
 The data added during FEC is not included in the `Authentication Data / Signature`, but instead in the `Additional Data` field of {{astm-auth}}. This may cause the Authentication Message to exceed 9-pages, up to a maximum of 16-pages.
 
@@ -712,20 +714,20 @@ Page N:
 
 ## Decoding {#dec-single-page}
 
-To determine if FEC has been used, a simple check of the `Last Page Index` can be used. In general if the `Last Page Index` field is one greater than that necessary to hold `Length` octets of Authentication Data then FEC has been used. Note however that if `Length` octets was exhausted exactly at the end of an Authentication Page then the `Additional Data Length` field will occupy the first octet of the following page the remainder of which under DRIP will be null padded. In this case the `Last Page Index` will have been incremented once for initializing the `Additional Data Length` field and once for FEC page, for a total of two additional pages.
+To determine if FEC has been used, a check of the `Last Page Index` is performed. In general if the `Last Page Index` field is one greater than that necessary to hold `Length` octets of Authentication Data then FEC has been used. Note however that if `Length` octets was exhausted exactly at the end of an Authentication Page then the `Additional Data Length` field will occupy the first octet of the following page the remainder of which under DRIP will be null padded. In this case the `Last Page Index` will have been incremented once for initializing the `Additional Data Length` field and once for FEC page, for a total of two additional pages.
 
-To decode FEC in DRIP, a rolling XOR is used on each `Authentication Page` received in the current `Authentication Message`. A Message Counter, outside of the ASTM Message but specified in {{F3411}}, is used to signal a different `Authentication Message` and to correlate pages to messages. This Message Counter is only single octet in length, so it will roll over (to 0x00) after reaching its maximum value (0xFF). If only 1-page is missing in the `Authentication Message` the resulting parity octets should be the data of the erased page.
+To decode FEC in DRIP, a rolling XOR is used on each `Authentication Page` received in the current `Authentication Message`. A Message Counter, outside of the ASTM Message but specified in {{F3411}}, is used to signal a different `Authentication Message` and to correlate pages to messages. This Message Counter is only single octet in length, so it will roll over (to 0x00) after reaching its maximum value (0xFF). If only a single page is missing in the `Authentication Message` the resulting parity octets should be the data of the erased page.
 
-Authentication Page 0 contains various important fields, only located on that page, that help decode the full ASTM Authentication Message. If Page 0 has been reconstructed the `Last Page Index` and `Length` fields are REQUIRED to be sanity checked by DRIP. The pseudo-code in {{decode-pseudo}} can be used for both checks.
+Authentication Page 0 contains various important fields, only located on that page, that help decode the full ASTM Authentication Message. If Page 0 has been reconstructed, the `Last Page Index` and `Length` fields MUST be sanity checked by DRIP. The pseudo-code in {{decode-pseudo}} can be used for both checks.
 
 ~~~~
 function decode_check(auth_pages[], decoded_lpi, decoded_length) {
-  // check decoded Last Page Index (LPI) does not exceed maximum LPI
+  // check decoded_lpi does not exceed maximum value
   if (decoded_lpi >= 16) {
     return DECODE_FAILURE
   }
   
-  // check that decoded length does not exceed DRIP maximum
+  // check that decoded length does not exceed DRIP maximum value
   if (decoded_length > 201) {
     return DECODE_FAILURE
   }
