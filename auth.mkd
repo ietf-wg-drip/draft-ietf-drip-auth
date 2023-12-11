@@ -507,7 +507,9 @@ else if (wrappedCount > 4) {
 
 ### Wrapper over Extended Transports {#extended-wrapper}
 
-To send the DRIP Wrapper over Extended Transports, the messages being wrapped are co-located with the Authentication Message in an ASTM Message Pack (Message Type 0xF). The `evidence` section of the `Endorsement Structure for UA Signed Evidence` is cleared after signing, leaving the following binary structure that is placed into the `SAM Authentication Data` of {{sam-frame}} and sent in the same Message Pack.
+When using Extended Transports an optimization can be made to DRIP Wrapper to sign over co-located data in an ASTM Message Pack (Message Type 0xF).
+
+To perform this optimization the `Endorsement Structure for UA Signed Evidence` is filled with the ASTM Messages to be in the ASTM Message Pack, the signature is generated, then the `evidence` field is cleared leaving the encoded form shown in {{set-sig}}.
 
 ~~~~
  0                   1                   2                   3
@@ -542,7 +544,7 @@ To send the DRIP Wrapper over Extended Transports, the messages being wrapped ar
 ~~~~
 {:fig #set-sig title="DRIP Wrapper over Extended Transports"}
 
-To verify the signature, the receiver must concatenate all the messages in the Message Pack (excluding Authentication Message found in the same Message Pack) in Message Type order and set the `evidence` section of the `Endorsement Structure for UA Signed Evidence` before performing signature verification.
+To verify the signature, the receiver MUST concatenate all the messages in the Message Pack (excluding Authentication Message found in the same Message Pack) in ASTM Message Type order and set the `evidence` section of the `Endorsement Structure for UA Signed Evidence` before performing signature verification.
 
 The functionality of a Wrapper in this form is equivalent to Message Set Signature (Authentication Type 0x3) when running over Extended Transports. What the Wrapper provides is the same format but over both Extended and Legacy Transports allowing the transports to be similar. Message Set Signature also implies using the ASTM validator system architecture which depends on Internet connectivity for verification which the receiver may not have at the time of receipt of an Authentication Message. This is something the Wrapper, and all DRIP Authentication Formats, avoid when the UA key is obtained via a DRIP Link Authentication Message.
 
