@@ -769,7 +769,7 @@ The worst-case scenario is when the `Authentication Data / Signature` ends perfe
 
 ## Legacy Transports
 
-With Legacy Advertisements the goal is to attempt to bring reliable receipt of the paged Authentication Message. FEC ({{fec-details}}) MUST be used, per mandated RID rules (for example the US FAA RID Rule {{FAA-14CFR}}), when using Legacy Advertising methods (such as Bluetooth 4.x).
+Under DRIP, the goal is to attempt to bring reliable receipt of the paged Authentication Message using Legacy Transports. FEC ({{fec-details}}) MUST be used, per mandated RID rules (for example the US FAA RID Rule {{FAA-14CFR}}), when using Legacy Transports (such as Bluetooth 4.x).
 
 Under {{F3411}}, Authentication Messages are transmitted at the static rate (at least every 3 seconds). Any DRIP Authentication Messages containing dynamic data (such as the DRIP Wrapper) MAY be sent at the dynamic rate (at least every 1 second).
 
