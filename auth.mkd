@@ -110,7 +110,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## Definitions
 
-This document makes use of the terms (Observer, USS, UTM, etc.) defined in {{RFC9153}}. Other terms (such as DIME) are from {{RFC9434}}, while others (DET, RAA, HDA, etc.) are from {{RFC9374}}.
+This document makes use of the terms (CAA, Observer, USS, UTM, etc.) defined in {{RFC9153}}. Other terms (such as DIME) are from {{RFC9434}}, while others (DET, RAA, HDA, etc.) are from {{RFC9374}}.
 
 In addition, the following terms are defined for this document:
 
