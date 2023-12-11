@@ -190,7 +190,7 @@ Authentication Payload: (23 octets per page)
 
 > Authentication Payload, including headers. Null padded. See {{auth-payload}}.
 
-The Authentication Message is structured as a set of pages per {{astm-auth-page}}. There is a technical maximum of 16 pages (indexed 0 to 15 in the `Page Header`) that can be sent for a single Authentication Message, with each page carrying a maximum 23 octet `Authentication Payload`. See {{drip-restrictions}} for more details. Over Legacy Transports, these messages are "fragmented", with each page sent in a separate Legacy Transport frame.
+The Authentication Message is structured as a set of pages per {{astm-auth-page}}. There is a technical maximum of 16 pages (indexed 0 to 15) that can be sent for a single Authentication Message, with each page carrying a maximum 23 octet `Authentication Payload`. See {{drip-restrictions}} for more details. Over Legacy Transports, these messages are "fragmented", with each page sent in a separate Legacy Transport frame.
 
 Either as a single Authentication Message or a set of fragmented Authentication Message Pages, the structure is further wrapped by outer ASTM framing and the specific link framing.
 
