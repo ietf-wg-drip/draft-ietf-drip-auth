@@ -550,7 +550,7 @@ The functionality of a Wrapper in this form is equivalent to Message Set Signatu
 
 ### Wrapper Limitations
 
-The primary limitation of the Wrapper is the bounding of up to 4 ASTM Messages that can be sent within it. Another limitation is that the format cannot be used as a surrogate for messages it is wrapping due to the high potential that a receiver on the ground does not support DRIP. Thus, when a Wrapper is being used, the wrapped data must effectively be sent twice, once as a single framed message (as specified in {{F3411}}) and then again within the Wrapper.
+The primary limitation of the Wrapper is the bounding of up to 4 ASTM Messages that can be sent within it. Another limitation is that the format cannot be used as a surrogate for messages it is wrapping due to the potential that a receiver on the ground does not support DRIP. Thus, when a Wrapper is being used, the wrapped data must effectively be sent twice, once as a single framed message (as specified in {{F3411}}) and then again within the Wrapper.
 
 ## DRIP Manifest
 
