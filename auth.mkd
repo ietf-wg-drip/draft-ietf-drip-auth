@@ -1003,7 +1003,33 @@ Note that for `Manifest Frames` the calculations use an `Item Count` that is `2 
 
 The values in `Total Frames` is calculated by adding in the `Item Count` (to either the `Wrapper Frames` or `Manifest Frames` column) to account for the ASTM Messages being sent outside the Authentication Message.
 
-## ASTM Maximum Schedule Example
+## Examples
+
+### Legend
+
+The following legend applies to all example schedules in this section.
+
+~~~~
+A = Basic ID Message (0x0) ID Type 1
+B = Basic ID Message (0x0) ID Type 2
+C = Basic ID Message (0x0) ID Type 3
+D = Basic ID Message (0x0) ID Type 4
+V = Location/Vector Message (0x1)
+I = Self ID Message (0x3)
+S = System Message (0x4)
+O = Operator ID Message (0x5)
+
+L[y,z] = DRIP Link Authentication Message (0x2)
+W[y,z] = DRIP Wrapper Authentication Message (0x2)
+M[y,z] = DRIP Manifest Authentication Message (0x2)
+  y = Start Page
+  z = End Page
+
+# = Empty Frame Slot
+* = Message in DRIP Manifest Authentication Message
+~~~~
+
+### ASTM Maximum Schedule Example
 
 For this example we will assume the following ASTM Messages are in play:
 
@@ -1039,24 +1065,6 @@ This example, as exactly presented here, would never make sense in practice, as 
 +----+----+----+----+----+----+----+----+----+----+----+----+
 | A  | V  | S  | O  | B  | V  | S  | O  | I  |M[9]| ## | ## |
 +----+----+----+----+----+----+----+----+----+----+----+----+
-
-# = Empty Frame Slot
-A = Basic ID Message (0x0) ID Type 1
-B = Basic ID Message (0x0) ID Type 2
-C = Basic ID Message (0x0) ID Type 3
-D = Basic ID Message (0x0) ID Type 4
-V = Location/Vector Message (0x1)
-I = Self ID Message (0x3)
-S = System Message (0x4)
-O = Operator ID Message (0x5)
-
-L[y,z] = DRIP Link Authentication Message (0x2)
-W[y,z] = DRIP Wrapper Authentication Message (0x2)
-  Wrapping Location (0x1) and System (0x4)
-M[y,z] = DRIP Manifest Authentication Message (0x2)
-  y = Start Page
-  z = End Page
-* = Message in DRIP Manifest Authentication Message
 ~~~~
 {:fig #schedule-fig title="Example Legacy Transport Transmit Schedule"}
 
@@ -1088,7 +1096,7 @@ Link: IANA on UAS RID Apex
 
 Any messages not required for a local jurisdiction can be removed from the schedule. It is RECOMMENDED this empty frame slot is left empty to help with timing due to RF constraints/concerns. For example, in the US the Self ID (0x3) and Operator ID (0x5) are not required and can be ignored in the above figures. Only one Basic ID (0x0) is selected in the US at any given time, opening up three (3) more slots.
 
-## US Example
+### US Example
 
 ~~~~
 +-------------------------------------------------------------------+
@@ -1129,22 +1137,10 @@ Any messages not required for a local jurisdiction can be removed from the sched
 | {A|C|D} | V  | I  | S  | M[3,6] | {A|C|D} | V  | I  | S  | M[7,9] |
 |         |    |    |    |        |         |    |    |    | L[7]   |
 +---------+----+----+----+--------+---------+----+----+----+--------+
-
-A = Basic ID Message (0x0) ID Type 1
-C = Basic ID Message (0x0) ID Type 3
-D = Basic ID Message (0x0) ID Type 4
-V = Location/Vector Message (0x1)
-I = Self ID Message (0x3)
-S = System Message (0x4)
-
-L[y,z] = DRIP Link Authentication Message (0x2)
-M[y,z] = DRIP Manifest Authentication Message (0x2)
-  y = Start Page
-  z = End Page
 ~~~~
 {:fig #us-schedule-fig title="US Example Legacy Transport Transmit Schedule"}
 
-## EU Example
+### EU Example
 
 ~~~~
 +---------------------------------------------------------+
@@ -1189,23 +1185,10 @@ M[y,z] = DRIP Manifest Authentication Message (0x2)
 | {A|C|D} | V,I,S,O | M[1,5] | {A|C|D} | V,I,S,O | M[6,9] |
 |         |         |        |         |         | L[1]   |
 +---------+---------+--------+---------+---------+--------+
-
-A = Basic ID Message (0x0) ID Type 1
-C = Basic ID Message (0x0) ID Type 3
-D = Basic ID Message (0x0) ID Type 4
-V = Location/Vector Message (0x1)
-I = Self ID Message (0x3)
-S = System Message (0x4)
-O = Operator ID Message (0x5)
-
-L[y,z] = DRIP Link Authentication Message (0x2)
-M[y,z] = DRIP Manifest Authentication Message (0x2)
-  y = Start Page
-  z = End Page
 ~~~~
 {:fig #eu-schedule-fig title="EU Example Legacy Transport Transmit Schedule"}
 
-## JP Example
+### JP Example
 
 ~~~~
 +-----------------------------------------+
@@ -1250,16 +1233,5 @@ M[y,z] = DRIP Manifest Authentication Message (0x2)
 | A,B,V,I,S | M[1,5] | A,B,V,I,S | M[6,9] |  
 |           |        |           | L[1]   |
 +-----------+--------+-----------+--------+
-
-A = Basic ID Message (0x0) ID Type 1
-B = Basic ID Message (0x0) ID Type 2
-V = Location/Vector Message (0x1)
-I = Self ID Message (0x3)
-S = System Message (0x4)
-
-L[y,z] = DRIP Link Authentication Message (0x2)
-M[y,z] = DRIP Manifest Authentication Message (0x2)
-  y = Start Page
-  z = End Page
 ~~~~
 {:fig #jp-schedule-fig title="JP Example Legacy Transport Transmit Schedule"}
