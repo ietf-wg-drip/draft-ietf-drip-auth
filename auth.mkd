@@ -160,7 +160,7 @@ It is necessary for the UA to prove possession by dynamically signing data that 
 
 The Authentication Message (Message Type 0x2) is  unique in the ASTM {{F3411}} Broadcast standard as it is the only message that can be larger than the Legacy Transport size. To address this, it is defined as a set of "pages", each of which fits into a single Legacy Transport frame. For Extended Transports pages are still used but all are in a single frame.
 
-The following sub-sections are a brief overview of the Authentication Message format defined in {{F3411}} for better context on how DRIP Authentication fills and uses various fields already defined by ASTM {F3411}.
+The following sub-sections are a brief and incomplete overview of the Authentication Message format defined in {{F3411}} for better context on how DRIP Authentication fills and uses various fields already defined by ASTM {{F3411}}.
 
 ### Authentication Page {#auth-page}
 
@@ -196,7 +196,7 @@ Either as a single Authentication Message or a set of fragmented Authentication 
 
 ### Authentication Payload Field {#auth-payload}
 
-{{astm-auth}} is the source data view of the data fields found in the Authentication Message as defined by {{F3411}}. This data is placed into {{astm-auth-page}}'s `Authentication Payload`, spanning multiple pages.
+{{astm-auth}} is the source data view of the data fields found in the Authentication Message as defined by {{F3411}}. This data is placed into {{astm-auth-page}}'s `Authentication Payload`, spanning multiple `Authentication Pages`. The length of this payload is known through a field in the `Authentication Headers` (not shown here).
 
 ~~~~
  0                   1                   2                   3
@@ -237,7 +237,7 @@ Additional Data: (255 octets max):
 
 > Data that follows the `Authentication Data / Signature` but is not considered part of the `Authentication Data`.
 
-When `Additional Data` is being sent, a single unsigned octet (`Additional Data Length`) directly follows the `Authentication Data / Signature` and has the length, in octets, of the following `Additional Data`. For DRIP, this field is used to carry Forward Error Correction (FEC) data as defined in {{fec-details}}.
+When `Additional Data` is being sent, a single unsigned octet (`Additional Data Length`) directly follows the `Authentication Data / Signature` and has the length, in octets, of the following `Additional Data`. For DRIP, this field is used to carry Forward Error Correction (FEC) data as defined in {{fec-details}} and is not covered by a signature.
 
 ### Specific Authentication Method (SAM)
 
