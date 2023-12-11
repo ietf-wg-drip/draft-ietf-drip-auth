@@ -277,7 +277,7 @@ Additional Data: (255 bytes max):
 
 When `Additional Data` is being sent, a single unsigned byte (`Additional Data Length`) directly follows the `Authentication Data / Signature` and has the length, in bytes, of the following `Additional Data`. For DRIP, this field is used to carry Forward Error Correction as defined in {{fec-details}}.
 
-### Specific Authentication Method
+### Specific Authentication Method (SAM)
 
 #### SAM Data Format {#sam-data}
 
