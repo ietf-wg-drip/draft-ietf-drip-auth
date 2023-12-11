@@ -660,7 +660,7 @@ Byte to sub-type for future different DRIP Frame formats. It takes the first oct
 
 # Forward Error Correction {#fec-details}
 
-For Broadcast RID, Forward Error Correction (FEC) is provided by the lower layers in Extended Transports. The Bluetooth 4.x Legacy Transport does not have supporting FEC, so with DRIP Authentication the following application level FEC scheme is used to add FEC. When sending data over a medium that does not have underlying FEC, for example Bluetooth 4.x, then this section MUST be used.
+For Broadcast RID, FEC is provided by the lower layers in Extended Transports. The Bluetooth 4.x Legacy Transport does not have supporting FEC, so with DRIP Authentication the following application level scheme is used to add some. When sending data over a medium that does not have underlying FEC, for example Bluetooth 4.x, then this section MUST be used.
 
 The Bluetooth 4.x lower layers have error detection but not correction. Any frame in which Bluetooth detects an error is dropped and not delivered to higher layers (in our case, DRIP). Thus it can be treated as an erasure.
 
