@@ -100,9 +100,6 @@ These DRIP enhancements to ASTM {{F3411}} further support the important use case
 
 A summary of DRIP requirements {{RFC9153}} addressed herein is provided in {{req-sum}}.
 
-
-
-
 > Note: The Endorsement (used in {{drip-link}}) that proves that a DET is registered MUST come from its immediate parent in the registration hierarchy, e.g., a DRIP Identity Management Entity (DIME) {{drip-registries}}. In the definitive hierarchy, the parent of the UA is its HHIT Domain Authority (HDA), the parent of an HDA is its Registered Assigning Authority (RAA), etc. It is also assumed that all DRIP-aware entities use a DET as their identifier during interactions with other DRIP-aware entities.
 
 # Terminology {#terminology}
