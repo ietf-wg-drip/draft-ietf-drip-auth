@@ -466,7 +466,7 @@ Signature by Parent(64 octets):
 
 This DRIP Authentication Message is used in conjunction with other DRIP SAM Types (such as the Manifest or the Wrapper) that contain data (e.g., the ASTM Location/Vector Message, Message Type 0x2) that is guaranteed to be unique, unpredictable, and easily cross-checked by the receiving device.
 
-A hash of the final link (`BE: HDA on UA`) in the Broadcast Endorsement chain SHOULD be included in each DRIP Manifest {{drip-manifest}}.
+A hash of the final link (`BE: HDA on UA`) in the Broadcast Endorsement chain MUST be included in each DRIP Manifest {{drip-manifest}}.
 
 ## DRIP Wrapper
 
@@ -551,7 +551,9 @@ An Observer who has been listening for any length of time MUST hash received mes
 
 Judicious use of a Manifest enables an entire Broadcast RID message stream to be strongly authenticated with less than 100% overhead relative to a completely unauthenticated message stream (see {{operational-proof}}).
 
-The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with 8-octet hashes of {{F3411}} Broadcast RID messages (from 2 to 11) and two special hashes ({{block-hashes}}). All these hashes MUST be concatenated to form a contiguous octet sequence in the `evidence` section. The `Previous Manifest Hash` and `Current Manifest Hash` MUST always come before the `ASTM Message Hashes` as seen in {{manifest-fig}}.
+The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with 8-octet hashes of {{F3411}} Broadcast RID messages (from 2 to 10) and three special hashes ({{block-hashes}}). All these hashes MUST be concatenated to form a contiguous octet sequence in the `evidence` section.
+
+The `Previous Manifest Hash`, `Current Manifest Hash`, and `Broadcast Endorsement: HDA on UA Hash` MUST always come before the `ASTM Message Hashes` as seen in {{manifest-fig}}. The `Broadcast Endorsement: HDA on UA Hash` is included so there is a direct signature by the UA over the Broadcast Endorsement (see {{drip-link}}).
 
 A receiver SHOULD use the Manifest to verify each ASTM Message hashed therein that it has previously received. It can do this without having received them all. A Manifest SHOULD typically encompass a single transmission cycle of messages being sent, see {{operational-recommendations}} and {{operational-proof}}.
 
@@ -563,6 +565,9 @@ A receiver SHOULD use the Manifest to verify each ASTM Message hashed therein th
 |                              Hash                             |
 +---------------+---------------+---------------+---------------+
 |                       Current Manifest                        |
+|                              Hash                             |
++---------------+---------------+---------------+---------------+
+|                Broadcast Endorsement: HDA on UA               |
 |                              Hash                             |
 +---------------+---------------+---------------+---------------+
 |                                                               |
@@ -594,7 +599,7 @@ When decoding a DRIP Manifest on a receiver, a calculation of the number of hash
 if (manifestLength MOD 8) != 0 {
   return DECODE_FAILURE
 }
-hashCount = (manifestLength / 8) - 2;
+hashCount = (manifestLength / 8) - 3;
 ~~~~
 {: #manifest-check title="Pseudo-code for Manifest Sanity Check and Number of Hashes Calculation"}
 
