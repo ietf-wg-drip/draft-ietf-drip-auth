@@ -128,6 +128,10 @@ Legacy Transports:
 
 > Use of broadcast frames (Bluetooth 4.x) as specified in {{F3411}}.
 
+Manifest:
+
+> an immutable list of items being transported (in this specific case over wireless communication).
+
 # Background
 
 ## Reasoning for IETF DRIP Authentication
