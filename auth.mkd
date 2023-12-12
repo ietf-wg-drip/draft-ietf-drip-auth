@@ -164,7 +164,7 @@ It is necessary for the UA to prove possession by dynamically signing data that 
 
 ## ASTM Authentication Message {#auth-message}
 
-The Authentication Message (Message Type 0x2) is  unique in the ASTM {{F3411}} Broadcast standard as it is the only message that can be larger than the Legacy Transport size. To address this, it is defined as a set of "pages", each of which fits into a single Legacy Transport frame. For Extended Transports, pages are still used but all are in a single frame.
+The Authentication Message (Message Type 0x2) is unique in the ASTM {{F3411}} Broadcast standard as it is the only message that can be larger than the Legacy Transport size. To address this limitation around transport size, it is defined as a set of "pages", each of which fits into a single Legacy Transport frame. For Extended Transports, pages are still used but all are in a single frame.
 
 The following sub-sections are a brief overview of the Authentication Message format defined in {{F3411}} for better context on how DRIP Authentication fills and uses various fields already defined by ASTM {{F3411}}.
 
