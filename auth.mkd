@@ -859,28 +859,24 @@ DRIP SAM Type:
 
 : This registry is a mirror for SAM Types containing the subset of allocations used by DRIP Authentication Messages. Future additions MUST be done through ICAO using their process. The following values have been allocated by ICAO to the IETF and are defined here:
 
-~~~~
-| SAM Type   | Name          | Description      |
-| ---------- | ------------- | ---------------- |
+| SAM Type   | Name          | Description                           |
+| ---------- | ------------- | ------------------------------------- |
 | 0x01       | DRIP Link     | Format to hold Broadcast Endorsements |
-| 0x02       | DRIP Wrapper  | Authenticate full ASTM Messages |
-| 0x03       | DRIP Manifest | Authenticate hashes of ASTM Messages |
+| 0x02       | DRIP Wrapper  | Authenticate full ASTM Messages       |
+| 0x03       | DRIP Manifest | Authenticate hashes of ASTM Messages  |
 | 0x04       | DRIP Frame    | Format for future DRIP authentication |
-~~~~
 {: title="DRIP SAM Types"}
 
 DRIP Frame Type:
 
 : This 8-bit valued registry is for Frame Types in DRIP Frame Authentication Messages. Future additions to this registry are to be made through Expert Review (Section 4.5 of {{RFC8126}}) for the values of 0x01 to 0x9F and First Come, First Served (Section 4.4 of {{RFC8126}}) for values 0xA0 to 0xEF. The following values are defined:
 
-~~~~
-| Frame Type | Name         | Description      |
-| ---------- | ------------ | ---------------- |
-| 0x00       | Reserved     | Reserved         |
-| 0x01-0x9F  | Reserved     | Reserved, Expert Review | 
-| 0xA0-0xEF  | Reserved     | Reserved, First Come, First Served | 
-| 0xF0-0xFF  | Experimental | Experimental Use |
-~~~~
+| Frame Type   | Name         | Description                        |
+| ------------ | ------------ | ---------------------------------- |
+| 0x00         | Reserved     | Reserved                           |
+| 0x01 - 0x9F  | Reserved     | Reserved: Expert Review            |
+| 0xA0 - 0xEF  | Reserved     | Reserved: First Come, First Served |
+| 0xF0 - 0xFF  | Experimental | Experimental Use                   |
 {: title="DRIP Frame Types"}
 
 Criteria that should be applied by the designated experts includes determining whether the proposed registration duplicates existing functionality and whether the registration description is clear and fits the purpose of this registry.
