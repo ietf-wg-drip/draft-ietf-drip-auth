@@ -275,7 +275,7 @@ The following SAM Types are allocated to DRIP:
 | 0x04     | DRIP Frame ({{drip-frame}})       |
 {: title="DRIP SAM Types"}
 
-> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In accordance with ASTM {{F3411}} Annex 5, the International Civil Aviation Organization (ICAO) has been selected by ASTM as the registrar to manage allocations of these code points. The list of which can be found here: <https://www.icao.int/airnavigation/IATF/Pages/ASTM-Remote-ID.aspx>
+> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In accordance with Annex 5 of the ASTM's {{F3411}}, the International Civil Aviation Organization (ICAO) has been selected by ASTM as the registrar to manage allocations of these code points. The list of which can be found at {{ASTM-Remote-ID}}.
 
 ##### SAM Authentication Data
 
