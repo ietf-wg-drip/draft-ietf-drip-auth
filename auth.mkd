@@ -73,6 +73,12 @@ informative:
         org: United States Federal Aviation Administration (FAA)
         target: https://www.govinfo.gov/content/pkg/FR-2021-01-15/pdf/2020-28948.pdf
         date: 2021-01
+    ASTM-Remote-ID:
+        title: ICAO Remote ID Number Registration
+        author:
+        org: International Civil Aviation Organization
+        target: https://www.icao.int/airnavigation/IATF/Pages/ASTM-Remote-ID.aspx
+        date: 2023-12
 
 --- abstract
 
@@ -269,7 +275,7 @@ The following SAM Types are allocated to DRIP:
 | 0x04     | DRIP Frame ({{drip-frame}})       |
 {: title="DRIP SAM Types"}
 
-> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In accordance with Annex 5 of the ASTM's {{F3411}}, the International Civil Aviation Organization (ICAO) has been selected by ASTM as the registrar to manage allocations of these code points. The list of which can be found at {{ASTM-Remote-ID}}.
+> Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In accordance with ASTM {{F3411}} Annex 5, the International Civil Aviation Organization (ICAO) has been selected by ASTM as the registrar to manage allocations of these code points. The list of which can be found here: <https://www.icao.int/airnavigation/IATF/Pages/ASTM-Remote-ID.aspx>
 
 ##### SAM Authentication Data
 
