@@ -96,7 +96,7 @@ ASTM {{F3411}} Authentication Messages (Message Type 0x2), when used with DET-ba
 
 This authentication approach also provides some error correction ({{fec-details}}) as mandated by the United States (US) Federal Aviation Administration (FAA) {{FAA-14CFR}}, which is missing from {{F3411}} over Legacy Transports (Bluetooth 4.x).
 
-These DRIP enhancements to ASTM {{F3411}} further support the important use case of Observers who may be offline at the time of observation.
+These DRIP enhancements to ASTM's {{F3411}} further support the important use case of Observers who may be offline at the time of observation.
 
 A summary of DRIP requirements {{RFC9153}} addressed herein is provided in {{req-sum}}.
 
