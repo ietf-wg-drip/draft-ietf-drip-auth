@@ -660,7 +660,7 @@ When encoding two things are REQUIRED:
 1. The FEC data MUST start on a new Authentication Page. To do this, the results of parity encoding MUST be placed in the `Additional Data` field of {{astm-auth}} with null padding before it to line up with the next page. The `Additional Data Length` field MUST be set to `number of padding octets + number of parity octets`.
 2. The `Last Page Index` field (in Page 0) MUST be incremented from what it would have been without FEC by the number of pages required for the `Additional Data Length` field, null padding and FEC.
 
-To generate the parity, a simple XOR operation using the previous parity page and current page is used. Only the 23 octet `Authentication Payload` field of {{astm-auth-page}} is used in the XOR operations. For Page 0, a 23 octet null pad is used for the previous parity page.
+To generate the parity, a simple XOR operation using the previous parity page and current page is used. Only the 23-octet `Authentication Payload` field of {{astm-auth-page}} is used in the XOR operations. For Page 0, a 23-octet null pad is used for the previous parity page.
 
 {{fig-single-fec}} shows an example of the last two pages (out of N) of an Authentication Message using DRIP Single Page FEC. The `Additional Data Length` is set to 33 as there are always 23 octets of FEC data and in this example 10 octets of padding to line it up into Page N.
 
