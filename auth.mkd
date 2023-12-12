@@ -612,7 +612,7 @@ When building the list of hashes, the `Previous Manifest Hash` is known from the
 
 #### Legacy Transport Hashing
 
-Under this transport DRIP hashes the full ASTM Message being sent over the Bluetooth Advertising frame. For paged ASTM Messages (currently only Authentication Messages) all the pages are concatenated together and hashed as one object. For all other Message Types each individual 25 octet message is hashed.
+Under this transport DRIP hashes the full ASTM Message being sent over the Bluetooth Advertising frame. For paged ASTM Messages (currently only Authentication Messages) all the pages are concatenated together and hashed as one object. For all other Message Types each individual 25-octet message is hashed.
 
 #### Extended Transport Hashing
 
