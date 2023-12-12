@@ -476,7 +476,7 @@ The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{
 
 ### Wrapped Count & Sanity Check
 
-When decoding a DRIP Wrapper on a receiver, a calculation of the number of messages wrapped and a sanity check SHOULD be performed by using the number of octets (defined as `wrapperLength`) between the `VNA Timestamp by UA` and the `UA DET` as shown in {{wrapper-check}}.
+When decoding a DRIP Wrapper on a receiver, a calculation of the number of messages wrapped and a sanity check MUST be performed by using the number of octets (defined as `wrapperLength`) between the `VNA Timestamp by UA` and the `UA DET` as shown in {{wrapper-check}}.
 
 ~~~~
 if (wrapperLength MOD 25) != 0 {
@@ -484,12 +484,12 @@ if (wrapperLength MOD 25) != 0 {
 }
 wrappedCount = wrapperLength / 25;
 if (wrappedCount == 0) {
-  // handle wrapper over extended transport
+  // DRIP Wrapper over extended transport
 }
 else if (wrappedCount > 4) {
   return DECODE_FAILURE;
 } else {
-  // unwrap messages
+  // standard DRIP Wrapper
 }
 ~~~~
 {: #wrapper-check title="Pseudo-code for Wrapper sanity check and number of messages calculation"}
