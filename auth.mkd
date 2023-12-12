@@ -871,13 +871,15 @@ DRIP SAM Type:
 
 DRIP Frame Type:
 
-: This 8-bit valued registry is for Frame Types in DRIP Frame Authentication Messages. Future additions to this registry are to be made through Expert Review (Section 4.5 of {{RFC8126}}). The following values are defined:
+: This 8-bit valued registry is for Frame Types in DRIP Frame Authentication Messages. Future additions to this registry are to be made through Expert Review (Section 4.5 of {{RFC8126}}) for the values of 0x01 to 0x9F and First Come, First Served (Section 4.4 of {{RFC8126}}) for values 0xA0 to 0xEF. The following values are defined:
 
 ~~~~
 | Frame Type | Name         | Description      |
 | ---------- | ------------ | ---------------- |
 | 0x00       | Reserved     | Reserved         |
-| 0xC0-0xFF  | Experimental | Experimental Use |
+| 0x01-0x9F  | Reserved     | Reserved, Expert Review | 
+| 0xA0-0xEF  | Reserved     | Reserved, First Come, First Served | 
+| 0xF0-0xFF  | Experimental | Experimental Use |
 ~~~~
 {: title="DRIP Frame Types"}
 
