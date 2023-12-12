@@ -243,7 +243,7 @@ Additional Data Length (ADL): (1 octet - unsigned)
 
 > Length in octets of `Additional Data`.
 
-Additional Data: (255 octets max):
+Additional Data: (255 octets max)
 
 > Data that follows the `Authentication Data / Signature` but is not considered part of the `Authentication Data` thus is not covered by a signature. When `Additional Data` is being sent, a single unsigned octet (`Additional Data Length`) directly follows the `Authentication Data / Signature` and has the length, in octets, of the following `Additional Data`. For DRIP, this field is used to carry Forward Error Correction (FEC) data as defined in {{fec-details}}.
 
@@ -267,9 +267,9 @@ Additional Data: (255 octets max):
 ~~~~
 {:fig #sam-frame title="SAM Data Format"}
 
-##### SAM Type
+SAM Type: (1 octet)
 
-The following SAM Types are allocated to DRIP:
+> The following SAM Types are allocated to DRIP:
 
 | SAM Type | Description                       |
 | -------- | --------------------------------- |
@@ -281,9 +281,9 @@ The following SAM Types are allocated to DRIP:
 
 > Note: ASTM International is the owner of these code points as they are defined in {{F3411}}. In accordance with Annex 5 of the ASTM's {{F3411}}, the International Civil Aviation Organization (ICAO) has been selected by ASTM as the registrar to manage allocations of these code points. The list of which can be found at {{ASTM-Remote-ID}}.
 
-##### SAM Authentication Data
+SAM Authentication Data: (0 to 200 octets)
 
-This field has a maximum size of 200 octets, as defined by {{drip-restrictions}}.
+> Contains opaque authentication data formatted as defined by the preceding SAM Type.
 
 ### ASTM Broadcast RID Constraints {#drip-restrictions}
 
@@ -308,11 +308,11 @@ In ASTM {{F3411}} timestamps are a Unix-style timestamp with an epoch of `2019-0
 
 Under DRIP there are two timestamps defined `Valid Not Before (VNB)` and `Valid Not After (VNA)`.
 
-Valid Not Before (VNB) Timestamp (4 octets):
+Valid Not Before (VNB) Timestamp: (4 octets)
 
 > Timestamp denoting recommended time to start trusting data in. MUST follow the format defined in {{F3411}} as described above. MUST be set no earlier than the time the signature (across a given structure) is generated.
 
-Valid Not After (VNA) Timestamp (4 octets):
+Valid Not After (VNA) Timestamp: (4 octets)
 
 > Timestamp denoting recommended time to stop trusting data. MUST follow the format defined in {{F3411}} as described above. Has an additional offset to push a short time into the future (relative to `VNB`) to avoid replay attacks. The exact offset is not defined in this document. Best practice identifying an acceptable offset should be used taking into consideration the UA environment, and propagation characteristics of the messages being sent, and clock differences between the UA and Observers. A reasonable time would be to set `VNA` 2 minutes after `VNB`.
 
@@ -367,23 +367,23 @@ This structure is used by the DRIP Wrapper ({{drip-wrapper}}), Manifest {{drip-m
 ~~~~
 {:fig #drip-data title="Endorsement Structure for UA Signed Evidence"}
 
-Valid Not Before (VNB) Timestamp by UA (4 octets):
+Valid Not Before (VNB) Timestamp by UA: (4 octets)
 
 > See {{astm-timestamps}}. Set by the UA.
 
-Valid Not After (VNA) Timestamp by UA (4 octets):
+Valid Not After (VNA) Timestamp by UA: (4 octets)
 
 > See {{astm-timestamps}}. Set by the UA.
 
-Evidence (0 to 112 octets):
+Evidence: (0 to 112 octets)
 
 > The `evidence` section MUST be filled in with data in the form of an opaque object specified in the DRIP Wrapper ({{drip-wrapper}}), Manifest ({{drip-manifest}}), or Frame ({{drip-frame}}).
 
-UA DRIP Entity Tag (16 octets):
+UA DRIP Entity Tag: (16 octets)
 
 > This is the current DET {{RFC9374}} being used by the UA assumed to be a Specific Session ID (a type of UAS ID).
 
-UA Signature (64 octets):
+UA Signature: (64 octets)
 
 > Signature over concatenation of preceding fields (`VNB`, `VNA`, `Evidence`, and `UA DET`) using the keypair of the UA DET.
 
@@ -444,11 +444,11 @@ DRIP Link is important as its contents are used to provide trust in the DET/HI p
 ~~~~
 {:fig #link-fig title="Broadcast Endorsement / DRIP Link"}
 
-VNB Timestamp by Parent (4 octets):
+VNB Timestamp by Parent: (4 octets)
 
 > See {{astm-timestamps}}. Set by Parent Entity.
 
-VNA Timestamp by Parent (4 octets):
+VNA Timestamp by Parent: (4 octets)
 
 > See {{astm-timestamps}}. Set by Parent Entity.
 
@@ -464,7 +464,7 @@ DET of Parent: (16 octets)
 
 > DRIP Entity Tag of Parent Entity in DIME Hierarchy.
 
-Signature by Parent(64 octets):
+Signature by Parent: (64 octets)
 
 > Signature over concatenation of preceding fields (`VNB`, `VNA`, `DET of Child`, `HI of Child`, and `DET of Parent`) using the keypair of the Parent DET.
 
@@ -583,19 +583,19 @@ A receiver SHOULD use the Manifest to verify each ASTM Message hashed therein th
 ~~~~
 {:fig #manifest-fig title="DRIP Manifest Evidence Structure"}
 
-Previous Manifest Hash (8 octets):
+Previous Manifest Hash: (8 octets)
 
 > Hash of the previously sent Manifest Message.
 
-Current Manifest Hash (8 octets):
+Current Manifest Hash: (8 octets)
 
 > Hash of the current Manifest Message.
 
-Broadcast Endorsement: HDA on UA Hash (8 octets):
+Broadcast Endorsement: HDA on UA Hash: (8 octets)
 
 > Hash of the 136-octet contents of a DRIP Link ({{drip-link}}). Specifically the `BE: HDA on UA`.
 
-ASTM Message Hash (8 octets):
+ASTM Message Hash: (8 octets)
 
 > Hash of a single full ASTM Message using hash operations described in {{hash-op}}.
 
@@ -662,9 +662,9 @@ The contents of `Frame Evidence Data` are not defined in this document. Other sp
 ~~~~
 {:fig #frame-fig title="DRIP Frame"}
 
-### Frame Type
+Frame Type: (1 octet)
 
-Byte to sub-type for future different DRIP Frame formats. It takes the first octet in {{frame-fig}}, leaving 111 octets available for `Frame Evidence Data`. See {{iana-drip-registry}} for Frame Type allocations.
+> Byte to sub-type for future different DRIP Frame formats. It takes the first octet in {{frame-fig}}, leaving 111 octets available for `Frame Evidence Data`. See {{iana-drip-registry}} for Frame Type allocations.
 
 # Forward Error Correction {#fec-details}
 
