@@ -555,9 +555,9 @@ An Observer who has been listening for any length of time MUST hash received mes
 
 Judicious use of a Manifest enables an entire Broadcast RID message stream to be strongly authenticated with less than 100% overhead relative to a completely unauthenticated message stream (see {{operational-proof}}).
 
-The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with 8-octet hashes of {{F3411}} Broadcast RID messages (from 2 to 10) and three special hashes ({{block-hashes}}). All these hashes MUST be concatenated to form a contiguous octet sequence in the `evidence` section.
+The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with 8-octet hashes of {{F3411}} Broadcast RID messages (up to 11) and three special hashes ({{block-hashes}}). All these hashes MUST be concatenated to form a contiguous octet sequence in the `evidence` section.
 
-The `Previous Manifest Hash`, `Current Manifest Hash`, and `Broadcast Endorsement: HDA on UA Hash` MUST always come before the `ASTM Message Hashes` as seen in {{manifest-fig}}. The `Broadcast Endorsement: HDA on UA Hash` is included so there is a direct signature by the UA over the Broadcast Endorsement (see {{drip-link}}).
+The `Previous Manifest Hash`, `Current Manifest Hash`, and `Broadcast Endorsement: HDA on UA Hash` MUST always come before the `ASTM Message Hashes` as seen in {{manifest-fig}}.
 
 A receiver SHOULD use the Manifest to verify each ASTM Message hashed therein that it has previously received. It can do this without having received them all. A Manifest SHOULD typically encompass a single transmission cycle of messages being sent, see {{operational-recommendations}} and {{operational-proof}}.
 
@@ -613,7 +613,9 @@ hashCount = (manifestLength / 8) - 3;
 
 ### Manifest Ledger Hashes {#block-hashes}
 
-Two special hashes are included in all Manifests: the `Previous Manifest Hash`, which links to the previous Manifest, and the `Current Manifest Hash`. These hashes act as a ledger of provenance to the Manifest that could be traced back if the Observer was present for extended periods of time.
+Three special hashes are included in all Manifests. The `Previous Manifest Hash`, links to the previous Manifest, and the `Current Manifest Hash` which is the currently filled Manifest. These two hashes act as a ledger of provenance to the Manifest that could be traced back if the Observer was present for extended periods of time.
+
+The `Broadcast Endorsement: HDA on UA Hash` is included so there is a direct signature by the UA over the Broadcast Endorsement (see {{drip-link}}).
 
 ### Hash Algorithms and Operation {#hash-op}
 
@@ -625,7 +627,11 @@ DET's using cSHAKE128 {{!NIST.SP.800-185}} compute the hash as follows:
 cSHAKE128(ASTM Message, 64, "", "Remote ID Auth Hash")
 ~~~~
 
-For OGAs other than "5" {{RFC9374}}, use the construct appropriate for the associated hash. For example, for "2" which is ECDSA/SHA-384: `Ltrunc( SHA-384( ASTM Message | "Remote ID Auth Hash" ), 8 )`
+For OGAs other than "5" {{RFC9374}}, use the construct appropriate for the associated hash. For example, for "2" which is ECDSA/SHA-384:
+
+~~~~
+Ltrunc( SHA-384( ASTM Message | "Remote ID Auth Hash" ), 8 )
+~~~~
 
 When building the list of hashes, the `Previous Manifest Hash` is known from the previous Manifest. For the first built Manifest this value is filled with a random nonce. The `Current Manifest Hash` is null filled while ASTM Messages are hashed and fill the `ASTM Messages Hashes` section. When all messages are hashed, the `Current Manifest Hash` is computed over the `Previous Manifest Hash`, `Current Manifest Hash` (null filled) and `ASTM Messages Hashes`. This hash value replaces the null filled `Current Manifest Hash` and becomes the `Previous Manifest Hash` for the next Manifest.
 
@@ -1077,7 +1083,7 @@ This example, as exactly presented here, would never make sense in practice, as 
 ~~~~
 {:fig #schedule-fig title="Example Legacy Transport Transmit Schedule"}
 
-Manifest messages in the schedule are filled with unique messages from previously transmitted messages before the new Manifest is sent. In {{schedule-fig}}, this is denoted by the `*` symbol as being part of the Manifest. In {{schedule-fig}}, messages are eligible for the Manifest in the very first cycle of transmission. In future iterations, 56 messages are eligible across the 7 seconds it takes to send the previous Manifest and the next Link/Wrapper. Care should be given into the selection of messages for a Manifest as there is a limit of 11 hashes.
+Manifest messages in the schedule are filled with unique messages from previously transmitted messages before the new Manifest is sent. In {{schedule-fig}}, this is denoted by the `*` symbol as being part of the Manifest. In {{schedule-fig}}, messages are eligible for the Manifest in the very first cycle of transmission. In future iterations, 56 messages are eligible across the 7 seconds it takes to send the previous Manifest and the next Link/Wrapper. Care should be given into the selection of messages for a Manifest as there is a limit of 10 hashes.
 
 > Informational Note: the term "unique message" above is used as in the example schedule the 2nd Location and System messages MAY be exact copies of the previous Location and System messages sent in the same second. Duplicates of this kind SHOULD NOT be included in a Manifest.
 
