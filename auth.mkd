@@ -591,6 +591,10 @@ Current Manifest Hash (8 octets):
 
 > Hash of the current Manifest Message.
 
+Broadcast Endorsement: HDA on UA Hash (8 octets):
+
+> Hash of the 136-octet contents of a DRIP Link ({{drip-link}}). Specifically the Endorsement of the HDA on the UA.
+
 ASTM Message Hash (8 octets):
 
 > Hash of a single full ASTM Message using hash operations described in {{hash-op}}.
