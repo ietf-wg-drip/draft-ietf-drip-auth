@@ -483,6 +483,8 @@ The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{
 When decoding a DRIP Wrapper on a receiver, a calculation of the number of messages wrapped and a sanity check MUST be performed by using the number of octets (defined as `wrapperLength`) between the `VNA Timestamp by UA` and the `UA DET` as shown in {{wrapper-check}}.
 
 ~~~~
+<CODE BEGINS>
+
 if (wrapperLength MOD 25) != 0 {
   return DECODE_FAILURE;
 }
@@ -495,6 +497,8 @@ else if (wrappedCount > 4) {
 } else {
   // standard DRIP Wrapper
 }
+
+<CODE ENDS>
 ~~~~
 {: #wrapper-check title="Pseudo-code for Wrapper sanity check and number of messages calculation"}
 
@@ -604,10 +608,14 @@ ASTM Message Hash: (8 octets)
 When decoding a DRIP Manifest on a receiver, a calculation of the number of hashes and a sanity check can be performed by using the number of octets (defined as `manifestLength`) between the `UA DET` and the `VNB Timestamp by UA` such as shown in {{manifest-check}}.
 
 ~~~~
+<CODE BEGINS>
+
 if (manifestLength MOD 8) != 0 {
   return DECODE_FAILURE
 }
 hashCount = (manifestLength / 8) - 3;
+
+<CODE ENDS>
 ~~~~
 {: #manifest-check title="Pseudo-code for Manifest Sanity Check and Number of Hashes Calculation"}
 
@@ -729,6 +737,8 @@ To decode FEC in DRIP, a rolling XOR is used on each `Authentication Page` recei
 Authentication Page 0 contains various important fields, only located on that page, that help decode the full ASTM Authentication Message. If Page 0 has been reconstructed, the `Last Page Index` and `Length` fields MUST be sanity checked by DRIP. The pseudo-code in {{decode-pseudo}} can be used for both checks.
 
 ~~~~
+<CODE BEGINS>
+
 function decode_check(auth_pages[], decoded_lpi, decoded_length) {
   // check decoded_lpi does not exceed maximum value
   if (decoded_lpi >= 16) {
@@ -766,6 +776,8 @@ function decode_check(auth_pages[], decoded_lpi, decoded_length) {
   }
   return DECODE_SUCCESS
 }
+
+<CODE ENDS>
 ~~~~
 {: #decode-pseudo title="Pseudo-code for Decode Checks"}
 
