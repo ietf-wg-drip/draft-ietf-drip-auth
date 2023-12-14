@@ -992,7 +992,7 @@ Transition to this state is from Trusted if a subsequent message fails verificat
 
 # Operational Recommendation Analysis {#operational-proof}
 
-The recommendations found in ({{operational-recommendations}}) may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there. This section is solely based on operations using Legacy Transports; as such, all calculations of frame counts for DRIP included FEC using {{fec-details}}.
+The recommendations found in ({{operational-recommendations}}) may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there.
 
 ## Methodology
 
@@ -1000,35 +1000,52 @@ In the US, the required ASTM Messages to be transmitted every second are: Basic 
 
 > Informational Note: In Europe, the Operator ID Message (0x5) is also included; pushing the frame count to 8 per cycle. In Japan, two Basic ID (0x0), Location (0x1), and Authentication (0x2) are required, likely pushing the frame count beyond 8.
 
-To calculate the frame count of a given DRIP Authentication Message the following formula is used:
+There are two formulas to determine the number of Authentication Pages required, one for Wrapper:
 
-> 1 + ceiling((((16 + 8 + 64) + (Item Size * Item Count) + 2) - 16) / 23) + 1
+~~~~
+<CODE BEGINS>
 
-The leading 1 is counting for the Page 0 which is always present. The DET (16 octets), timestamps (8 octets) and signature (64 octets) all make up the required fields for DRIP. Item Size (in octets) is size of each item in a given format; for a Wrapper it is 25 (a full ASTM Message), while for a Manifest it is 8 (a single hash). 2 more is added to account for the SAM Type and the ADL octet. The value 16 is the number of octets not counted (as they are part of Page 0 which is already counted for). 23 is the number of octets per Authentication Page (pages 1 - 15). After dividing by 23 the value is raised to the nearest whole value as we can only send full frames, not partial. The final 1 is counting for a single page of FEC applied in DRIP under Bluetooth 4.x.
+wrapper_struct_size = 89 + (25 * num_astm_messages)
+wrapper_page_count = ceiling((wrapper_struct_size - 17) / 23) + 1
 
-> Informational Note: for DRIP Link the Item Size is 48 and Item Count is 1; resulting in a frame count of 8
+<CODE ENDS>
+~~~~
 
-Comparing DRIP Wrapper and Manifest Authentication Message frame counts we have the following:
+and one for Manifest:
 
-| Authenticated Frames | Wrapper Frames | Manifest Frames | Total Wrapper Frames | Total Manifest Frames |
-| -------------------- | -------------- | --------------- | -------------------- | --------------------- |
-| 1                    | 7              | 7               | 8                    | 8
-| 2                    | 8              | 7               | 10                   | 9
-| 3                    | 9              | 7               | 12                   | 10
-| 4                    | 10             | 8               | 14                   | 12
-| 5                    | N/A            | 8               | N/A                  | 13
-| 6                    | N/A            | 8               | N/A                  | 14
-| 7                    | N/A            | 9               | N/A                  | 16
-| 8                    | N/A            | 9               | N/A                  | 17
-| 9                    | N/A            | 10              | N/A                  | 19
-| 10                   | N/A            | 10              | N/A                  | 20
-| 11                   | N/A            | 10              | N/A                  | 21
-| 12                   | N/A            | 12              | N/A                  | 24
-{: #tbl-frame-counts title="Frame Counts"}
+~~~~
+<CODE BEGINS>
 
-Note that for `Manifest Frames` the calculations use an `Item Count` that is `2 + Authentication Frames`. This is to account for the two special hashes.
+manifest_struct_size = 89 + (8 * (num_astm_hashes + 3))
+manifest_page_count = ceiling((manifest_struct_size - 17) / 23) + 1
 
-The values in `Total Frames` is calculated by adding in the `Item Count` (to either the `Wrapper Frames` or `Manifest Frames` column) to account for the ASTM Messages being sent outside the Authentication Message.
+<CODE ENDS>
+~~~~
+
+A similar formula can be applied to Link as they are of fixed size:
+
+~~~~
+link_page_count = ceiling((137 - 17) / 23) + 1 = 7
+~~~~
+
+Comparing Wrapper and Manifest Authentication Message page counts against total frame counts we have the following:
+
+| ASTM Messages | Wrapper (w/FEC) | Manifest (w/FEC) | ASTM Messages + Wrapper (w/FEC) | ASTM Messages + Manifest (w/FEC) |
+| ------------- | --------------- | ---------------- | ------------------------------- | -------------------------------- |
+| 1             | 6 (7)           | 6 (7)            | 7 (8)                           | 7 (8)                            |
+| 2             | 7 (8)           | 6 (7)            | 9 (10)                          | 8 (9)                            |
+| 3             | 8 (9)           | 7 (8)            | 11 (12)                         | 10 (11)                          |
+| 4             | 9 (10)          | 7 (8)            | 13 (14)                         | 11 (12)                          |
+| 5             | N/A             | 7 (8)            | N/A                             | 12 (13)                          |
+| 6             | N/A             | 8 (9)            | N/A                             | 14 (15)                          |
+| 7             | N/A             | 8 (9)            | N/A                             | 15 (16)                          |
+| 8             | N/A             | 8 (9)            | N/A                             | 16 (17)                          |
+| 9             | N/A             | 9 (10)           | N/A                             | 18 (19)                          |
+| 10            | N/A             | 9 (10)           | N/A                             | 19 (20)                          |
+| 11            | N/A             | 9 (11)           | N/A                             | 20 (22)                          |
+{: #tbl-page-counts title="Page & Frame Counts"}
+
+Eleven ASTM Messages in {{tbl-page-counts}} is a special case under FEC with Manifest that invokes the issue mentioned in {{fec-limitations}}. 11 is the max number of ASTM Messages Hashes that can be supported resulting in 14 total hashes. This completely fills the `evidence` section of the structure making its total size 200 octets. This fits on exactly 9 Authentication Pages (`(201 - 17) / 23 == 8`) so when the ADL is added it is placed on the next page (Page 10). Per rule 1 in {{enc-single-page}} this means that all of Page 10 is null padded (expect the ADL octet) and FEC data fills Page 11, resulting in a plus two page count when FEC is applied.
 
 ## Examples
 
