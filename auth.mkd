@@ -122,7 +122,7 @@ In addition, the following terms are defined for this document:
 
 Extended Transports:
 
-> Use of extended advertisements (Bluetooth 5.x), service info (Wi-Fi Neighbor Awareness Networking), or vendor specific information element (IEEE 802.11 Beacon) in broadcast frames as specified in {{F3411}}. Must use ASTM Message Pack (Message Type 0xF).
+> Use of extended advertisements (Bluetooth 5.x), service info (Wi-Fi Neighbor Awareness Networking (NAN)), or IEEE 802.11 Beacons with vendor specific information element as specified in {{F3411}}. Must use ASTM Message Pack (Message Type 0xF).
 
 Legacy Transports:
 
