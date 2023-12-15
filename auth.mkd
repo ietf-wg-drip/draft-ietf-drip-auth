@@ -397,7 +397,9 @@ This SAM Type is used to transmit Broadcast Endorsements. For example, the `Broa
 
 > Note: For the remainder of this document `Broadcast Endorsement: Parent, Child` will be abbreviated to `BE: Parent, Child`.
 
-DRIP Link is important as its contents are used to provide trust in the DET/HI pair that the UA is currently broadcasting. This message does not require Internet connectivity to perform signature verification of the contents when the DIME DET/HI is in the receiver's cache. It also provides the UA HI, when it is a `BE: HDA, UA`, so that connectivity is not required when performing signature verification of other DRIP Authentication Messages.
+DRIP Link is important as its contents are used to provide trust in the DET/HI pair that the UA is currently broadcasting. This message does not require Internet connectivity to perform signature verification of the contents when the DIME DET/HI is in the receiver's cache. It also provides the UA HI, when it is filled with a `BE: HDA, UA`, so that connectivity is not required when performing signature verification of other DRIP Authentication Messages.
+
+Various Broadcast Endorsements are sent during operation to ensure that the full Broadcast Endorsement chain is available offline. See {{drip-recommendations}} for further details.
 
 ~~~~
  0                   1                   2                   3
@@ -561,7 +563,7 @@ An Observer who has been listening for any length of time MUST hash received mes
 
 Judicious use of a Manifest enables an entire Broadcast RID message stream to be strongly authenticated with less than 100% overhead relative to a completely unauthenticated message stream (see {{operational-proof}}).
 
-The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with 8-octet hashes of {{F3411}} Broadcast RID messages (up to 11) and three special hashes ({{block-hashes}}). All these hashes MUST be concatenated to form a contiguous octet sequence in the `evidence` section.
+The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with 8-octet hashes of {{F3411}} Broadcast RID messages (up to 11) and three special hashes ({{block-hashes}}). All these hashes MUST be concatenated to form a contiguous octet sequence in the `evidence` section. It is RECOMMENDED the max number of ASTM Message Hashes be used is 10 (see {{eleven-astm-messages}}).
 
 The `Previous Manifest Hash`, `Current Manifest Hash`, and `Broadcast Endorsement: HDA on UA Hash` MUST always come before the `ASTM Message Hashes` as seen in {{manifest-fig}}.
 
@@ -647,11 +649,13 @@ When building the list of hashes, the `Previous Manifest Hash` is known from the
 
 #### Legacy Transport Hashing
 
-Under this transport DRIP hashes the full ASTM Message being sent over the Bluetooth Advertising frame. For paged ASTM Messages (currently only Authentication Messages) all the pages are concatenated together and hashed as one object. For all other Message Types each individual 25-octet message is hashed.
+Under this transport DRIP hashes the full ASTM Message being sent over the Bluetooth Advertising frame. This is the 25-octet object start with the Message Type and Protocol Version octet along with the 24 octets of message data. The hash MUST NOT included the Message Counter octet.
+
+For paged ASTM Messages (currently only Authentication Messages) all the pages are concatenated together and hashed as one object.
 
 #### Extended Transport Hashing
 
-Under this transport DRIP hashes the full ASTM Message Pack (Message Type 0xF) - regardless of its content.
+Under this transport DRIP hashes the full ASTM Message Pack (Message Type 0xF) regardless of its content. The hash MUST NOT included the Message Counter octet.
 
 ## DRIP Frame
 
@@ -805,7 +809,7 @@ Without any fragmentation or loss of pages with transmission FEC ({{fec-details}
 
 It is REQUIRED that a UA send the following DRIP Authentication Formats to fulfill the requirements in {{RFC9153}}:
 
-1. SHOULD: send DRIP Link ({{drip-link}}) using the `BE: Apex, RAA` (satisfying GEN-3); at least once per 5 minutes. Apex in this context is the DET prefix owner
+1. MUST: send DRIP Link ({{drip-link}}) using the `BE: Apex, RAA` (satisfying GEN-3); at least once per 5 minutes. Apex in this context is the DET prefix owner
 2. MUST: send DRIP Link ({{drip-link}}) using the `BE: RAA, HDA` (satisfying GEN-3); at least once per 5 minutes
 3. MUST: send DRIP Link ({{drip-link}}) using the `BE: HDA, UA` (satisfying ID-5, GEN-1 and GEN-3); at least once per minute
 4. MUST: send any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest ({{drip-manifest}}) or DRIP Wrapper ({{drip-wrapper}})) where the UA is dynamically signing data that is guaranteed to be unique, unpredictable and easily cross checked by the receiving device (satisfying ID-5, GEN-1 and GEN-2); at least once per 5 seconds
@@ -992,13 +996,13 @@ Transition to this state is from Trusted if a subsequent message fails verificat
 
 # Operational Recommendation Analysis {#operational-proof}
 
-The recommendations found in ({{operational-recommendations}}) may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there.
+The recommendations found in {{operational-recommendations}} may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there.
 
-## Methodology
+In most jurisdictions, the required ASTM Messages to be transmitted every second are: Basic ID (0x1), Location (0x2), and System (0x4). Typical implementations will most likely send at a higher rate (2x sets per cycle) resulting in 6 frames sent per cycle. Transmitting this set of message more than once a second is not discouraged but awareness is needed to avoid congesting the RF spectrum, causing further issues.
 
-In the US, the required ASTM Messages to be transmitted every second are: Basic ID (0x1), Location (0x2), and System (0x4). Typical implementations will most likely send at a higher rate (2x sets per cycle) resulting in 6 frames sent per cycle. Transmitting this set of message more than once a second is not discouraged but awareness is needed to avoid congesting the RF spectrum, causing further issues.
+> Informational Note: In Europe, the Operator ID Message (0x5) is also required. In Japan, two Basic ID (0x0), Location (0x1), and Authentication (0x2) are required. Self ID (0x3) is optional but can carry Emergency Status information.
 
-> Informational Note: In Europe, the Operator ID Message (0x5) is also included; pushing the frame count to 8 per cycle. In Japan, two Basic ID (0x0), Location (0x1), and Authentication (0x2) are required, likely pushing the frame count beyond 8.
+## Page Counts vs Frame Counts
 
 There are two formulas to determine the number of Authentication Pages required, one for Wrapper:
 
@@ -1032,6 +1036,7 @@ Comparing Wrapper and Manifest Authentication Message page counts against total 
 
 | ASTM Messages | Wrapper (w/FEC) | Manifest (w/FEC) | ASTM Messages + Wrapper (w/FEC) | ASTM Messages + Manifest (w/FEC) |
 | ------------- | --------------- | ---------------- | ------------------------------- | -------------------------------- |
+| 0             | 5 (6)           | 6 (7)            | 5 (6)                           | 6 (7)                            |
 | 1             | 6 (7)           | 6 (7)            | 7 (8)                           | 7 (8)                            |
 | 2             | 7 (8)           | 6 (7)            | 9 (10)                          | 8 (9)                            |
 | 3             | 8 (9)           | 7 (8)            | 11 (12)                         | 10 (11)                          |
@@ -1045,15 +1050,50 @@ Comparing Wrapper and Manifest Authentication Message page counts against total 
 | 11            | N/A             | 9 (11)           | N/A                             | 20 (22)                          |
 {: #tbl-page-counts title="Page & Frame Counts"}
 
-Eleven ASTM Messages in {{tbl-page-counts}} is a special case under FEC with Manifest that invokes the issue mentioned in {{fec-limitations}}. 11 is the max number of ASTM Messages Hashes that can be supported resulting in 14 total hashes. This completely fills the `evidence` section of the structure making its total size 200 octets. This fits on exactly 9 Authentication Pages (`(201 - 17) / 23 == 8`) so when the ADL is added it is placed on the next page (Page 10). Per rule 1 in {{enc-single-page}} this means that all of Page 10 is null padded (expect the ADL octet) and FEC data fills Page 11, resulting in a plus two page count when FEC is applied.
+Link shares the same page counts as Manifest with 5 ASTM Messages.
 
-## Examples
+### Special Cases
 
-### Legend
+#### Zero ASTM Messages
 
-The following legend applies to all example schedules in this section.
+Zero ASTM Messages in {{tbl-page-counts}} is where Extended Wrapper ({{extended-wrapper}}) without FEC is used in Message Packs. With a max of 9 "message slots" in a Message Pack an Extended Wrapper fills 5 slots, thus can authenticate up to 4 ASTM Messages co-located in the same Message Pack.
+
+#### Eleven ASTM Messages
+
+Eleven ASTM Messages in {{tbl-page-counts}} is where a Manifest with FEC invokes the situation mentioned in {{fec-limitations}}.
+
+Eleven is the max number of ASTM Messages Hashes that can be supported resulting in 14 total hashes. This completely fills the `evidence` section of the structure making its total size 200 octets. This fits on exactly 9 Authentication Pages (`(201 - 17) / 23 == 8`) so when the ADL is added it is placed on the next page (Page 10). Per rule 1 in {{enc-single-page}} this means that all of Page 10 is null padded (expect the ADL octet) and FEC data fills Page 11, resulting in a plus two page count when FEC is applied.
+
+This drives the recommendation is {{drip-manifest}} to only use up to 10 ASTM Message Hashes and not 11.
+
+## Full Authentication Example
+
+This example is focused on showing that 100% of ASTM Messages can be authenticated over Legacy Transports with up to 125% overhead in Authentication Pages. Extended Transports is not shown as Authentication with DRIP in that case is covered using Extended Wrapper ({{extended-wrapper}}). Two ASTM Message Packs are sent in a given cycle: one containing up to 4 ASTM Messages and an Extended Wrapper (authenticating the pack) and one containing a Link message with a Broadcast Endorsement and up to two other ASTM Messages.
+
+This example transmit scheme covers and meets every known regulatory case enabling manufacturers to use the same firmware worldwide.
 
 ~~~~
++------------------------------------------------------+
+|                      Frame Slots                     |
+| 00 - 04           | 05 - 07       | 08 - 15 | 16     |
++-------------------+---------------+---------+--------+
+| {A|B|C|D},V,S,I,O | {A|B|C|D},V,S | M[0,8]  | L/W[0] |
++-------------------+---------------+---------+--------+
+| {A|B|C|D},V,S,I,O | {A|B|C|D},V,S | M[0,8]  | L/W[1] |
++-------------------+---------------+---------+--------+
+| {A|B|C|D},V,S,I,O | {A|B|C|D},V,S | M[0,8]  | L/W[2] |
++-------------------+---------------+---------+--------+
+| {A|B|C|D},V,S,I,O | {A|B|C|D},V,S | M[0,8]  | L/W[3] |
++-------------------+---------------+---------+--------+
+| {A|B|C|D},V,S,I,O | {A|B|C|D},V,S | M[0,8]  | L/W[4] |
++-------------------+---------------+---------+--------+
+| {A|B|C|D},V,S,I,O | {A|B|C|D},V,S | M[0,8]  | L/W[5] |
++-------------------+---------------+---------+--------+
+| {A|B|C|D},V,S,I,O | {A|B|C|D},V,S | M[0,8]  | L/W[6] |
++-------------------+---------------+---------+--------+
+| {A|B|C|D},V,S,I,O | {A|B|C|D},V,S | M[0,8]  | L/W[7] |
++-------------------+---------------+---------+--------+
+
 A = Basic ID Message (0x0) ID Type 1
 B = Basic ID Message (0x0) ID Type 2
 C = Basic ID Message (0x0) ID Type 3
@@ -1072,51 +1112,11 @@ M[y,z] = DRIP Manifest Authentication Message (0x2)
 # = Empty Frame Slot
 * = Message in DRIP Manifest Authentication Message
 ~~~~
+{:fig #max-schedule-fig title="Full Authenticated Legacy Transport Transmit Schedule Example"}
 
-### ASTM Maximum Schedule Example
+Every common required message (Basic ID, Location and System) is sent twice plus Operator ID and Self ID in a single second. The Manifest is over all messages (8) in slots `00 - 04` and `05 - 07`.
 
-For this example we will assume the following ASTM Messages are in play:
-
-- 1x Basic ID (0x0) set as ID Type for Serial Number (0x1)
-- 1x Basic ID (0x0) set as ID Type for CAA Assigned ID (0x2)
-- 1x Basic ID (0x0) set as ID Type for UTM Assigned ID (0x3)
-- 1x Basic ID (0x0) set as ID Type for Specific Session ID (0x4)
-- 2x Location (0x1)
-- 1x Self ID (0x3)
-- 2x System (0x4)
-- 2x Operator ID (0x5)
-
-This message set uses all single frame ASTM Messages, sending a set of them (Location, System and Operator ID) at a rate of 2 per second. Two Basic IDs are sent in a single second and rotate between the 4 defined (1x per type). A single Self ID is sent every second. All messages in a given second, if appear more than once, are exact duplicates.
-
-This example, as exactly presented here, would never make sense in practice, as a Single Use Session ID is pointless in conjunction with any other Basic ID. This is just to show that you _could_ send everything, that doing so would have an overhead not much over 100%, and that you _could_ create a reasonable practical schedule by simply "puncturing" this one (omitting those messages you don't need or want).
-
-~~~~
-+-----------------------------------------------------------+
-|                        Frame Slots                        |
-| 00 | 01 | 02 | 03 | 04 | 05 | 06 | 07 | 08 | 09 | 10 | 11 |
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| A* | V* | S  | O  | B  | V  | S* | O  | I  |   L/W[0,2]   |
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| C* | V  | S* | O  | D* | V* | S  | O  | I* |   L/W[3,5]   |
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| A  | V* | S  | O* | B* | V  | S  | O  | I  |L/W[6,7] | ## |
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| C  | V  | S  | O  | D  | V  | S  | O  | I  |    M[0,2]    |
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| A  | V  | S  | O  | B  | V  | S  | O  | I  |    M[3,5]    |
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| C  | V  | S  | O  | D  | V  | S  | O  | I  |    M[6,8]    |
-+----+----+----+----+----+----+----+----+----+----+----+----+
-| A  | V  | S  | O  | B  | V  | S  | O  | I  |M[9]| ## | ## |
-+----+----+----+----+----+----+----+----+----+----+----+----+
-~~~~
-{:fig #schedule-fig title="Example Legacy Transport Transmit Schedule"}
-
-Manifest messages in the schedule are filled with unique messages from previously transmitted messages before the new Manifest is sent. In {{schedule-fig}}, this is denoted by the `*` symbol as being part of the Manifest. In {{schedule-fig}}, messages are eligible for the Manifest in the very first cycle of transmission. In future iterations, 56 messages are eligible across the 7 seconds it takes to send the previous Manifest and the next Link/Wrapper. Care should be given into the selection of messages for a Manifest as there is a limit of 10 hashes.
-
-> Informational Note: the term "unique message" above is used as in the example schedule the 2nd Location and System messages MAY be exact copies of the previous Location and System messages sent in the same second. Duplicates of this kind SHOULD NOT be included in a Manifest.
-
-In the schedule the Wrapper and the Link messages switch back and forth the contents of them are changing in the following order:
+In two seconds either a Link or Wrapper are sent. The content and order of Links and Wrappers runs as follows:
 
 ~~~~
 Link: HDA on UA
@@ -1138,144 +1138,4 @@ Wrapper: Location (0x1), System (0x4)
 Link: IANA on UAS RID Apex
 ~~~~
 
-Any messages not required for a local jurisdiction can be removed from the schedule. It is RECOMMENDED this empty frame slot is left empty to help with timing due to RF constraints/concerns. For example, in the US the Self ID (0x3) and Operator ID (0x5) are not required and can be ignored in the above figures. Only one Basic ID (0x0) is selected in the US at any given time, opening up three (3) more slots.
-
-### US Example
-
-~~~~
-+-------------------------------------------------------------------+
-|                          Frame Slots                              |
-| 00      | 01 | 02 | 03 | 04-07  | 08      | 09 | 10 | 11 | 12-15  |
-+---------+----+----+----+--------+---------+----+----+----+--------+
-| {A|C|D} | V  | I  | S  | M[0,3] | {A|C|D} | V  | I  | S  | M[4,7] |
-+---------+----+----+----+--------+---------+----+----+----+--------+
-| {A|C|D} | V  | I  | S  | M[8,9] | {A|C|D} | V  | I  | S  | M[1,4] |
-|         |    |    |    | L[0]   |         |    |    |    |        |
-|         |    |    |    | M[0]   |         |    |    |    |        |
-+---------+----+----+----+--------+---------+----+----+----+--------+
-| {A|C|D} | V  | I  | S  | M[5,8] | {A|C|D} | V  | I  | S  | M[9]   |
-|         |    |    |    |        |         |    |    |    | L[1]   |
-|         |    |    |    |        |         |    |    |    | M[0,1] |
-+---------+----+----+----+--------+---------+----+----+----+--------+
-| {A|C|D} | V  | I  | S  | M[2,5] | {A|C|D} | V  | I  | S  | M[6,9] |
-+---------+----+----+----+--------+---------+----+----+----+--------+
-| {A|C|D} | V  | I  | S  | L[2]   | {A|C|D} | V  | I  | S  | M[3,6] |
-|         |    |    |    | M[0,2] |         |    |    |    |        |
-+---------+----+----+----+--------+---------+----+----+----+--------+
-| {A|C|D} | V  | I  | S  | M[7,9] | {A|C|D} | V  | I  | S  | M[0,3] |
-|         |    |    |    | L[3]   |         |    |    |    |        |
-+---------+----+----+----+--------+---------+----+----+----+--------+
-| {A|C|D} | V  | I  | S  | M[4,7] | {A|C|D} | V  | I  | S  | M[8,9] |
-|         |    |    |    |        |         |    |    |    | L[4]   |
-|         |    |    |    |        |         |    |    |    | M[0]   |
-+---------+----+----+----+--------+---------+----+----+----+--------+
-| {A|C|D} | V  | I  | S  | M[1,4] | {A|C|D} | V  | I  | S  | M[5,8] |
-+---------+----+----+----+--------+---------+----+----+----+--------+
-| {A|C|D} | V  | I  | S  | M[9]   | {A|C|D} | V  | I  | S  | M[2,5] |
-|         |    |    |    | L[5]   |         |    |    |    |        |
-|         |    |    |    | M[0,1] |         |    |    |    |        |
-+---------+----+----+----+--------+---------+----+----+----+--------+
-| {A|C|D} | V  | I  | S  | M[6,9] | {A|C|D} | V  | I  | S  | L[6]   |
-|         |    |    |    |        |         |    |    |    | M[0,2] |
-+---------+----+----+----+--------+---------+----+----+----+--------+
-| {A|C|D} | V  | I  | S  | M[3,6] | {A|C|D} | V  | I  | S  | M[7,9] |
-|         |    |    |    |        |         |    |    |    | L[7]   |
-+---------+----+----+----+--------+---------+----+----+----+--------+
-~~~~
-{:fig #us-schedule-fig title="US Example Legacy Transport Transmit Schedule"}
-
-### EU Example
-
-~~~~
-+---------------------------------------------------------+
-|                       Frame Slots                       |
-| 00      | 01-04   | 05-09  | 10      | 11-14   | 15-19  |
-+---------+---------+--------+---------+---------+--------+
-| {A|C|D} | V,I,S,O | M[0,4] | {A|C|D} | V,I,S,O | M[5,9] |
-+---------+---------+--------+---------+---------+--------+
-| {A|C|D} | V,I,S,O | L[0]   | {A|C|D} | V,I,S,O | M[4,8] |
-|         |         | M[0,3] |         |         |        |
-+---------+---------+--------+---------+---------+--------+
-| {A|C|D} | V,I,S,O | M[9]   | {A|C|D} | V,I,S,O | M[3,7] |
-|         |         | L[1]   |         |         |        |
-|         |         | M[0,2] |         |         |        |
-+---------+---------+--------+---------+---------+--------+
-| {A|C|D} | V,I,S,O | M[8,9] | {A|C|D} | V,I,S,O | M[2,6] |
-|         |         | L[2]   |         |         |        |
-|         |         | M[0,1] |         |         |        |
-+---------+---------+--------+---------+---------+--------+
-| {A|C|D} | V,I,S,O | M[7,9] | {A|C|D} | V,I,S,O | M[1,5] |
-|         |         | L[3]   |         |         |        |
-|         |         | M[0]   |         |         |        |
-+---------+---------+--------+---------+---------+--------+
-| {A|C|D} | V,I,S,O | M[6,9] | {A|C|D} | V,I,S,O | M[0,3] |
-|         |         | L[4]   |         |         |        |
-+---------+---------+--------+---------+---------+--------+
-| {A|C|D} | V,I,S,O | M[5,9] | {A|C|D} | V,I,S,O | L[5]   |
-|         |         |        |         |         | M[0,3] |
-+---------+---------+--------+---------+---------+--------+
-| {A|C|D} | V,I,S,O | M[4,8] | {A|C|D} | V,I,S,O | M[9]   |
-|         |         |        |         |         | L[6]   |
-|         |         |        |         |         | M[0,2] |
-+---------+---------+--------+---------+---------+--------+
-| {A|C|D} | V,I,S,O | M[3,7] | {A|C|D} | V,I,S,O | M[8,9] |
-|         |         |        |         |         | L[7]   |
-|         |         |        |         |         | M[0,1] |
-+---------+---------+--------+---------+---------+--------+
-| {A|C|D} | V,I,S,O | M[2,6] | {A|C|D} | V,I,S,O | M[7,9] |
-|         |         |        |         |         | L[0]   |
-|         |         |        |         |         | M[0]   |
-+---------+---------+--------+---------+---------+--------+
-| {A|C|D} | V,I,S,O | M[1,5] | {A|C|D} | V,I,S,O | M[6,9] |
-|         |         |        |         |         | L[1]   |
-+---------+---------+--------+---------+---------+--------+
-~~~~
-{:fig #eu-schedule-fig title="EU Example Legacy Transport Transmit Schedule"}
-
-### JP Example
-
-~~~~
-+-----------------------------------------+
-|               Frame Slots               |
-| 00-04     | 05-09  | 10-14     | 15-19  |
-+-----------+--------+-----------+--------+
-| A,B,V,I,S | M[0,4] | A,B,V,I,S | M[5,9] |
-+-----------+--------+-----------+--------+
-| A,B,V,I,S | L[0]   | A,B,V,I,S | M[4,8] |
-|           | M[0,3] |           |        |
-+-----------+--------+-----------+--------+
-| A,B,V,I,S | M[9]   | A,B,V,I,S | M[3,7] |
-|           | L[1]   |           |        |
-|           | M[0,2] |           |        |
-+-----------+--------+-----------+--------+
-| A,B,V,I,S | M[8,9] | A,B,V,I,S | M[2,6] |
-|           | L[2]   |           |        |
-|           | M[0,1] |           |        |
-+-----------+--------+-----------+--------+
-| A,B,V,I,S | M[7,9] | A,B,V,I,S | M[1,5] |
-|           | L[3]   |           |        |
-|           | M[0]   |           |        |
-+-----------+--------+-----------+--------+
-| A,B,V,I,S | M[6,9] | A,B,V,I,S | M[0,4] |
-|           | L[4]   |           |        |
-+-----------+--------+-----------+--------+
-| A,B,V,I,S | M[5,9] | A,B,V,I,S | L[5]   |
-|           |        |           | M[0,3] |
-+-----------+--------+-----------+--------+
-| A,B,V,I,S | M[4,8] | A,B,V,I,S | M[9]   |
-|           |        |           | L[6]   |
-|           |        |           | M[0,2] |
-+-----------+--------+-----------+--------+
-| A,B,V,I,S | M[3,7] | A,B,V,I,S | M[8,9] |  
-|           |        |           | L[7]   |
-|           |        |           | M[0,1] |
-+-----------+--------+-----------+--------+
-| A,B,V,I,S | M[2,6] | A,B,V,I,S | M[7,9] |  
-|           |        |           | L[0]   |
-|           |        |           | M[0]   |
-+-----------+--------+-----------+--------+
-| A,B,V,I,S | M[1,5] | A,B,V,I,S | M[6,9] |  
-|           |        |           | L[1]   |
-+-----------+--------+-----------+--------+
-~~~~
-{:fig #jp-schedule-fig title="JP Example Legacy Transport Transmit Schedule"}
+With perfect receipt of all messages, in 8 seconds all messages (up to that point then all in future) are authenticated using the Manifest. Within 136 seconds the entire Broadcast Endorsement chain is received and can be validated; interspersed with 4 messages directly signed over via Wrapper.
