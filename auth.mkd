@@ -661,9 +661,9 @@ Under this transport DRIP hashes the full ASTM Message Pack (Message Type 0xF) r
 
 ## DRIP Frame
 
-This SAM Type is used when the authentication data does not fit in other defined formats under DRIP and is reserved for future expansion under DRIP if required.
+This SAM Type is defined to enable the use of {{bas}} in the future beyond the previously defined formats (Wrapper and Manifest) by the inclusion of a single octet to signal `evidence` formats.
 
-The contents of `Frame Evidence Data` are not defined in this document. Other specifications MUST define the contents and register for a `Frame Type`.
+The content of `Frame Evidence Data` is not defined in this document. Other specifications MUST define the contents and register for a `Frame Type`.
 
 ~~~~
  0                   1                   2                   3
