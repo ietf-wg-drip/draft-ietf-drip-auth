@@ -144,7 +144,7 @@ The standardization of specific formats to support the DRIP requirements in UAS 
 
 When an Observer receives a DRIP-based Authentication Message ({{drip-wrapper}}, {{drip-manifest}}, or {{drip-frame}}) containing UA-signed Evidence (in an Endorsement structure {{bas}}) it MUST validate the signature using the Host Identity (HI) corresponding to the UA's DRIP Entity Tag (DET).
 
-The UA's HI SHOULD be retrieved from DNS. If not available it may have been revoked. Note that accurate revocation status is a DIME inquiry; DNS non-response is a hint that a DET is expired or revoked. It MAY be retrieved from a local cache, if present. The local cache is typically populated by DNS lookups and/or by received Broadcast Endorsements ({{dime-attestation}}).
+An Observer SHOULD query DNS for the UA's HI. If not available it may have been revoked. Note that accurate revocation status is a DIME inquiry; DNS non-response is a hint that a DET is expired or revoked. It MAY be retrieved from a local cache, if present. The local cache is typically populated by DNS lookups and/or by received Broadcast Endorsements ({{dime-attestation}}).
 
 Once the Observer has the registered UA's DET and HI, all further (or cached previous) DRIP-based Authentication Messages using the UA DET can be validated. Signed content, tied to the DET, can now be trusted to have been signed by the holder of the private key corresponding to the DET.
 
@@ -154,7 +154,7 @@ Whether the content is true is a separate question which DRIP cannot address, bu
 
 When an Observer receives a DRIP Link Authentication Message ({{drip-link}}) containing an Endorsement by the DIME of a child DET registration, it MUST validate the signature using the HI corresponding to the DIME's DET.
 
-The DIME's HI, SHOULD be retrieved from DNS (e.g., Section 5 of {{drip-registries}}), when available. It MAY be cached from a prior DNS lookup or be stored in a distinct local store.
+An Observer SHOULD query DNS for the DIME's HI (e.g., Section 5 of {{drip-registries}}), when able. It MAY be cached from a prior DNS lookup or be stored in a distinct local store.
 
 ### DIME Hierarchy Endorsements {#dime-hierarchy}
 
