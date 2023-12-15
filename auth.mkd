@@ -324,6 +324,8 @@ All formats defined in this section are the content of the `Authentication Data/
 
 When sending data over a medium that does not have underlying FEC, for example Legacy Transports, then {{fec-details}} MUST be used.
 
+Examples of Link, Wrapper and Manifest are shown as part of an operational schedule in {{raw-example}}.
+
 ## Endorsement Structure for UA Signed Evidence {#bas}
 
 The `Endorsement Structure for UA Signed Evidence` ({{drip-data}}) is used by the UA during flight to sign over information elements using the private key associated with the current UA DET. It is encapsulated by the `SAM Authentication Data` field of {{sam-frame}}.
@@ -1075,7 +1077,7 @@ This example transmit scheme covers and meets every known regulatory case enabli
 ~~~~
 +------------------------------------------------------+
 |                      Frame Slots                     |
-| 00 - 04           | 05 - 07       | 08 - 15 | 16     |
+| 00 - 04           | 05 - 07       | 08 - 16 | 17     |
 +-------------------+---------------+---------+--------+
 | {A|B|C|D},V,S,I,O | {A|B|C|D},V,S | M[0,8]  | L/W[0] |
 +-------------------+---------------+---------+--------+
@@ -1139,3 +1141,62 @@ Link: IANA on UAS RID Apex
 ~~~~
 
 With perfect receipt of all messages, in 8 seconds all messages (up to that point then all in future) are authenticated using the Manifest. Within 136 seconds the entire Broadcast Endorsement chain is received and can be validated; interspersed with 4 messages directly signed over via Wrapper.
+
+### Raw Example
+
+Assuming the following DET and HI:
+
+~~~~
+2001:003f:fe00:0105:a29b:3ff4:2226:c04e
+b5fef530d450dedb59ebafa18b00d7f5ed0ac08a81975034297bea2b00041813
+~~~~
+
+The following ASTM Messages to be sent in a single second:
+
+~~~~
+0240012001003ffe000105a29b3ff42226c04e000000000000
+12000000000000000000000000000000000000000060220000
+32004578616d706c652053656c662049440000000000000000
+420000000000000000000100000000000000000010ea510900
+52004578616d706c65204f70657261746f7220494400000000
+~~~~
+
+This is Link with FEC that would be spread out over 8 seconds:
+
+~~~~
+2250078910ea510904314b8564b17e66662001003ffe000105
+2251a29b3ff42226c04eb5fef530d450dedb59ebafa18b00d7
+2252f5ed0ac08a81975034297bea2b000418132001003ffe00
+22530105b82bf1c99d87273103fc83f6ecd9b91842f205c222
+2254dd71d8e165ad18ca91daf9299a73eec850c756a7e9be46
+2255f51dddfa0f09db7bfdde14eec07c7a6dd1061c1d5ace94
+2256d9ad97940d280000000000000000000000000000000000
+2257a03b0f7a6feb0d198167045058cfc49f73129917024d22
+~~~~
+
+This is a Wrapper with FEC that would be spread out over 8 seconds:
+
+~~~~
+2250078b10ea510902e0dd7c6560115e671200000000000000
+22510000000000000000000000000060220000420000000000
+2252000000000100000000000000000010ea5109002001003f
+2253fe000105a29b3ff42226c04ef0ecad581a030ca790152a
+22542f08df5762a463e24a742d1c530ec977bbe0d113697e2b
+2255b909d6c7557bdaf1227ce86154b030daadda4a6b8474de
+22569a62f6c375020826000000000000000000000000000000
+2257f5e8eebcb04f8c2197526053e66c010d5d7297ff7c1fe0
+~~~~
+
+This is the Manifest with FEC sent in the same second as the original messages:
+
+~~~~
+225008b110ea510903e0dd7c6560115e670000000000000000
+2251d57594875f8608b4d61dc9224ecf8b842bd4862734ed01
+22522ca2e5f2b8a3e61547b81704766ba3eeb651be7eafc928
+22538884e3e28a24fd5529bc2bd4862734ed012ca2e5f2b8a3
+2254e61547b81704766ba3eeb62001003ffe000105a29b3ff4
+22552226c04efb729846e7d110903797066fd96f49a77c5a48
+2256c4c3b330be05bc4a958e9641718aaa31aeabad368386a2
+22579ed2dce2769120da83edbcdc0858dd1e357755e7860317
+2258e7c06a5918ea62a937391cbfe0983539de1b2e688b7c83
+~~~~
