@@ -1031,7 +1031,11 @@ manifest_page_count = ceiling((manifest_struct_size - 17) / 23) + 1
 A similar formula can be applied to Link as they are of fixed size:
 
 ~~~~
+<CODE BEGINS>
+
 link_page_count = ceiling((137 - 17) / 23) + 1 = 7
+
+<CODE ENDS>
 ~~~~
 
 Comparing Wrapper and Manifest Authentication Message page counts against total frame counts we have the following:
