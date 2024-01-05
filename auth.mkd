@@ -1151,7 +1151,7 @@ With perfect receipt of all messages, in 8 seconds all messages (up to that poin
 Assuming the following DET and HI:
 
 ~~~~
-2001:003f:fe00:0105:a29b:3ff4:2226:c04e
+2001:3f:fe00:105:a29b:3ff4:2226:c04e
 b5fef530d450dedb59ebafa18b00d7f5ed0ac08a81975034297bea2b00041813
 ~~~~
 
