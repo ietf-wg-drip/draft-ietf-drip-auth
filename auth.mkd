@@ -809,7 +809,7 @@ Without any fragmentation or loss of pages with transmission FEC ({{fec-details}
 
 ## Authentication {#drip-recommendations}
 
-It is REQUIRED that a UA send the following DRIP Authentication Formats to fulfill the requirements in {{RFC9153}}:
+It is required that a UA send the following DRIP Authentication Formats to fulfill the requirements in {{RFC9153}}:
 
 1. MUST: send DRIP Link ({{drip-link}}) using the `BE: Apex, RAA` (satisfying GEN-3); at least once per 5 minutes. Apex in this context is the DET prefix owner
 2. MUST: send DRIP Link ({{drip-link}}) using the `BE: RAA, HDA` (satisfying GEN-3); at least once per 5 minutes
