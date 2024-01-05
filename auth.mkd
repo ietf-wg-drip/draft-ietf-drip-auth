@@ -934,7 +934,7 @@ ASTM Authentication has only three states: None, Invalid, and Valid. This is bec
 
 There are a few keys of interest: the PK of the UA and the PK's of relevant DIMEs. This document describes how to send the PK of the UA over the Broadcast RID messages. The key of DIMEs are sent over Broadcast RID using the same mechanisms (see {{drip-link}} and {{drip-recommendations}}) but MAY be sent at a far lower rate due to potential operational constraints (such as saturation of limited bandwidth). As such, there are scenarios where part of the key-chain may be unavailable at the moment a full Authentication Message is received and processed.
 
-The intent of this appendix is to give a recommended way to classify these various states and convey it to the user through colors and state names/text. These states can apply to either a single authentication message, a DET (and its associated public key), and/or a sender.
+The intent of this informative appendix is to give a recommended way to classify these various states and convey it to the user through colors and state names/text. These states can apply to either a single authentication message, a DET (and its associated public key), and/or a sender.
 
 The table below lays out the RECOMMENDED colors to associate with state and a brief description of each.
 
@@ -995,7 +995,7 @@ Transition to this state is from Trusted if a subsequent message fails verificat
 
 # Operational Recommendation Analysis {#operational-proof}
 
-The recommendations found in {{operational-recommendations}} may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there.
+The recommendations found in {{operational-recommendations}} may seem heavy handed and specific. This informative appendix lays out the math and assumptions made to come to the recommendations listed there as well as an example.
 
 In many jurisdictions, the required ASTM Messages to be transmitted every second are: Basic ID (0x1), Location (0x2), and System (0x4). Typical implementations will most likely send at a higher rate (2x sets per cycle) resulting in 6 frames sent per cycle. Transmitting this set of message more than once a second is not discouraged but awareness is needed to avoid congesting the RF spectrum, causing further issues.
 
