@@ -835,9 +835,9 @@ The reasoning and math behind these recommendations can be found in {{operationa
 
 ### DRIP Wrapper {#wrapper-operations}
 
-The DRIP Wrapper MUST NOT be used in place of sending the ASTM messages as is. All receivers MUST be able to process all the messages specified in {{F3411}}.  Sending them within the DRIP Wrapper makes them opaque to receivers lacking support for DRIP Authentication Messages. Thus, messages within a Wrapper are sent twice: in the clear and authenticated within the Wrapper. The DRIP Manifest would seem to be a more efficient use of the transport channel.
+If DRIP Wrappers are sent, they MUST be sent in addition to any required ASTM Messages in a given jurisdiction. An implementation MUST NOT send DRIP Wrappers in place of any required ASTM Messages it may encapsulate. Thus, messages within a Wrapper are sent twice: in the clear and authenticated within the Wrapper.
 
-The DRIP Wrapper has a specific use case for DRIP aware receivers. For receiver plotting Location Messages (Message Type 0x2) on a map display an embedded Location Message in a DRIP Wrapper can be marked differently (e.g., via color) to signify trust in the Location data.
+The DRIP Wrapper has a specific use case for DRIP aware receivers. For a receiver plotting Location Messages (Message Type 0x2) on a map, display an embedded Location Message in a DRIP Wrapper can be marked differently (e.g., via color) to signify trust in the Location data.
 
 ### UAS RID Trust Assessment {#trust-assessment}
 
