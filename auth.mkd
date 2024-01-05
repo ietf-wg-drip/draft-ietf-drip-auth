@@ -1000,7 +1000,7 @@ Transition to this state is from Trusted if a subsequent message fails verificat
 
 The recommendations found in {{operational-recommendations}} may seem heavy handed and specific. This appendix lays out the math and assumptions made to come to the recommendations listed there.
 
-In most jurisdictions, the required ASTM Messages to be transmitted every second are: Basic ID (0x1), Location (0x2), and System (0x4). Typical implementations will most likely send at a higher rate (2x sets per cycle) resulting in 6 frames sent per cycle. Transmitting this set of message more than once a second is not discouraged but awareness is needed to avoid congesting the RF spectrum, causing further issues.
+In many jurisdictions, the required ASTM Messages to be transmitted every second are: Basic ID (0x1), Location (0x2), and System (0x4). Typical implementations will most likely send at a higher rate (2x sets per cycle) resulting in 6 frames sent per cycle. Transmitting this set of message more than once a second is not discouraged but awareness is needed to avoid congesting the RF spectrum, causing further issues.
 
 > Informational Note: In Europe, the Operator ID Message (0x5) is also required. In Japan, two Basic ID (0x0), Location (0x1), and Authentication (0x2) are required. Self ID (0x3) is optional but can carry Emergency Status information.
 
