@@ -132,7 +132,7 @@ Manifest:
 
 > an immutable list of items being transported (in this specific case over wireless communication).
 
-# Background
+# UAS RID Authentication Background & Procedure
 
 ## Reasoning for IETF DRIP Authentication
 
