@@ -805,7 +805,7 @@ Under {{F3411}}, Authentication Messages are transmitted at the static rate (at 
 
 Under the ASTM specification, Extended Transports of RID must use the Message Pack (Message Type 0xF) format for all transmissions. Under Message Pack, ASTM Messages are sent together (in Message Type order) in a single frame (up to 9 single frame equivalent messages under Legacy Transports). Message Packs are required by {{F3411}} to be sent at a rate of 1 per second (like dynamic messages).
 
-Without any fragmentation or loss of pages with transmission FEC ({{fec-details}}) MUST NOT be used as it is impractical.
+Since all pages of an Authentication Message are in a Message Pack, when sent over Extended Transports, there is no partial loss. FEC ({{fec-details}}) MUST NOT be used in DRIP Authentication when it is intended to be sent over Extended Transports. This is to minimize the number of Authentication Pages taking up the Message Pack size constraint.
 
 ## Authentication {#drip-recommendations}
 
