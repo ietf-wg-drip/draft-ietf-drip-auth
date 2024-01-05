@@ -581,7 +581,7 @@ A receiver SHOULD use the Manifest to verify each ASTM Message hashed therein th
 |                       Current Manifest                        |
 |                              Hash                             |
 +---------------+---------------+---------------+---------------+
-|                Broadcast Endorsement: HDA on UA               |
+|                      DRIP Link (BE: HDA, UA)                  |
 |                              Hash                             |
 +---------------+---------------+---------------+---------------+
 |                                                               |
@@ -601,9 +601,9 @@ Current Manifest Hash: (8 octets)
 
 > Hash of the current Manifest Message.
 
-Broadcast Endorsement: HDA on UA Hash: (8 octets)
+DRIP Link (BE: HDA, UA): (8 octets)
 
-> Hash of the 136-octet contents of a DRIP Link ({{drip-link}}). Specifically the `BE: HDA, UA`.
+> Hash of the DRIP Link Authentication Message carrying `BE: HDA, UA` (see {{drip-link}}).
 
 ASTM Message Hash: (8 octets)
 
@@ -629,7 +629,7 @@ hashCount = (manifestLength / 8) - 3;
 
 Three special hashes are included in all Manifests. The `Previous Manifest Hash`, links to the previous Manifest, and the `Current Manifest Hash` which is the currently filled Manifest. These two hashes act as a ledger of provenance to the Manifest that could be traced back if the Observer was present for extended periods of time.
 
-The `Broadcast Endorsement: HDA on UA Hash` is included so there is a direct signature by the UA over the Broadcast Endorsement (see {{drip-link}}).
+The `DRIP Link (BE: HDA, UA)` is included so there is a direct signature by the UA over the Broadcast Endorsement (see {{drip-link}}).
 
 ### Hash Algorithms and Operation {#hash-op}
 
@@ -653,7 +653,7 @@ When building the list of hashes, the `Previous Manifest Hash` is known from the
 
 Under this transport DRIP hashes the full ASTM Message being sent over the Bluetooth Advertising frame. This is the 25-octet object start with the Message Type and Protocol Version octet along with the 24 octets of message data. The hash MUST NOT included the Message Counter octet.
 
-For paged ASTM Messages (currently only Authentication Messages) all the pages are concatenated together and hashed as one object.
+For paged ASTM Messages (currently only Authentication Messages) all the pages are concatenated together in Page Number order and hashed as one object.
 
 #### Extended Transport Hashing
 
@@ -820,18 +820,15 @@ It is required that a UA send the following DRIP Authentication Formats to fulfi
 
 UAS operation may impact the frequency of sending DRIP Authentication messages. When a UA dwells at an approximate location, and the channel is heavily used by other devices, less frequent message authentication may be sufficient for an Observer. Contrast this with a UA traversing an area, where every message should be authenticated as soon as possible for greatest success as viewed by the receiver.
 
-Thus how/when these DRIP Authentication Messages are sent is up to each implementation. Further complication comes in comparing Legacy and Extended Transports.  In Legacy, each message is a separate hash within the Manifest. So, when the UA remains within a small volume of airspace, it may lean toward occasional message authentication. In Extended Transports, the hash is over the Message Pack so only few hashes need to be in a Manifest. A single Manifest can handle a potential two Message Packs (for a full set of messages) and a DRIP Link Authentication Message for the `BE: HDA, UA`.
+A RECOMMENDED operational configuration (in alignment with {{drip-recommendations}}) with reasoning can be found in {{operational-proof}}. It consist of the following recommendations for every second:
 
-A separate issue is the frequency of transmitting the DRIP Link Authentication Message for the `BE: HDA, UA` when using the Manifest. This message content is static; its hash never changes radically. The only change is the 4-octet timestamp in the Authentication Message headers. Thus, potentially, in a dwell style operation it can be sent once per minute, where its hash is in every Manifest. A receiver can cache all DRIP Link Authentication Message for the `BE: HDA, UA` to mitigate potential packet loss.
-
-The following operational configuration is RECOMMENDED (in alignment with {{drip-recommendations}}):
-
-1. Per CAA requirements, generate and transmit a set of ASTM Messages (example; Basic ID, Location and System).
-2. Under Extended Transports, generate and include in the same Message Pack as the CAA required ASTM Messages a DRIP Wrapper as specified in {{extended-wrapper}} (implicitly wrapping and signing messages in the pack).
-3. Under Legacy Transports, generate and transmit every 5 seconds a DRIP Manifest ({{drip-manifest}}) hashing as many sets as desired of recent CAA required ASTM Messages. The system MAY periodically replace the DRIP Manifest with a DRIP Wrapper ({{drip-wrapper}}) containing at least a Location Message (Message Type 0x2).
-4. Under both Legacy or Extended Transports, generate and transmit a DRIP Link's ({{drip-link}}) containing; `BE: HDA, UA` every minute, `BE: RAA, HDA` every 5 minutes, `BE: Apex, RAA` every 5 minutes.
-
-The reasoning and math behind these recommendations can be found in {{operational-proof}}.
+- Under Legacy Transport:
+  - Two sets of ASTM Messages per CAA requirements in jurisdiction (example; Basic ID, Location and System) and one set of other ASTM Messages (example; Self ID, Operator ID)
+  - A DRIP Manifest with FEC Authentication Message over ASTM Messages sent
+  - A single page of a DRIP Link with FEC Authentication Message
+- Under Extended Transport:
+  - A Message Pack of ASTM Messages (up to 4) and a DRIP Wrapper (per {{extended-wrapper}})
+  - A Message Pack of a DRIP Link
 
 ### DRIP Wrapper {#wrapper-operations}
 
