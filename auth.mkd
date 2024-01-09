@@ -320,7 +320,7 @@ Valid Not After (VNA) Timestamp: (4 octets)
 
 # DRIP Authentication Formats
 
-All formats defined in this section are the content of the `Authentication Data/Signature` field in {{astm-auth}} and use the Specific Authentication Method (SAM, Authentication Type 0x5). The first octet of the `Authentication Data / Signature` of {{astm-auth}} is used to multiplex among these various formats.
+All formats defined in this section are the content of the `Authentication Data / Signature` field in {{astm-auth}} and use the Specific Authentication Method (SAM, Authentication Type 0x5). The first octet of the `Authentication Data / Signature` of {{astm-auth}} is used to multiplex among these various formats.
 
 When sending data over a medium that does not have underlying FEC, for example Legacy Transports, then {{fec-details}} MUST be used.
 
@@ -820,14 +820,14 @@ It is required that a UA send the following DRIP Authentication Formats to fulfi
 
 ## Operational {#operational-recommendations}
 
-UAS operation may impact the frequency of sending DRIP Authentication messages. When a UA dwells at an approximate location, and the channel is heavily used by other devices, less frequent message authentication may be sufficient for an Observer. Contrast this with a UA traversing an area, where every message should be authenticated as soon as possible for greatest success as viewed by the receiver.
+UAS operation may impact the frequency of sending DRIP Authentication messages. When a UA dwells at an approximate location, and the channel is heavily used by other devices, less frequent message authentication may be effective (to minimize RF packet collisions) for an Observer. Contrast this with a UA transiting an area, where authenticated messages SHOULD be sufficiently frequent for an Observer to have a high probability of receiving an adequate number for validation during the transit.
 
-A RECOMMENDED operational configuration (in alignment with {{drip-recommendations}}) with reasoning can be found in {{operational-proof}}. It consist of the following recommendations for every second:
+A RECOMMENDED operational configuration (in alignment with {{drip-recommendations}}) with reasoning can be found in {{operational-proof}}. It consists of the following recommendations for every second:
 
 - Under Legacy Transport:
-  - Two sets of ASTM Messages per CAA requirements in jurisdiction (example; Basic ID, Location and System) and one set of other ASTM Messages (example; Self ID, Operator ID)
-  - A DRIP Manifest with FEC Authentication Message over ASTM Messages sent
-  - A single page of a DRIP Link with FEC Authentication Message
+  - Two sets of those ASTM Messages required by a CAA in its jurisdiction (example: Basic ID, Location and System) and one set of other ASTM Messages (example: Self ID, Operator ID)
+  - An FEC protected DRIP Manifest enabling authentication of those ASTM Messages sent
+  - A single page of an FEC protected DRIP Link
 - Under Extended Transport:
   - A Message Pack of ASTM Messages (up to 4) and a DRIP Wrapper (per {{extended-wrapper}})
   - A Message Pack of a DRIP Link
