@@ -738,6 +738,8 @@ Page N:
 
 ## Decoding {#dec-single-page}
 
+Frame decoding is independent of the transmit media. However the decoding process can determine from the first Authentication page that there may be a Bluetooth 4.x FEC page at the end. The decoding process MUST test for the presence of FEC and apply it as follows.
+
 To determine if FEC has been used, a check of the `Last Page Index` is performed. In general if the `Last Page Index` field is one greater than that necessary to hold `Length` octets of Authentication Data then FEC has been used. Note that if `Length` octets are exhausted exactly at the end of an Authentication Page, the `Additional Data Length` field will occupy the first octet of the following page. The remainder of this page will be null padded under DRIP to align the FEC to its own page. In this case the `Last Page Index` will have been incremented once for initializing the `Additional Data Length` field and once for FEC page, for a total of two additional pages.
 
 To decode FEC in DRIP, a rolling XOR is used on each `Authentication Page` received in the current `Authentication Message`. A Message Counter, outside of the ASTM Message but specified in {{F3411}}, is used to signal a different `Authentication Message` and to correlate pages to messages. This Message Counter is only single octet in length, so it will roll over (to 0x00) after reaching its maximum value (0xFF). If only a single page is missing in the `Authentication Message` the resulting parity octets should be the data of the erased page.
