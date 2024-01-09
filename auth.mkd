@@ -567,7 +567,7 @@ Judicious use of a Manifest enables an entire Broadcast RID message stream to be
 
 The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with 8-octet hashes of {{F3411}} Broadcast RID messages (up to 11) and three special hashes ({{block-hashes}}). All these hashes MUST be concatenated to form a contiguous octet sequence in the `evidence` section. It is RECOMMENDED the max number of ASTM Message Hashes be used is 10 (see {{eleven-astm-messages}}).
 
-The `Previous Manifest Hash`, `Current Manifest Hash`, and `Broadcast Endorsement: HDA on UA Hash` MUST always come before the `ASTM Message Hashes` as seen in {{manifest-fig}}.
+The `Previous Manifest Hash`, `Current Manifest Hash`, and `DRIP Link (BE: HDA, UA) Hash` MUST always come before the `ASTM Message Hashes` as seen in {{manifest-fig}}.
 
 A receiver SHOULD use the Manifest to verify each ASTM Message hashed therein that it has previously received. It can do this without having received them all. A Manifest SHOULD typically encompass a single transmission cycle of messages being sent, see {{operational-recommendations}} and {{operational-proof}}.
 
