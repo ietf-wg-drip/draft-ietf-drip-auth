@@ -132,9 +132,9 @@ Manifest:
 
 > an immutable list of items being transported (in this specific case over wireless communication).
 
-# UAS RID Authentication Background & Procedure
+# UAS RID Authentication Background & Procedures
 
-## Reasoning for IETF DRIP Authentication
+## DRIP Authentication Protocol Description
 
 {{F3411}} defines Authentication Message framing only. It does not define authentication formats or methods. It explicitly anticipates several signature options but does not fully define those. Annex A1 of {{F3411}} defines a Broadcast Authentication Verifier Service, which has a heavy reliance on Observer real-time connectivity to the Internet. Fortunately, {{F3411}} also allows third party standard Authentication Types using Type 5 Specific Authentication Method (SAM), several of which DRIP defines herein.
 
@@ -146,9 +146,9 @@ When an Observer receives a DRIP-based Authentication Message ({{drip-wrapper}},
 
 An Observer SHOULD query DNS for the UA's HI. If not available it may have been revoked. Note that accurate revocation status is a DIME inquiry; DNS non-response is a hint that a DET is expired or revoked. It MAY be retrieved from a local cache, if present. The local cache is typically populated by DNS lookups and/or by received Broadcast Endorsements ({{dime-attestation}}).
 
-Once the Observer has the registered UA's DET and HI, all further (or cached previous) DRIP-based Authentication Messages using the UA DET can be validated. Signed content, tied to the DET, can now be trusted to have been signed by the holder of the private key corresponding to the DET.
+Once the Observer has the registered UA's DET and HI, all subsequent y received (or previously cached) DRIP-based Authentication Messages using the UA DET can be validated. Signed content, tied to the DET, can now be trusted to have been signed by the holder of the private key corresponding to the DET.
 
-Whether the content is true is a separate question which DRIP cannot address, but sanity checks ({{reqs}}) are possible.
+Whether the content is true is a separate question which DRIP cannot address, but sanity checks ({{reqs}}) are possible and encouraged.
 
 ### DIME Endorsements of Subordinate DET {#dime-attestation}
 
@@ -166,7 +166,7 @@ An Observer can receive a series of DRIP Link Authentication Messages ({{drip-li
 
 It is necessary for the UA to prove possession by dynamically signing data that is unique and unpredictable but easily verified by the Observer. This can be a DRIP Wrapper or Manifest ({{drip-wrapper}}, {{drip-manifest}}) containing an ASTM Message that fulfills the requirements. Verification of this signed data MUST be performed by the Observer as part of the received UAS RID information trust assessment ({{trust-assessment}}).
 
-## ASTM Authentication Message {#auth-message}
+## ASTM Authentication Message Framing {#auth-message}
 
 The Authentication Message (Message Type 0x2) is unique in the ASTM {{F3411}} Broadcast standard as it is the only message that can be larger than the Legacy Transport size. To address this limitation around transport size, it is defined as a set of "pages", each of which fits into a single Legacy Transport frame. For Extended Transports, pages are still used but all are in a single frame.
 
