@@ -874,7 +874,7 @@ This document requests two new registries, for DRIP SAM Type and DRIP Frame Type
 
 DRIP SAM Type:
 
-: This registry is a mirror for SAM Types containing the subset of allocations used by DRIP Authentication Messages. Future additions MUST be done through ICAO using their process. The following values have been allocated by ICAO to the IETF and are defined here:
+: This registry is a mirror for SAM Types containing the subset of allocations used by DRIP Authentication Messages. Future additions MUST be done through ASTM's designated registrar which at the time of publication of this RFC is ICAO. Additions for DRIP will be coordinated by IETF and the ASTM designated registrar by circulation of Internet Drafts intended for subsequent publication as Standards Track RFCs. The following values have been allocated to the IETF and are defined here:
 
 | SAM Type   | Name          | Description                           |
 | ---------- | ------------- | ------------------------------------- |
@@ -898,7 +898,7 @@ DRIP Frame Type:
 
 Criteria that should be applied by the designated experts includes determining whether the proposed registration duplicates existing functionality and whether the registration description is clear and fits the purpose of this registry.
 
-Registration requests MUST be sent to <drip-reg-review@ietf.org> and be evaluated within a three-week review period on the advice of one or more designated experts. Within that review period, the designated experts will either approve or deny the registration request, and communicate their decision to the review list and IANA. Denials should include an explanation and, if applicable, suggestions to successfully register the prefix.
+Registration requests MUST be sent to <drip-reg-review@ietf.org> and be evaluated within a three-week review period on the advice of one or more designated experts. Within that review period, the designated experts will either approve or deny the registration request, and communicate their decision to the review list and IANA. Denials should include an explanation and, if applicable, suggestions to successfully register the DRIP Frame Type.
 
 Registration requests that are undetermined for a period longer than 28 days can be brought to the IESG's attention for resolution.
 
