@@ -834,7 +834,7 @@ A RECOMMENDED operational configuration (in alignment with {{drip-recommendation
 
 ### DRIP Wrapper {#wrapper-operations}
 
-If DRIP Wrappers are sent, they MUST be sent in addition to any required ASTM Messages in a given jurisdiction. An implementation MUST NOT send DRIP Wrappers in place of any required ASTM Messages it may encapsulate. Thus, messages within a Wrapper are sent twice: in the clear and authenticated within the Wrapper.
+If DRIP Wrappers are sent, they MUST be sent in addition to any required ASTM Messages in a given jurisdiction. An implementation MUST NOT send DRIP Wrappers in place of any required ASTM Messages it may encapsulate. Thus, messages within a Wrapper are sent twice: once in the clear and once authenticated within the Wrapper.
 
 The DRIP Wrapper has a specific use case for DRIP aware receivers. For a receiver plotting Location Messages (Message Type 0x2) on a map, display an embedded Location Message in a DRIP Wrapper can be marked differently (e.g., via color) to signify trust in the Location data.
 
