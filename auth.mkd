@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-44
+docname: draft-ietf-drip-auth-45
 category: std
 
 ipr: trust200902
@@ -140,6 +140,8 @@ Manifest:
 
 The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. Per Section 5 of {{RFC9434}}, Authentication formats are needed to relay information for Observers to determine trust. No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
 
+Like most aviation matters, the overall objectives here are security and ultimately safety oriented. Since DRIP depends on DNS for some of its functions, DRIP usage of DNS needs to be protected in line with best security practices. Many participating nodes will have limited local processing power and/or poor, low bandwidth QoS paths. Appropriate and feasible security techniques will be highly UAS and Observer situation dependent. Therefore specification of particular DNS security options, transports, etc. is outside the scope of this document.
+
 ### UA Signed Evidence {#ua-attestation}
 
 When an Observer receives a DRIP-based Authentication Message ({{drip-wrapper}}, {{drip-manifest}}, or {{drip-frame}}) containing UA-signed Evidence (in an Endorsement structure {{bas}}) it MUST validate the signature using the Host Identity (HI) corresponding to the UA's DRIP Entity Tag (DET).
@@ -239,7 +241,7 @@ Authentication Headers: (6 octets)
 
 Authentication Data / Signature: (0 to 255 octets)
 
-> Opaque authentication data. The length of this payload is known through a field in the `Authentication Headers` (not shown here).
+> Opaque authentication data. The length of this payload is known through a field in the `Authentication Headers` (defined in {{F3411}}).
 
 Additional Data Length (ADL): (1 octet - unsigned)
 
@@ -927,6 +929,8 @@ The offset of the `VNA Timestamp by UA` is one that needs careful consideration 
 - Thanks to the following reviewers:
   - Rick Salz (secdir)
   - Matt Joras (genart)
+  - Di Ma (dnsdir)
+  - Gorry Fairhurst (tsvart)
 
 --- back
 
