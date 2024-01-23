@@ -90,7 +90,7 @@ The Drone Remote Identification Protocol (DRIP), plus trust policies and periodi
 
 The initial regulations (e.g., {{FAA-14CFR}}) and standards (e.g., {{F3411}}) for Unmanned Aircraft (UA) Systems (UAS) Remote Identification and tracking (RID) do not address trust. However, this is a requirement that needs to be addressed for various different parties that have a stake in the safe operation of National Airspace Systems (NAS). DRIP's goal is to specify how RID can be made trustworthy and available in both Internet and local-only connected scenarios, especially in emergency situations.
 
-UAS often operate in a volatile environment. Small UA offer little capacity for computation and communication. UAS RID must also be accessible with ubiquitous and inexpensive devices without modification. This limits options.
+UAS often operate in a volatile environment. Small UA offer little capacity for computation and communication. UAS RID must also be accessible with ubiquitous and inexpensive devices without modification. This limits options. Most current small UAS are IoT devices even if not typically thought of as such. Thus many IoT considerations apply here. Some DRIP work, currently strongly scoped to UAS RID, is likely to be applicable to some other IoT use-cases.
 
 Generally, two communication schemes for UAS RID are considered: Broadcast and Network. This document focuses on adding trust to Broadcast RID (Section 3.2 of {{RFC9153}}).
 
