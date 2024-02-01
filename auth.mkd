@@ -60,6 +60,9 @@ normative:
           org: ASTM International
       target: https://www.astm.org/f3411-22a.html
       date: July 2022
+      seriesinfo:
+        ASTM: F3411-22A
+        DOI: 10.1520/F3411-22A
 
 informative:
     # IETF Drafts
