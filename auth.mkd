@@ -565,7 +565,7 @@ By hashing previously sent messages and signing them, we gain trust in a UA's pr
 
 Observers that support decoding of Manifest MUST hash all received ASTM Messages and cross-check them against hashes in received Manifests.
 
-Judicious use of a Manifest enables an entire Broadcast RID message stream to be strongly authenticated with less than 100% overhead relative to a completely unauthenticated message stream (see {{operational-proof}}).
+Judicious use of a Manifest enables an entire Broadcast RID message stream to be strongly authenticated with less than 100% overhead relative to a completely unauthenticated message stream (see {{drip-recommendations}} and {{operational-proof}}).
 
 The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with 8-octet hashes of {{F3411}} Broadcast RID messages (up to 11) and three special hashes ({{block-hashes}}). All these hashes MUST be concatenated to form a contiguous octet sequence in the `evidence` section. It is RECOMMENDED the max number of ASTM Message Hashes be used is 10 (see {{eleven-astm-messages}}).
 
