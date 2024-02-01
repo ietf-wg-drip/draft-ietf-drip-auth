@@ -819,7 +819,7 @@ To fulfill the requirements in {{RFC9153}}, a UA:
 1. MUST: send DRIP Link ({{drip-link}}) using the `BE: Apex, RAA` (satisfying GEN-3); at least once per 5 minutes. Apex in this context is the DET prefix owner
 2. MUST: send DRIP Link ({{drip-link}}) using the `BE: RAA, HDA` (satisfying GEN-3); at least once per 5 minutes
 3. MUST: send DRIP Link ({{drip-link}}) using the `BE: HDA, UA` (satisfying ID-5, GEN-1 and GEN-3); at least once per minute
-4. MUST: send any other DRIP Authentication Format (RECOMMENDED: DRIP Manifest ({{drip-manifest}}) or DRIP Wrapper ({{drip-wrapper}})) where the UA is dynamically signing data that is guaranteed to be unique, unpredictable and easily cross checked by the receiving device (satisfying ID-5, GEN-1 and GEN-2); at least once per 5 seconds
+4. MUST: send any other DRIP Authentication Format (non-DRIP Link) where the UA is dynamically signing data that is guaranteed to be unique, unpredictable and easily cross checked by the receiving device (satisfying ID-5, GEN-1 and GEN-2); at least once per 5 seconds
 
 ## Operational {#operational-recommendations}
 
