@@ -54,7 +54,7 @@ normative:
 
     # External
     F3411:
-        title: "F3411-22a: Standard Specification for Remote ID and Tracking"
+        title: "ASTM F3411-22a: Standard Specification for Remote ID and Tracking"
         author:
         org: ASTM International
         date: 2022-07
