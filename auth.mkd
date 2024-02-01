@@ -635,7 +635,7 @@ The `DRIP Link (BE: HDA, UA)` is included so there is a direct signature by the 
 
 ### Hash Algorithms and Operation {#hash-op}
 
-The hash algorithm used for the Manifest is the same hash algorithm used in creation of the DET {{RFC9374}} that is signing the Manifest.
+The hash algorithm used for the Manifest is the same hash algorithm used in creation of the DET {{RFC9374}} that is signing the Manifest. This is encoded as part of the DET using the HHIT Suite ID.
 
 DET's using cSHAKE128 {{!NIST.SP.800-185}} compute the hash as follows:
 
