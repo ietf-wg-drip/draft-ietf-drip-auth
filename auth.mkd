@@ -498,12 +498,12 @@ if (wrapperLength MOD 25) != 0 {
 }
 wrappedCount = wrapperLength / 25;
 if (wrappedCount == 0) {
-  // DRIP Wrapper over extended transport
+  // DECODE_SUCCESS; treat DRIP Wrapper over extended transport
 }
 else if (wrappedCount > 4) {
   return DECODE_FAILURE;
 } else {
-  // standard DRIP Wrapper
+  // DECODE_SUCCESS; treat as standard DRIP Wrapper
 }
 
 <CODE ENDS>
