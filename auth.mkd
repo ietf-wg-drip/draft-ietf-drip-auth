@@ -942,7 +942,7 @@ There are a few keys of interest: the PK of the UA and the PK's of relevant DIME
 
 The intent of this informative appendix is to give a recommended way to classify these various states and convey it to the user through colors and state names/text. These states can apply to either a single authentication message, a DET (and its associated public key), and/or a sender.
 
-The table below lays out the RECOMMENDED colors to associate with state and a brief description of each.
+The table below lays out the recommended colors to associate with state and a brief description of each.
 
 | State        | Color  | Details                                                         |
 | ------------ | ------ | --------------------------------------------------------------- |
