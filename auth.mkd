@@ -65,6 +65,7 @@ informative:
 
     # RFCs
     RFC8126:  # iana-considerations
+    RFC9364:  # DNSSEC
     
     # External Sources
     FAA-14CFR:
@@ -134,13 +135,13 @@ Manifest:
 
 # UAS RID Authentication Background & Procedures
 
-## DRIP Authentication Protocol Description
+## DRIP Authentication Protocol Description {#protocol-desc}
 
 {{F3411}} defines Authentication Message framing only. It does not define authentication formats or methods. It explicitly anticipates several signature options but does not fully define those. Annex A1 of {{F3411}} defines a Broadcast Authentication Verifier Service, which has a heavy reliance on Observer real-time connectivity to the Internet. Fortunately, {{F3411}} also allows third party standard Authentication Types using Type 5 Specific Authentication Method (SAM), several of which DRIP defines herein.
 
 The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. Per Section 5 of {{RFC9434}}, Authentication formats are needed to relay information for Observers to determine trust. No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
 
-Like most aviation matters, the overall objectives here are security and ultimately safety oriented. Since DRIP depends on DNS for some of its functions, DRIP usage of DNS needs to be protected in line with best security practices. Many participating nodes will have limited local processing power and/or poor, low bandwidth QoS paths. Appropriate and feasible security techniques will be highly UAS and Observer situation dependent. Therefore specification of particular DNS security options, transports, etc. is outside the scope of this document.
+Like most aviation matters, the overall objectives here are security and ultimately safety oriented. Since DRIP depends on DNS for some of its functions, DRIP usage of DNS needs to be protected in line with best security practices. Many participating nodes will have limited local processing power and/or poor, low bandwidth QoS paths. Appropriate and feasible security techniques will be highly UAS and Observer situation dependent. Therefore specification of particular DNS security options, transports, etc. is outside the scope of this document (see also {{dns-security}}).
 
 ### UA Signed Evidence {#ua-attestation}
 
@@ -921,6 +922,10 @@ The primary mitigation is that the UA is REQUIRED to send more than DRIP Link me
 Note the discussion of VNA Timestamp offsets here is in the context of the DRIP Wrapper ({{drip-wrapper}}), DRIP Manifest ({{drip-manifest}}), and DRIP Frame ({{drip-frame}}). For DRIP Link ({{drip-link}}) these offsets are set by the DIME and have their own set of considerations in {{drip-registries}}.
 
 The offset of the `VNA Timestamp by UA` is one that needs careful consideration for any implementation. The offset should be shorter than any given flight duration (typically less than an hour) but be long enough to be received and processed by Observers (larger than a few seconds). It is recommended that 3-5 minutes should be sufficient to serve this purpose in any scenario, but is not limited by design.
+
+## DNS Security in DRIP {#dns-security}
+
+As stated in {{protocol-desc}} specification of particular DNS security options, transports, etc. is outside the scope of this document. {{drip-registries}} is the main specification for DNS operations in DRIP and as such will define the use of best common practices for security (such as {{RFC9364}}).
 
 # Acknowledgments
 
