@@ -391,7 +391,7 @@ UA DRIP Entity Tag: (16 octets)
 
 UA Signature: (64 octets)
 
-> Signature over concatenation of preceding fields (`VNB`, `VNA`, `Evidence`, and `UA DET`) using the keypair of the UA DET.
+> Signature over concatenation of preceding fields (`VNB`, `VNA`, `Evidence`, and `UA DET`) using the keypair of the UA DET. The signature algorithm is specified by the HHIT Suite ID of the DET.
 
 When using this structure, the UA is minimally self-endorsing its DET. The HI of the UA DET can be looked up by mechanisms described in {{drip-registries}} or by extracting it from a Broadcast Endorsement (see {{drip-link}} and {{drip-recommendations}}).
 
