@@ -494,9 +494,9 @@ This SAM Type is used to wrap and sign over a list of other {{F3411}} Broadcast 
 
 The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with up to four ASTM {{F3411}} Messages in a contiguous octet sequence. Only ASTM Message Types 0x0, 0x1, 0x3, 0x4, and 0x5 are allowed and must be in Message Type order as defined by {{F3411}}. These messages MUST include the Message Type and Protocol Version octet and MUST NOT include the Message Counter octet (thus are fixed at 25 octets in length).
 
-### Wrapped Count & Sanity Check
+### Wrapped Count & Format Validation
 
-When decoding a DRIP Wrapper on a receiver, a calculation of the number of messages wrapped and a sanity check MUST be performed by using the number of octets (defined as `wrapperLength`) between the `VNA Timestamp by UA` and the `UA DET` as shown in {{wrapper-check}}.
+When decoding a DRIP Wrapper on a receiver, a calculation of the number of messages wrapped and a validation MUST be performed by using the number of octets (defined as `wrapperLength`) between the `VNA Timestamp by UA` and the `UA DET` as shown in {{wrapper-check}}.
 
 ~~~~
 <CODE BEGINS>
@@ -516,7 +516,7 @@ else if (wrappedCount > 4) {
 
 <CODE ENDS>
 ~~~~
-{: #wrapper-check title="Pseudo-code for Wrapper sanity check and number of messages calculation"}
+{: #wrapper-check title="Pseudo-code for Wrapper validation and number of messages calculation"}
 
 ### Wrapper over Extended Transports {#extended-wrapper}
 
@@ -619,9 +619,9 @@ ASTM Message Hash: (8 octets)
 
 > Hash of a single full ASTM Message using hash operations described in {{hash-op}}.
 
-### Hash Count & Sanity Check
+### Hash Count & Format Validation
 
-When decoding a DRIP Manifest on a receiver, a calculation of the number of hashes and a sanity check can be performed by using the number of octets (defined as `manifestLength`) between the `UA DET` and the `VNB Timestamp by UA` such as shown in {{manifest-check}}.
+When decoding a DRIP Manifest on a receiver, a calculation of the number of hashes and a validation can be performed by using the number of octets (defined as `manifestLength`) between the `UA DET` and the `VNB Timestamp by UA` such as shown in {{manifest-check}}.
 
 ~~~~
 <CODE BEGINS>
@@ -756,7 +756,7 @@ To determine if FEC has been used, a check of the `Last Page Index` is performed
 
 To decode FEC in DRIP, a rolling XOR is used on each `Authentication Page` received in the current `Authentication Message`. A Message Counter, outside of the ASTM Message but specified in {{F3411}}, is used to signal a different `Authentication Message` and to correlate pages to messages. This Message Counter is only single octet in length, so it will roll over (to 0x00) after reaching its maximum value (0xFF). If only a single page is missing in the `Authentication Message` the resulting parity octets should be the data of the erased page.
 
-Authentication Page 0 contains various important fields, only located on that page, that help decode the full ASTM Authentication Message. If Page 0 has been reconstructed, the `Last Page Index` and `Length` fields MUST be sanity checked by DRIP. The pseudo-code in {{decode-pseudo}} can be used for both checks.
+Authentication Page 0 contains various important fields, only located on that page, that help decode the full ASTM Authentication Message. If Page 0 has been reconstructed, the `Last Page Index` and `Length` fields MUST be validated by DRIP. The pseudo-code in {{decode-pseudo}} can be used for both checks.
 
 ~~~~
 <CODE BEGINS>
@@ -854,7 +854,7 @@ The DRIP Wrapper has a specific use case for DRIP aware receivers. For a receive
 
 As described in {{rid-trust}}, the receiver MUST perform validation of the data being received in Broadcast RID. This is because trust in a key is different from trust that an observed UA possesses that key.
 
-A chain of DRIP Links provides trust in a key. A message containing rapidly changing, not predictable far in advance (relative to typical operational flight times) but sanity-checkable data, signed by that key, provides trust that some agent with access to that data also possesses that key. If the sanity check involves correlating physical world observations of the UA with claims in that data, then the probability is high that the observed UA is (or is collaborating with or observed in real time by) the agent with the key.
+A chain of DRIP Links provides trust in a key. A message containing rapidly changing, not predictable far in advance (relative to typical operational flight times) but data that can be validated, signed by that key, provides trust that some agent with access to that data also possesses that key. If the validation involves correlating physical world observations of the UA with claims in that data, then the probability is high that the observed UA is (or is collaborating with or observed in real time by) the agent with the key.
 
 After signature verification of any DRIP Authentication Message containing UAS RID information elements (e.g., DRIP Wrapper {{drip-wrapper}}) the Observer MUST use other sources of information to correlate against and perform validation. An example of another source of information is a visual confirmation of the UA position.
 
