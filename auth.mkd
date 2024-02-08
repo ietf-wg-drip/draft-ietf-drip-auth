@@ -886,7 +886,7 @@ This document requests two new registries, for DRIP SAM Type and DRIP Frame Type
 
 DRIP SAM Type:
 
-: This registry is a mirror for SAM Types containing the subset of allocations used by DRIP Authentication Messages. Future additions MUST be done through ASTM's designated registrar which at the time of publication of this RFC is ICAO. Additions for DRIP will be coordinated by IETF and the ASTM designated registrar by circulation of Internet Drafts intended for subsequent publication as Standards Track RFCs. The following values have been allocated to the IETF and are defined here:
+: This registry is a mirror for SAM Types containing the subset of allocations used by DRIP Authentication Messages. Future additions MUST be done through ASTM's designated registrar which at the time of publication of this RFC is ICAO {{ASTM-Remote-ID}}. Additions for DRIP will be coordinated by IANA and the ASTM designated registrar before final publication as Standards Track RFCs. The following values have been allocated to the IETF and are defined here:
 
 | SAM Type   | Name          | Description                           |
 | ---------- | ------------- | ------------------------------------- |
