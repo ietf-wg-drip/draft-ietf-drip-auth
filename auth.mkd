@@ -407,9 +407,7 @@ When using this structure, the UA is minimally self-endorsing its DET. The HI of
 
 This SAM Type is used to transmit Broadcast Endorsements. For example, the `Broadcast Endorsement: HDA, UA` is sent (see {{drip-recommendations}}) as a DRIP Link message.
 
-> Note: For the remainder of this document `Broadcast Endorsement: Parent, Child` will be abbreviated to `BE: Parent, Child`.
-
-DRIP Link is important as its contents are used to provide trust in the DET/HI pair that the UA is currently broadcasting. This message does not require Internet connectivity to perform signature verification of the contents when the DIME DET/HI is in the receiver's cache. It also provides the UA HI, when it is filled with a `BE: HDA, UA`, so that connectivity is not required when performing signature verification of other DRIP Authentication Messages.
+DRIP Link is important as its contents are used to provide trust in the DET/HI pair that the UA is currently broadcasting. This message does not require Internet connectivity to perform signature verification of the contents when the DIME DET/HI is in the Observer's cache. It also provides the UA HI, when it is filled with a `BE: HDA, UA`, so that connectivity is not required when performing signature verification of other DRIP Authentication Messages.
 
 Various Broadcast Endorsements are sent during operation to ensure that the full Broadcast Endorsement chain is available offline. See {{drip-recommendations}} for further details.
 
@@ -563,7 +561,7 @@ The functionality of a Wrapper in this form is equivalent to Message Set Signatu
 
 ### Wrapper Limitations
 
-The primary limitation of the Wrapper is the bounding of up to 4 ASTM Messages that can be sent within it. Another limitation is that the format cannot be used as a surrogate for messages it is wrapping due to the potential that a receiver on the ground does not support DRIP. Thus, when a Wrapper is being used, the wrapped data must effectively be sent twice, once as a single framed message (as specified in {{F3411}}) and then again within the Wrapper.
+The primary limitation of the Wrapper is the bounding of up to 4 ASTM Messages that can be sent within it. Another limitation is that the format cannot be used as a surrogate for messages it is wrapping due to the potential that an Observer on the ground does not support DRIP. Thus, when a Wrapper is being used, the wrapped data must effectively be sent twice, once as a single framed message (as specified in {{F3411}}) and then again within the Wrapper.
 
 ## DRIP Manifest
 
@@ -579,7 +577,7 @@ The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{
 
 The `Previous Manifest Hash`, `Current Manifest Hash`, and `DRIP Link (BE: HDA, UA) Hash` MUST always come before the `ASTM Message Hashes` as seen in {{manifest-fig}}.
 
-A receiver MUST use the Manifest to verify each ASTM Message hashed therein that it has previously received. It can do this without having received them all. A Manifest SHOULD typically encompass a single transmission cycle of messages being sent, see {{operational-recommendations}} and {{operational-proof}}.
+An Observer MUST use the Manifest to verify each ASTM Message hashed therein that it has previously received. It can do this without having received them all. A Manifest SHOULD typically encompass a single transmission cycle of messages being sent, see {{operational-recommendations}} and {{operational-proof}}.
 
 ~~~~
  0                   1                   2                   3
@@ -850,13 +848,13 @@ A RECOMMENDED operational configuration (in alignment with {{drip-recommendation
 
 If DRIP Wrappers are sent, they MUST be sent in addition to any required ASTM Messages in a given jurisdiction. An implementation MUST NOT send DRIP Wrappers in place of any required ASTM Messages it may encapsulate. Thus, messages within a Wrapper are sent twice: once in the clear and once authenticated within the Wrapper.
 
-The DRIP Wrapper has a specific use case for DRIP aware receivers. For a receiver plotting Location Messages (Message Type 0x2) on a map, display an embedded Location Message in a DRIP Wrapper can be marked differently (e.g., via color) to signify trust in the Location data.
+The DRIP Wrapper has a specific use case for DRIP aware Observers. For an Observer plotting Location Messages (Message Type 0x2) on a map, display an embedded Location Message in a DRIP Wrapper can be marked differently (e.g., via color) to signify trust in the Location data.
 
 ### UAS RID Trust Assessment {#trust-assessment}
 
-As described in {{rid-trust}}, the receiver MUST perform validation of the data being received in Broadcast RID. This is because trust in a key is different from trust that an observed UA possesses that key.
+As described in {{rid-trust}}, the Observer MUST perform validation of the data being received in Broadcast RID. This is because trust in a key is different from trust that an observed UA possesses that key.
 
-A chain of DRIP Links provides trust in a key. A message containing rapidly changing, not predictable far in advance (relative to typical operational flight times) but data that can be validated, signed by that key, provides trust that some agent with access to that data also possesses that key. If the validation involves correlating physical world observations of the UA with claims in that data, then the probability is high that the observed UA is (or is collaborating with or observed in real time by) the agent with the key.
+A chain of DRIP Links provides trust in a key. A message containing rapidly changing, not predictable far in advance (relative to typical operational flight times) that can be validated by Observers, signed by that key, provides trust that some agent with access to that data also possesses that key. If the validation involves correlating physical world observations of the UA with claims in that data, then the probability is high that the observed UA is (or is collaborating with or observed in real time by) the agent with the key.
 
 After signature verification of any DRIP Authentication Message containing UAS RID information elements (e.g., DRIP Wrapper {{drip-wrapper}}) the Observer MUST use other sources of information to correlate against and perform validation. An example of another source of information is a visual confirmation of the UA position.
 
@@ -960,7 +958,7 @@ As stated in {{protocol-desc}} specification of particular DNS security options,
 
 # Authentication States {#auth-state-diagrams}
 
-ASTM Authentication has only three states: None, Invalid, and Valid. This is because, under ASTM, the authentication is done by an external service hosted somewhere on the Internet so it is assumed an authoritative response will always be returned. This classification becomes more complex in DRIP with the support of "offline" scenarios where a receiver does not have Internet connectivity. With the use of asymmetric cryptography this means that the public key (PK) must somehow be obtained. {{drip-registries}} gets more into detail how these keys are stored on DNS and one use of DRIP Authentication messages is to send PK's over Broadcast RID.
+ASTM Authentication has only three states: None, Invalid, and Valid. This is because, under ASTM, the authentication is done by an external service hosted somewhere on the Internet so it is assumed an authoritative response will always be returned. This classification becomes more complex in DRIP with the support of "offline" scenarios where a Observer does not have Internet connectivity. With the use of asymmetric cryptography this means that the public key (PK) must somehow be obtained. {{drip-registries}} gets more into detail how these keys are stored on DNS and one use of DRIP Authentication messages is to send PK's over Broadcast RID.
 
 There are a few keys of interest: the PK of the UA and the PK's of relevant DIMEs. This document describes how to send the PK of the UA over the Broadcast RID messages. The key of DIMEs are sent over Broadcast RID using the same mechanisms (see {{drip-link}} and {{drip-recommendations}}) but MAY be sent at a far lower rate due to potential operational constraints (such as saturation of limited bandwidth). As such, there are scenarios where part of the key-chain may be unavailable at the moment a full Authentication Message is received and processed.
 
@@ -991,7 +989,7 @@ A pending state where authentication pages are being received but a full authent
 
 ## Unsupported: Brown {#brown}
 
-A state wherein authentication data is being or has been received, but cannot be used, as the Authentication Type or SAM Type is not supported by the receiver.
+A state wherein authentication data is being or has been received, but cannot be used, as the Authentication Type or SAM Type is not supported by the Observer.
 
 ## Unverifiable: Yellow {#yellow}
 
@@ -1005,7 +1003,7 @@ A state where all authentication messages that have been received, up to that po
 
 A state where all authentication messages that have been received, up to that point, from that claimed sender, have passed signature verification, the requirement of {{trust-assessment}} has been met, and the public key of the sending UA is marked as trusted.
 
-The sending UA key will have been marked as trusted if the relevant DIMEs only register DETs (of subordinate DIMEs, UAS operators, and UA) that have been vetted as per their published registration policies, and those DIMEs have been marked, by the owner (individual or organizational) of the receiver, as per that owner's policy, as trusted to register DETs only for trusted parties.
+The sending UA key will have been marked as trusted if the relevant DIMEs only register DETs (of subordinate DIMEs, UAS operators, and UA) that have been vetted as per their published registration policies, and those DIMEs have been marked, by the owner (individual or organizational) of the Observer, as per that owner's policy, as trusted to register DETs only for trusted parties.
 
 ## Questionable: Orange {#orange}
 
