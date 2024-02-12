@@ -948,6 +948,13 @@ As stated in {{protocol-desc}} specification of particular DNS security options,
   - Matt Joras (genart)
   - Di Ma (dnsdir)
   - Gorry Fairhurst (tsvart)
+  - Carlos Bernardos (intdir)
+  - Behcet Sarikaya (iotdir)
+  - Martin Duke (IESG)
+  - Roman Danyliw (IESG)
+  - Murray Kucherawy (IESG)
+  - Erik Kline (IESG)
+  - Warren Kumari (IESG)
 
 --- back
 
