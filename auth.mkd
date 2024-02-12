@@ -936,7 +936,7 @@ The offset of the `VNA Timestamp by UA` is one that needs careful consideration 
 
 ## DNS Security in DRIP {#dns-security}
 
-As stated in {{protocol-desc}} specification of particular DNS security options, transports, etc. is outside the scope of this document. {{drip-registries}} is the main specification for DNS operations in DRIP and as such will define the use of best common practices for security (such as {{RFC9364}}).
+As stated in {{protocol-desc}} specification of particular DNS security options, transports, etc. is outside the scope of this document. {{drip-registries}} is the main specification for DNS operations in DRIP and as such will specify DRIP usage of best common practices for security (such as {{RFC9364}}).
 
 # Acknowledgments
 
