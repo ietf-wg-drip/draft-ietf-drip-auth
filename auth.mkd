@@ -340,9 +340,9 @@ When sending data over a medium that does not have underlying FEC, for example L
 
 Examples of Link, Wrapper and Manifest are shown as part of an operational schedule in {{raw-example}}.
 
-## Endorsement Structure for UA Signed Evidence {#bas}
+## UA Signed Evidence Structure {#bas}
 
-The `Endorsement Structure for UA Signed Evidence` ({{drip-data}}) is used by the UA during flight to sign over information elements using the private key associated with the current UA DET. It is encapsulated by the `SAM Authentication Data` field of {{sam-frame}}.
+The `UA Signed Evidence Structure` ({{drip-data}}) is used by the UA during flight to sign over information elements using the private key associated with the current UA DET. It is encapsulated by the `SAM Authentication Data` field of {{sam-frame}}.
 
 This structure is used by the DRIP Wrapper ({{drip-wrapper}}), Manifest {{drip-manifest}}, and Frame ({{drip-frame}}). DRIP Link ({{drip-link}}) MUST NOT use it as it will not fit in the ASTM Authentication Message with its intended content (i.e., a Broadcast Endorsement).
 
@@ -494,7 +494,7 @@ A hash of the final link (`BE: HDA on UA`) in the Broadcast Endorsement chain MU
 
 This SAM Type is used to wrap and sign over a list of other {{F3411}} Broadcast RID messages.
 
-The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with up to four ASTM {{F3411}} Messages in a contiguous octet sequence. Only ASTM Message Types 0x0, 0x1, 0x3, 0x4, and 0x5 are allowed and must be in Message Type order as defined by {{F3411}}. These messages MUST include the Message Type and Protocol Version octet and MUST NOT include the Message Counter octet (thus are fixed at 25 octets in length).
+The `evidence` section of the `UA Signed Evidence Structure` ({{bas}}) is populated with up to four ASTM {{F3411}} Messages in a contiguous octet sequence. Only ASTM Message Types 0x0, 0x1, 0x3, 0x4, and 0x5 are allowed and must be in Message Type order as defined by {{F3411}}. These messages MUST include the Message Type and Protocol Version octet and MUST NOT include the Message Counter octet (thus are fixed at 25 octets in length).
 
 ### Wrapped Count & Format Validation
 
@@ -524,7 +524,7 @@ else if (wrappedCount > 4) {
 
 When using Extended Transports an optimization can be made to DRIP Wrapper to sign over co-located data in an ASTM Message Pack (Message Type 0xF).
 
-To perform this optimization the `Endorsement Structure for UA Signed Evidence` is filled with the ASTM Messages to be in the ASTM Message Pack, the signature is generated, then the `evidence` field is cleared leaving the encoded form shown in {{set-sig}}.
+To perform this optimization the `UA Signed Evidence Structure` is filled with the ASTM Messages to be in the ASTM Message Pack, the signature is generated, then the `evidence` field is cleared leaving the encoded form shown in {{set-sig}}.
 
 ~~~~
  0                   1                   2                   3
@@ -559,7 +559,7 @@ To perform this optimization the `Endorsement Structure for UA Signed Evidence` 
 ~~~~
 {:fig #set-sig title="DRIP Wrapper over Extended Transports"}
 
-To verify the signature, the receiver MUST concatenate all the messages in the Message Pack (excluding Authentication Message found in the same Message Pack) in ASTM Message Type order and set the `evidence` section of the `Endorsement Structure for UA Signed Evidence` before performing signature verification.
+To verify the signature, the receiver MUST concatenate all the messages in the Message Pack (excluding Authentication Message found in the same Message Pack) in ASTM Message Type order and set the `evidence` section of the `UA Signed Evidence Structure` before performing signature verification.
 
 The functionality of a Wrapper in this form is equivalent to Message Set Signature (Authentication Type 0x3) when running over Extended Transports. What the Wrapper provides is the same format but over both Extended and Legacy Transports allowing the transports to be similar. Message Set Signature also implies using the ASTM validator system architecture which depends on Internet connectivity for verification which the receiver may not have at the time of receipt of an Authentication Message. This is something the Wrapper, and all DRIP Authentication Formats, avoid when the UA key is obtained via a DRIP Link Authentication Message.
 
@@ -577,7 +577,7 @@ Observers MUST hash all received ASTM Messages and cross-check them against hash
 
 Judicious use of a Manifest enables an entire Broadcast RID message stream to be strongly authenticated with less than 100% overhead relative to a completely unauthenticated message stream (see {{drip-recommendations}} and {{operational-proof}}).
 
-The `evidence` section of the `Endorsement Structure for UA Signed Evidence` ({{bas}}) is populated with 8-octet hashes of {{F3411}} Broadcast RID messages (up to 11) and three special hashes ({{block-hashes}}). All these hashes MUST be concatenated to form a contiguous octet sequence in the `evidence` section. It is RECOMMENDED the max number of ASTM Message Hashes be used is 10 (see {{eleven-astm-messages}}).
+The `evidence` section of the `UA Signed Evidence Structure` ({{bas}}) is populated with 8-octet hashes of {{F3411}} Broadcast RID messages (up to 11) and three special hashes ({{block-hashes}}). All these hashes MUST be concatenated to form a contiguous octet sequence in the `evidence` section. It is RECOMMENDED the max number of ASTM Message Hashes be used is 10 (see {{eleven-astm-messages}}).
 
 The `Previous Manifest Hash`, `Current Manifest Hash`, and `DRIP Link (BE: HDA, UA) Hash` MUST always come before the `ASTM Message Hashes` as seen in {{manifest-fig}}.
 
