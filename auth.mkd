@@ -805,7 +805,7 @@ function decode_check(auth_pages[], decoded_lpi, decoded_length) {
 
 ## FEC Limitations
 
-The worst-case scenario is when the `Authentication Data / Signature` ends perfectly on a page (Page N-1). This means the `Additional Data Length` would start the next page (Page N) and have 22 octets worth of null padding to align the FEC to begin at the start of the next page (Page N+1). In this scenario, an entire page (Page N) is being wasted just to carry the `Additional Data Length`.
+The worst-case scenario is when the `Authentication Data / Signature` ends perfectly on a page boundary (Page N-1). This means the `Additional Data Length` would start the next page (Page N) and have 22 octets worth of null padding to align the FEC to begin at the start of the next page (Page N+1). In this scenario, an entire page (Page N) is being wasted just to carry the `Additional Data Length`.
 
 # Requirements & Recommendations {#reqs}
 
