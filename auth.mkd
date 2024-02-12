@@ -637,7 +637,7 @@ hashCount = (manifestLength / 8) - 3;
 
 ### Manifest Ledger Hashes {#block-hashes}
 
-Three special hashes are included in all Manifests. The `Previous Manifest Hash`, links to the previous Manifest, and the `Current Manifest Hash` which is the currently filled Manifest. These two hashes act as a ledger of provenance to the Manifest that could be traced back if the Observer was present for extended periods of time.
+Three special hashes are included in all Manifests. The `Previous Manifest Hash`, links to the previous Manifest, and the `Current Manifest Hash` is of the Manifest in which it appears. These two hashes act as a ledger of provenance to the Manifest that could be traced back if the Observer was present for extended periods of time.
 
 The `DRIP Link (BE: HDA, UA)` is included so there is a direct signature by the UA over the Broadcast Endorsement (see {{drip-link}}).
 
