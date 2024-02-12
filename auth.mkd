@@ -146,33 +146,37 @@ Manifest:
 
 The standardization of specific formats to support the DRIP requirements in UAS RID for trustworthy communications over Broadcast RID is an important part of the chain of trust for a UAS ID. Per Section 5 of {{RFC9434}}, Authentication formats are needed to relay information for Observers to determine trust. No existing formats (defined in {{F3411}} or other organizations leveraging this feature) provide the functionality to satisfy this goal resulting in the work reflected in this document.
 
-Like most aviation matters, the overall objectives here are security and ultimately safety oriented. Since DRIP depends on DNS for some of its functions, DRIP usage of DNS needs to be protected in line with best security practices. Many participating nodes will have limited local processing power and/or poor, low bandwidth QoS paths. Appropriate and feasible security techniques will be highly UAS and Observer situation dependent. Therefore specification of particular DNS security options, transports, etc. is outside the scope of this document (see also {{dns-security}}).
+### Usage of DNS {#auth-dns}
 
-### UA Signed Evidence {#ua-attestation}
+Like most aviation matters, the overall objectives here are security and ultimately safety oriented. Since DRIP depends on DNS for some of its functions, DRIP usage of DNS needs to be protected as per best security practices. Many participating nodes will have limited local processing power and/or poor, low bandwidth QoS paths. Appropriate and feasible security techniques will be highly UAS and Observer situation dependent. Therefore specification of particular DNS security options, transports, etc. is outside the scope of this document (see also {{dns-security}}).
 
-When an Observer receives a DRIP-based Authentication Message ({{drip-wrapper}}, {{drip-manifest}}, or {{drip-frame}}) containing UA-signed Evidence (in an Endorsement structure {{bas}}) it MUST validate the signature using the Host Identity (HI) corresponding to the UA's DET {{RFC9374}}.
+In DRIP Observers MUST validate all signatures received. This requires the Host Identity (HI) corresponding to a DET {{RFC9374}}. HI's MAY be retrieved from a local cache, if present. The local cache is pre-configured with well knowns HIs (such as those of CAA DIMEs) and further populated by received Broadcast Endorsements ({{dime-attestation}}) and DNS lookups (when available).
 
-An Observer SHOULD query DNS for the UA's HI. If not available it may have been revoked. Note that accurate revocation status is a DIME inquiry; DNS non-response is a hint that a DET is expired or revoked. It MAY be retrieved from a local cache, if present. The local cache is typically populated by DNS lookups and/or by received Broadcast Endorsements ({{dime-attestation}}).
+The Observer MUST perform a DNS query, when connectivity allows, to obtain an HI not previously known. If a query can not be performed, the message SHOULD be cached by the Observer to be validated once the HI is obtained.
 
-Once the Observer has the registered UA's DET and HI, all subsequent y received (or previously cached) DRIP-based Authentication Messages using the UA DET can be validated. Signed content, tied to the DET, can now be trusted to have been signed by the holder of the private key corresponding to the DET.
+A more comprehensive specification of DRIP's use of DNS is out of scope for this document and can be found in {{drip-registries}}.
 
-Whether the content is true is a separate question which DRIP cannot address, but sanity checks ({{reqs}}) are possible and encouraged.
+### Providing UAS RID Trust {#rid-trust}
 
-### DIME Endorsements of Subordinate DET {#dime-attestation}
+For DRIP, two actions together provide a mechanism for an Observer to trust in UAS RID using Authentication Messages.
 
-When an Observer receives a DRIP Link Authentication Message ({{drip-link}}) containing an Endorsement by the DIME of a child DET registration, it MUST validate the signature using the HI corresponding to the DIME's DET.
+First is the transmission of an entire trust chain via Broadcast Endorsements ({{dime-attestation}}). This provides a hierarchy of DIMEs down to and including an individual UA's registration of a claimed DET and corresponding HI (public key). This alone cannot be trusted as having any relevance to the observed UA because replay attacks are trivial.
 
-An Observer SHOULD query DNS for the DIME's HI (e.g., Section 5 of {{drip-registries}}), when able. It MAY be cached from a prior DNS lookup or be stored in a distinct local store.
+After an Observer has gathered such a complete key trust chain (from pre-configured cache entries, Broadcast Endorsements received over the air and/or DNS lookups) and verified all of its links, that device can trust that claimed DET and corresponding public key are properly registered, but the UA has not yet been proven to possess the corresponding private key.
 
-### DIME Hierarchy Endorsements {#dime-hierarchy}
+It is necessary for the UA to prove possession by dynamically signing data that is unique and unpredictable but easily verified by the Observer ({{ua-attestation}}). Verification of this signed data MUST be performed by the Observer as part of the received UAS RID information trust assessment ({{trust-assessment}}).
 
-An Observer can receive a series of DRIP Link Authentication Messages ({{drip-link}}), each one pertaining to a DIME's registration in the DIME above it in the hierarchy. Similar to {{dime-attestation}}, each link in this chain MUST be validated.
+#### DIME Endorsements of Subordinate DETs {#dime-attestation}
 
-### UAS RID Trust {#rid-trust}
+Observers receive DRIP Link Authentication Messages ({{drip-link}}) containing Broadcast Endorsements by DIMEs of child DET registrations. A series of these Endorsements confirms a path through the hierarchy, defined in {{drip-registries}}, from the DET Prefix Owner all the way to an individual UA DET registration.
 
-{{ua-attestation}}, {{dime-attestation}}, and {{dime-hierarchy}} complete the trust chain for the claimed DET and associated HI (public key), but the chain cannot yet be trusted as having any relevance to the observed UA because replay attacks are trivial. At this point, the key nominally possessed by the UA is trusted but the UA has not yet been proven to possess that private key.
+> Note: For the remainder of this document `Broadcast Endorsement: Parent, Child` will be abbreviated to `BE: Parent, Child`. For example `Broadcast Endorsement: RAA, HDA` will be abbreviated to `BE: RAA, HDA`.
 
-It is necessary for the UA to prove possession by dynamically signing data that is unique and unpredictable but easily verified by the Observer. This can be a DRIP Wrapper or Manifest ({{drip-wrapper}}, {{drip-manifest}}) containing an ASTM Message that fulfills the requirements. Verification of this signed data MUST be performed by the Observer as part of the received UAS RID information trust assessment ({{trust-assessment}}).
+#### UA Signed Evidence {#ua-attestation}
+
+To prove possession of the private key associated to the DET, the UA MUST send data that is unique and unpredictable but easily verified by the Observer, that is signed over. The data can be an ASTM Message that fulfills the requirements to be unpredictable but easily verified. An Observer receives this UA-signed Evidence from DRIP-based Authentication Messages ({{drip-wrapper}} or {{drip-manifest}}).
+
+Whether the content is true is a separate question which DRIP cannot address, but validation performed using observable and/or out of band data ({{reqs}}) are possible and encouraged.
 
 ## ASTM Authentication Message Framing {#auth-message}
 
@@ -405,7 +409,7 @@ When using this structure, the UA is minimally self-endorsing its DET. The HI of
 
 ## DRIP Link
 
-This SAM Type is used to transmit Broadcast Endorsements. For example, the `Broadcast Endorsement: HDA, UA` is sent (see {{drip-recommendations}}) as a DRIP Link message.
+This SAM Type is used to transmit Broadcast Endorsements. For example, the `BE: HDA, UA` is sent (see {{drip-recommendations}}) as a DRIP Link message.
 
 DRIP Link is important as its contents are used to provide trust in the DET/HI pair that the UA is currently broadcasting. This message does not require Internet connectivity to perform signature verification of the contents when the DIME DET/HI is in the Observer's cache. It also provides the UA HI, when it is filled with a `BE: HDA, UA`, so that connectivity is not required when performing signature verification of other DRIP Authentication Messages.
 
