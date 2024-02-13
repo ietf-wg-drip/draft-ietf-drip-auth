@@ -862,7 +862,7 @@ A chain of DRIP Links provides trust in a key. A message containing rapidly chan
 
 After signature verification of any DRIP Authentication Message containing UAS RID information elements (e.g., DRIP Wrapper {{drip-wrapper}}) the Observer MUST use other sources of information to correlate against and perform validation. An example of another source of information is a visual confirmation of the UA position.
 
-When correlation of these different data streams does not match in acceptable thresholds, the data SHOULD be rejected as if the signature failed to validate. Acceptable thresholds limits and what happens after such a rejection are out of scope for this document.
+When correlation of these different data streams does not match in acceptable thresholds, the data MUST be rejected as if the signature failed to validate. Acceptable thresholds limits and what happens after such a rejection are out of scope for this document.
 
 # Summary of Addressed DRIP Requirements {#req-sum}
 
