@@ -945,6 +945,7 @@ As stated in {{protocol-desc}} specification of particular DNS security options,
 - Ryan Quigley and James Mussi of AX Enterprize, LLC for early prototyping to find holes in the draft specifications.
 - Carsten Bormann for the simple approach of using bit-column-wise parity for erasure (dropped frame) FEC.
 - Soren Friis for pointing out that Wi-Fi implementations would not always give access to the MAC Address, originally used in calculation of the hashes for DRIP Manifest. Also, for confirming that Message Packs (0xF) can only carry up to 9 ASTM frames worth of data (9 Authentication pages).
+- Gabriel Cox (chair of F3411) in reviewing the specification for the SAM Type request as the Designated Expert for ASTM
 - Thanks to the following reviewers:
   - Rick Salz (secdir)
   - Matt Joras (genart)
