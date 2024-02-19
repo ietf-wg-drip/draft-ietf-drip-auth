@@ -3,7 +3,7 @@ coding: utf-8
 
 title: DRIP Entity Tag Authentication Formats & Protocols for Broadcast Remote ID
 abbrev: DRIP Auth Formats
-docname: draft-ietf-drip-auth-48
+docname: draft-ietf-drip-auth-49
 category: std
 
 ipr: trust200902
@@ -641,7 +641,7 @@ hashCount = (manifestLength / 8) - 3;
 
 Three special hashes are included in all Manifests. The `Previous Manifest Hash`, links to the previous Manifest, and the `Current Manifest Hash` is of the Manifest in which it appears. These two hashes act as a ledger of provenance to the Manifest that could be traced back if the Observer was present for extended periods of time.
 
-The `DRIP Link (BE: HDA, UA)` is included so there is a direct signature by the UA over the Broadcast Endorsement (see {{drip-link}}).
+The `DRIP Link (BE: HDA, UA)` is included so there is a direct signature by the UA over the Broadcast Endorsement (see {{drip-link}}). Typical operation would expect that the list of `ASTM Message Hash`'s contain nonce-link data. To enforce a binding between the `BE: HDA, UA` and avoid trivial replay attack vectors (see {{replay-attacks}}) at least 1 `ASTM Message Hash` MUST be from an {{F3411}} message that satisfies the 4th requirement in {{drip-recommendations}}.
 
 ### Hash Algorithms and Operation {#hash-op}
 
@@ -924,11 +924,21 @@ Registration requests that are undetermined for a period longer than 28 days can
 
 ## Replay Attacks
 
-DRIP Link messages are static in nature. These DRIP Link messages can easily be replayed by an attacker who has copied them from previous broadcasts.
+{{F3411}} (regardless of transport) lacks replay protection, as it more fundamentally lacks fully specified authentication. An attacker trivially can spoof the UA sender MAC address and UAS ID, replaying (with or without modification) previous genuine messages and/or crafting entirely new messages. Using DRIP in {{F3411}} Authentication message framing enables verification that messages were signed with registered keys, but naively used could still be vulnerable to replay attacks. Technologies such as Single Emitter Identification can detect such attacks, but are not readily available and can be prohibitively expensive, especially for typical Observer devices such as smartphones.
 
-If an attacker (who is smart and spoofs more than just the UAS ID/data payloads) willingly replays a DRIP Link message, they have in principle actually helped by ensuring the DRIP Link is sent more frequently and be received by potential Observers.
+Replay attack detection using DRIP requires Observer devices to combine information from multiple messages with out-of-band information. A complete chain of Link messages ({{drip-link}}), from a root of trust to the claimed sender, must be collected and verified by the Observer device to provide trust in a key. Successful signature verification, using that key, of a Wrapper ({{drip-wrapper}}) or Manifest ({{drip-manifest}}) message, authenticating content that is nonce-like, provides trust that the sender actually possesses that key.
 
-The primary mitigation is that the UA is REQUIRED to send more than DRIP Link messages, specifically the Manifest and/or Wrapper messages that sign over changing data ASTM Messages (e.g., Location/Vector Messages) using the DET private key. A UA sending these messages then actually signing these and other messages using the DET key provides the Observer with data that proves real-time signing. A UA that does not either run DRIP themselves or does not have possession of the same private key, would be clearly exposed upon signature verification.
+By “nonce-like” is meant data that is unique, not accurately predictable long in advance, and readily validated by the Observer. This is described in {{drip-recommendations}} (requirement 4) and {{ua-attestation}}. The {{F3411}} Location message reporting precise UA position and velocity at a precise very recent time, to be checked by the Observer against visual observations of the UA within RF and thus typically visual Line Of Sight is the recommended form of this data. For specification of the foregoing, see {{rid-trust}} and {{trust-assessment}} above.
+
+Messages that pass signature verification with trusted keys could still be replays if they contain only static information (e.g. Broadcast Endorsements ({{drip-link}}), {{F3411}} Basic ID or {{F3411}} Operator ID) or information that cannot be readily validated (e.g. {{F3411}} Self-ID). Replay of Link messages is harmless (unless sent so frequently as to cause RF data link congestion) and indeed can increase the likelihood of an Observer device collecting an entire trust chain in a short time window. Replay of other messages ({{F3411}} Basic ID, {{F3411}} Operator ID or {{F3411}} Self-ID) remains a vulnerability, unless they are combined with messages containing nonce-like data ({{F3411}} Location or {{F3411}} System) in a Wrapper or Manifest. For specification of this last requirement, see {{block-hashes}} above.
+
+## Wrapper vs Manifest
+
+Implementations have a choice on using Wrapper ({{drip-wrapper}}), Manifest ({{drip-manifest}}) or a combination to satisfy the 4th requirement in {{drip-recommendations}}.
+
+Wrapper is an attached signature of the full content of one or more {{F3411}} messages, providing strong authentication. However, the size limitation means it can not support such signatures over other Authentication Messages, thus it can not provide a direct binding to any part of the trust chain ({{rid-trust}} and {{trust-assessment}}).
+
+Manifest explicitly provides the binding of the last link in the trust chain (with the inclusion of the hash of the Link containing `BE: HDA, UA`). The use of hashes and their length also allows for a larger (11 vs 4) number of any {{F3411}} messages to be authenticated, making it more efficient compared to the Wrapper. However, the detached signature requires additional Observer overhead in storing and comparing hashes of received messages (some that may not be received) of those in a Manifest.
 
 ## VNA Timestamp Offsets for DRIP Authentication Formats
 
@@ -945,7 +955,7 @@ As stated in {{protocol-desc}} specification of particular DNS security options,
 - Ryan Quigley and James Mussi of AX Enterprize, LLC for early prototyping to find holes in the draft specifications.
 - Carsten Bormann for the simple approach of using bit-column-wise parity for erasure (dropped frame) FEC.
 - Soren Friis for pointing out that Wi-Fi implementations would not always give access to the MAC Address, originally used in calculation of the hashes for DRIP Manifest. Also, for confirming that Message Packs (0xF) can only carry up to 9 ASTM frames worth of data (9 Authentication pages).
-- Gabriel Cox (chair of ASTM working group that produced F3411) in reviewing the specification for the SAM Type request as the Designated Expert
+- Gabriel Cox (chair of the working group that produced {{F3411}}) in reviewing the specification for the SAM Type request as the ASTM Designated Expert
 - Thanks to the following reviewers:
   - Rick Salz (secdir)
   - Matt Joras (genart)
@@ -958,6 +968,7 @@ As stated in {{protocol-desc}} specification of particular DNS security options,
   - Murray Kucherawy (IESG)
   - Erik Kline (IESG)
   - Warren Kumari (IESG)
+  - Paul Wouters (IESG)
 
 --- back
 
