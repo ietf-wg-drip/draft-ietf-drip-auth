@@ -963,7 +963,7 @@ As stated in {{protocol-desc}} specification of particular DNS security options,
 - Soren Friis for pointing out that Wi-Fi implementations would not always give access to the MAC Address, originally used in calculation of the hashes for DRIP Manifest. Also, for confirming that Message Packs (0xF) can only carry up to 9 ASTM frames worth of data (9 Authentication pages)
 - Gabriel Cox (chair of the working group that produced {{F3411}}) in reviewing the specification for the SAM Type request as the ASTM Designated Expert
 - Mohamed Boucadair (Document Shepherd) for his many patches and comments
-- Eric Vyncke (DRIP AD) for his many supportive comments and reviews through the documents path to publication
+- Eric Vyncke (DRIP AD) for his guidance through the documents path to publication
 - Thanks to the following reviewers:
   - Rick Salz (secdir)
   - Matt Joras (genart)
