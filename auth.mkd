@@ -174,7 +174,7 @@ Observers receive DRIP Link Authentication Messages ({{drip-link}}) containing B
 
 #### UA Signed Evidence {#ua-attestation}
 
-To prove possession of the private key associated to the DET, the UA MUST send data that is unique and unpredictable but easily verified by the Observer, that is signed over. The data can be an ASTM Message that fulfills the requirements to be unpredictable but easily verified. An Observer receives this UA-signed Evidence from DRIP-based Authentication Messages ({{drip-wrapper}} or {{drip-manifest}}).
+To prove possession of the private key associated to the DET, the UA MUST send data that is unique and unpredictable but easily validated by the Observer, that is signed over. The data can be an ASTM Message that fulfills the requirements to be unpredictable but easily validated. An Observer receives this UA-signed Evidence from DRIP-based Authentication Messages ({{drip-wrapper}} or {{drip-manifest}}).
 
 Whether the content is true is a separate question which DRIP cannot address, but validation performed using observable and/or out of band data ({{reqs}}) are possible and encouraged.
 
