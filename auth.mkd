@@ -942,9 +942,9 @@ Manifest explicitly provides the binding of the last link in the trust chain (wi
 
 {{operational-proof}} contains a breakdown of frame counts and an example of a schedule using both Manifest and Wrapper. Typical operation may see (as an example) 2x Basic ID, 2x Location, 2x System, 1x Operator ID and 1x Self ID broadcast per second to comply with jurisdiction mandates. Each of these messages are a single frame in size. A Link message is 8 frames long (including FEC). This is a base frame count of **16 frames**.
 
-When Wrapper is used, up to 4 of the previous messages (except the Link) can be authenticated. For this comparison, we will sign all the messages we can in two Wrappers. This results in *20 frames* (with FEC). Due to not being able to fit, the Link message is left unauthenticated. The total frame count using Wrappers is **36 frames**.
+When Wrapper is used, up to 4 of the previous messages (except the Link) can be authenticated. For this comparison, we will sign all the messages we can in two Wrappers. This results in *20 frames* (with FEC). Due to not being able to fit, the Link message is left unauthenticated. The total frame count using Wrappers is **36 frames** (wrapper frame count + base frame count).
 
-When Manifest is used, up to 10 previous messages can be authenticated. For this example all messages (8) are hashed (including the Link) resulting in a single Manifest that is *9 frames* (with FEC). The total frame count using Manifest is **25 frames**.
+When Manifest is used, up to 10 previous messages can be authenticated. For this example all messages (8) are hashed (including the Link) resulting in a single Manifest that is *9 frames* (with FEC). The total frame count using Manifest is **25 frames** (manifest frame count + base frame count).
 
 ## VNA Timestamp Offsets for DRIP Authentication Formats
 
